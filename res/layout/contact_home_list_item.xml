@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" 
+    android:background="@color/white"
+    >
+
+    <!-- 首字母 -->
+
+    <TextView
+        android:id="@+id/alpha"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#f1f1f1"
+        android:paddingLeft="10dip"
+        android:textColor="#999999"
+        android:visibility="gone" />
+
+    <!-- 联系人信息 -->
+
+    <ImageView
+        android:id="@+id/qcb"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/alpha"
+        android:layout_marginTop="14dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_alignTop="@+id/qcb"
+        android:layout_toRightOf="@+id/qcb"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginLeft="14dp"
+        android:textSize="16sp"
+        android:textColor="#2b2b2b"
+        android:text="华南区社会化媒体市场通讯录" />
+
+    <TextView
+        android:id="@+id/number"
+        android:layout_below="@+id/name"
+        android:layout_alignLeft="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:layout_marginTop="5dp"
+        android:textSize="12sp"
+        android:textColor="#999999"
+        android:text="人数 20   点击数 200"/>
+
+    <View 
+        android:layout_below="@+id/qcb"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="#e4e4e4"
+        />
+	
+</RelativeLayout>

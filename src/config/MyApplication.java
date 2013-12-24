@@ -1,0 +1,164 @@
+package config;
+
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.http.client.CookieStore;
+
+import com.loopj.android.http.PersistentCookieStore;
+import com.nostra13.universalimageloader.utils.L;
+
+import service.T9Service;
+import tools.AppContext;
+import tools.AppException;
+import tools.ImageCacheUtil;
+import tools.Logger;
+import tools.StringUtils;
+
+import bean.ContactBean;
+import bean.UserEntity;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Intent;
+
+public class MyApplication extends AppContext {
+	private static MyApplication mApplication;
+	
+	private NotificationManager mNotificationManager;
+	private Notification mNotification;
+	
+	private boolean login = false;	//登录状态
+	private String loginUid = "0";	//登录用户的id
+	
+	private List<ContactBean> contactBeanList;
+	
+	public List<ContactBean> getContactBeanList() {
+		return contactBeanList;
+	}
+	public void setContactBeanList(List<ContactBean> contactBeanList) {
+		this.contactBeanList = contactBeanList;
+	}
+	
+	public synchronized static MyApplication getInstance() {
+		return mApplication;
+	}
+	
+	public NotificationManager getNotificationManager() {
+		if (mNotificationManager == null)
+			mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+		return mNotificationManager;
+	}
+	
+	public void onCreate() {
+		mApplication = this;
+		Logger.getLogger().setTag("MyContact");
+		Intent startService = new Intent(MyApplication.this, T9Service.class);
+		startService(startService);
+		ImageCacheUtil.init(this);
+		Thread.setDefaultUncaughtExceptionHandler(AppException.getAppExceptionHandler());
+		L.disableLogging();
+		Logger.setDebug(true);
+		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+		CookieStore cookieStore = new PersistentCookieStore(this);  
+		QYRestClient.getIntance().setCookieStore(cookieStore);
+	}
+	
+	/**
+	 * 用户是否登录
+	 * @return
+	 */
+	public boolean isLogin() {
+		try {
+			String loginStr = getProperty("user.login");
+			if (StringUtils.isEmpty(loginStr)) {
+				login = false;
+			}
+			else {
+				login = (loginStr.equals("1")) ? true : false;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return login;
+	}
+
+	/**
+	 * 保存登录信息
+	 * @param username
+	 * @param pwd
+	 */
+	@SuppressWarnings("serial")
+	public void saveLoginInfo(final UserEntity user) {
+		this.loginUid = user.openid;
+		this.login = true;
+		setProperties(new Properties(){
+			{
+				setProperty("user.login","1");
+				setProperty("user.uid", user.openid);
+				setProperty("user.name", user.nickname);
+				setProperty("user.face", user.headimgurl);
+				setProperty("user.hash", user.hash);
+			}
+		});		
+	}
+
+	/**
+	 * 获取登录用户id
+	 * @return
+	 */
+	public String getLoginUid() {
+		return (getProperty("user.uid"));
+	}
+	
+	public String getLoginHash() {
+		return (getProperty("user.hash"));
+	}
+
+	/**
+	 * 获取登录信息
+	 * @return
+	 */
+	public UserEntity getLoginInfo() {		
+		UserEntity lu = new UserEntity();		
+		lu.openid = (getProperty("user.uid"));
+		lu.nickname = (getProperty("user.name"));
+		lu.headimgurl = (getProperty("user.face"));
+		return lu;
+	}
+	
+	/**
+	 * 退出登录
+	 */
+	public void setUserLogout() {
+		this.login = false;
+		setProperties(new Properties(){
+			{
+				setProperty("user.login","0");
+			}
+		});	
+	}
+	
+	public boolean isNeedCheckLogin() {
+		try {
+			String loginStr = getProperty("user.needchecklogin");
+			if (StringUtils.isEmpty(loginStr)) {
+				return false;
+			}
+			else {
+				return (loginStr.equals("1")) ? true : false;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public void setNeedCheckLogin() {
+		setProperties(new Properties(){
+			{
+				setProperty("user.needchecklogin","1");
+			}
+		});
+	}
+}

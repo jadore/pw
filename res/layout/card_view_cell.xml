@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/transparent" >
+    <TextView 
+        android:id="@+id/title"
+        android:layout_width="80dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="10dp"
+        android:textSize="13sp"
+        android:textColor="#088ec1"
+        android:text="华南区"
+        android:gravity="right|top"
+        />
+    
+    <TextView 
+        android:layout_toRightOf="@+id/title"
+        android:id="@+id/des"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:gravity="left|top"
+        android:textSize="13sp"
+        android:textColor="#3b3b3b"
+        android:text="人数 20   点击数 200asfasdfsdfasdfsadfsadfasdfasdfsadfasdfasdfasdf"
+        />
+    
+    <View 
+        android:layout_below="@+id/des"
+        android:layout_marginLeft="21dp"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="#e4e4e4"
+        />
+	
+</RelativeLayout>

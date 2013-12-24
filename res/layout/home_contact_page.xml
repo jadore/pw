@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/acbuwa_page"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/background_color" >
+
+    <RelativeLayout 
+        android:id="@+id/acbuwa_topbar"
+        android:layout_height="44dp"
+        android:layout_width="match_parent"
+        android:background="@color/nav_color"
+        >
+        <Button
+            android:id="@+id/leftBarButton"
+            android:layout_width="90dp"
+            android:layout_height="44dp"
+            android:drawableLeft="@drawable/btn_back_normal"
+            android:background="@null"
+            android:layout_centerVertical="true"
+            android:text="返回"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:drawablePadding="-20dp"
+            android:paddingLeft="12dp"
+            android:onClick="ButtonClick"
+            />
+        
+        <TextView 
+            android:id="@+id/titleBarView"
+            android:layout_width="wrap_content"
+      		android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            />
+    </RelativeLayout>
+
+        <ListView
+            android:layout_below="@+id/acbuwa_topbar"
+            android:id="@+id/acbuwa_list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:cacheColorHint="#000000"
+            android:divider="#00000000"
+            android:fadingEdge="none"
+            android:scrollbars="none"
+            android:scrollingCache="false"
+            android:visibility="visible" />
+
+    <widget.QuickAlphabeticBar
+        android:id="@+id/fast_scroller"
+        android:layout_width="22dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/acbuwa_topbar"
+        android:layout_gravity="top|right|center"
+        android:layout_marginTop="0dip"
+        android:background="@null"
+        android:scaleType="centerInside"
+        android:src="@drawable/dic_background" />
+
+    <TextView
+        android:id="@+id/fast_position"
+        android:layout_width="70dip"
+        android:layout_height="70dip"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_margin="34dip"
+        android:background="@drawable/sort_icon_bg_click"
+        android:gravity="center"
+        android:padding="2dip"
+        android:textColor="#404040"
+        android:textSize="48dip"
+        android:visibility="invisible" />
+
+</RelativeLayout>

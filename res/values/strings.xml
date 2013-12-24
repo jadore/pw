@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">群友通讯录</string>
+	
+	<string name="wechat_login"><u>使用微信登录</u></string>
+	<string name="code_retake"><u>重新获取验证码</u></string>
+	
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nav_color"
+    >
+    <View 
+        android:id="@+id/dot"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_centerInParent="true"
+        />
+    
+    <ImageView 
+        android:layout_width="123dp"
+        android:layout_height="103dp"
+        android:background="@drawable/logo"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/dot"
+        />
+    
+    <TextView 
+        android:layout_width="268dp"
+        android:layout_height="50dp"
+        android:text="数据已进行隐私加密，请放心使用\nPower By MOMOKA"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:textColor="@color/white"
+        />
+
+</RelativeLayout>
