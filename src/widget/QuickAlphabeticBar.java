@@ -46,6 +46,12 @@ public class QuickAlphabeticBar extends ImageButton {
 		mDialogText.setVisibility(View.INVISIBLE);
 		mHandler = new Handler();
 	}
+	
+	public void initFrom(View ctx) {
+		mDialogText = (TextView) ctx.findViewById(R.id.fast_position);
+		mDialogText.setVisibility(View.INVISIBLE);
+		mHandler = new Handler();
+	}
 
 	public void setListView(ListView mList) {
 		this.mList = mList;

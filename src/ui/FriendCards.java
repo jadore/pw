@@ -1,17 +1,24 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import tools.AppException;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
+import tools.StringUtils;
 import tools.UIHelper;
 import ui.Index.MyOnPageChangeListener;
 import ui.adapter.FriendCardAdapter;
 import ui.adapter.IndexPagerAdapter;
+import widget.QuickAlphabeticBar;
 import bean.CardIntroEntity;
+import bean.ContactBean;
 import bean.Entity;
 import bean.FriendCardListEntity;
 import bean.PhoneListEntity;
@@ -47,23 +54,25 @@ public class FriendCards extends AppActivity {
 	private ListView mBilateralListView;
 	private FriendCardAdapter mBilateralAdapter;
 	private TextView nobilateralView;
+	private QuickAlphabeticBar alpha1;
 	
 	private List<CardIntroEntity> friends = new ArrayList<CardIntroEntity>();
 	private ListView mFriendListView;
 	private FriendCardAdapter mFriendAdapter;
 	private TextView noFriendView;
+	private QuickAlphabeticBar alpha2;
 	
 	private List<CardIntroEntity> followers = new ArrayList<CardIntroEntity>();
 	private ListView mFollowerListView;
 	private FriendCardAdapter mFollowerAdapter;
 	private TextView noFollowerView;
+	private QuickAlphabeticBar alpha3;
 	
 	private Button bilateralsButton;
 	private Button friendsButton;
 	private Button followersButton;
 	
 	private ProgressDialog loadingPd;
-	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -101,12 +110,17 @@ public class FriendCards extends AppActivity {
 		mPager.setCurrentItem(PAGE1);
 		mPager.setOnPageChangeListener(new MyOnPageChangeListener());
 		
+		
 		mBilateralListView = (ListView) lay0.findViewById(R.id.tab0_listView);
 		nobilateralView = (TextView) lay0.findViewById(R.id.noting_view);
 		mBilateralListView.setDividerHeight(0);
 		bilaterals = new ArrayList<CardIntroEntity>();
 		mBilateralAdapter = new FriendCardAdapter(this, bilaterals);
 		mBilateralListView.setAdapter(mBilateralAdapter);
+		alpha1 = (QuickAlphabeticBar) lay0.findViewById(R.id.fast_scroller);
+		alpha1.initFrom(lay0);
+		alpha1.setListView(mBilateralListView);
+		alpha1.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
 		
 		mFriendListView = (ListView) lay1.findViewById(R.id.tab1_listView);
 		noFriendView = (TextView) lay1.findViewById(R.id.noting_view);
@@ -114,6 +128,10 @@ public class FriendCards extends AppActivity {
 		friends = new ArrayList<CardIntroEntity>();
 		mFriendAdapter = new FriendCardAdapter(this, friends);
 		mFriendListView.setAdapter(mFriendAdapter);
+		alpha2 = (QuickAlphabeticBar) lay1.findViewById(R.id.fast_scroller);
+		alpha2.initFrom(lay1);
+		alpha2.setListView(mFriendListView);
+		alpha2.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
 		
 		mFollowerListView = (ListView) lay2.findViewById(R.id.tab2_listView);
 		noFollowerView = (TextView) lay2.findViewById(R.id.noting_view);
@@ -121,6 +139,10 @@ public class FriendCards extends AppActivity {
 		followers = new ArrayList<CardIntroEntity>();
 		mFollowerAdapter = new FriendCardAdapter(this, followers);
 		mFollowerListView.setAdapter(mFollowerAdapter);
+		alpha3 = (QuickAlphabeticBar) lay2.findViewById(R.id.fast_scroller);
+		alpha3.initFrom(lay2);
+		alpha3.setListView(mFollowerListView);
+		alpha3.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
 	}
 	
 	public void ButtonClick(View v) {
@@ -189,16 +211,19 @@ public class FriendCards extends AppActivity {
 			bilaterals.clear();
 			bilaterals.addAll(entity.bilateral);
 			mBilateralAdapter.notifyDataSetChanged();
+			setAlpha(alpha1, bilaterals);
 		}
 		if (entity.friend.size() > 0) {
 			friends.clear();
 			friends.addAll(entity.friend);
 			mFriendAdapter.notifyDataSetChanged();
+			setAlpha(alpha2, friends);
 		}
 		if (entity.follower.size() > 0) {
 			followers.clear();
 			followers.addAll(entity.follower);
 			mFollowerAdapter.notifyDataSetChanged();
+			setAlpha(alpha3, followers);
 		}
 		if (bilaterals.size() == 0) {
 			nobilateralView.setVisibility(View.VISIBLE);
@@ -209,6 +234,25 @@ public class FriendCards extends AppActivity {
 		if (followers.size() == 0) {
 			noFollowerView.setVisibility(View.VISIBLE);
 		}
+	}
+	
+	private void setAlpha(QuickAlphabeticBar alpha, List<CardIntroEntity> list) {
+		HashMap<String, Integer> alphaIndexer = new HashMap<String, Integer>();
+		String[] sections = new String[list.size()];
+		for (int i =0; i <list.size(); i++) {
+			String name = StringUtils.getAlpha(list.get(i).pinyin);
+			if(!alphaIndexer.containsKey(name)){ 
+				alphaIndexer.put(name, i);
+			}
+		}
+		Set<String> sectionLetters = alphaIndexer.keySet();
+		ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
+		Collections.sort(sectionList);
+		sections = new String[sectionList.size()];
+		sectionList.toArray(sections);
+		Logger.i(alphaIndexer.values().toString());
+		alpha.setAlphaIndexer(alphaIndexer);
+		alpha.setVisibility(View.VISIBLE);
 	}
 	
 	public class MyOnPageChangeListener implements OnPageChangeListener {
@@ -244,4 +288,5 @@ public class FriendCards extends AppActivity {
 
 		}
 	}
+	
 }

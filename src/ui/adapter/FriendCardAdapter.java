@@ -1,7 +1,7 @@
 package ui.adapter;
 
 import java.util.List;
-
+import tools.StringUtils;
 import ui.CardView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
@@ -25,6 +25,7 @@ public class FriendCardAdapter extends BaseAdapter {
 	private List<CardIntroEntity> cards;
 	
 	static class CellHolder {
+		TextView alpha;
 		ImageView avatarImageView;
 		TextView titleView;
 		TextView desView;
@@ -35,6 +36,7 @@ public class FriendCardAdapter extends BaseAdapter {
 		this.inflater = LayoutInflater.from(context);
 		this.cards = cards;
 	}
+	
 	@Override
 	public int getCount() {
 		return cards.size();
@@ -55,7 +57,8 @@ public class FriendCardAdapter extends BaseAdapter {
 		CellHolder cell = null;
 		if (convertView == null) {
 			cell = new CellHolder();
-			convertView = inflater.inflate(R.layout.view_members_cell, null);
+			convertView = inflater.inflate(R.layout.friend_card_cell, null);
+			cell.alpha = (TextView) convertView.findViewById(R.id.alpha);
 			cell.avatarImageView = (ImageView) convertView.findViewById(R.id.avatarImageView);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
 			cell.desView = (TextView) convertView.findViewById(R.id.des);
@@ -68,6 +71,14 @@ public class FriendCardAdapter extends BaseAdapter {
 		ImageLoader.getInstance().displayImage(model.headimgurl, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
+		String currentStr = StringUtils.getAlpha(model.pinyin);
+		String previewStr = (position - 1) >= 0 ? StringUtils.getAlpha(cards.get(position - 1).pinyin) : " ";
+		if (!previewStr.equals(currentStr)) { 
+			cell.alpha.setVisibility(View.VISIBLE);
+			cell.alpha.setText(currentStr);
+		} else {
+			cell.alpha.setVisibility(View.GONE);
+		}
 		convertView.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
@@ -82,4 +93,5 @@ public class FriendCardAdapter extends BaseAdapter {
 		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
 		context.startActivity(intent);
 	}
+	
 }

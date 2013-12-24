@@ -38,6 +38,7 @@
             android:scrollHorizontally="true"
             android:ellipsize="end"
             android:singleLine="true"
+            android:gravity="center"
             />
         <Button
             android:id="@+id/rightBarButton"

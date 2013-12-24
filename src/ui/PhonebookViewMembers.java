@@ -29,8 +29,12 @@ import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -99,7 +103,7 @@ public class PhonebookViewMembers extends AppActivity{
 			AppManager.getAppManager().finishActivity(this);
 			break;
 		case R.id.rightBarButton:
-			showSMS();
+			SMSDialog();
 			break;
 		case R.id.addMyMobile:
 			String url = String.format("%s/add/%s", CommonValue.BASE_URL, phonebook.code);
@@ -312,6 +316,27 @@ public class PhonebookViewMembers extends AppActivity{
 		Intent intent = new Intent(this,CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
         startActivityForResult(intent, RequestCode);
+	}
+	
+	protected void SMSDialog() {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage("允许群友通讯录发送短信?");
+		builder.setTitle("提示");
+		builder.setPositiveButton("确认", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				showSMS();
+			}
+		});
+
+	   builder.setNegativeButton("取消", new OnClickListener() {
+		   @Override
+		   public void onClick(DialogInterface dialog, int which) {
+			   dialog.dismiss();
+		   }
+	   });
+	   builder.create().show();
 	}
 	
 	private void showSMS() {

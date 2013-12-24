@@ -5,9 +5,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import tools.Logger;
+import ui.AcivityViewMembers;
 import ui.CardView;
+import ui.CreateView;
 import ui.PhonebookViewMembers;
 import ui.adapter.CardViewAdapter.CellHolder;
+import bean.ActivityIntroEntity;
 import bean.CardIntroEntity;
 import bean.KeyValue;
 import bean.MessageEntity;
@@ -140,16 +143,17 @@ public class MessageViewAdapter extends BaseAdapter {
 	    pattern = Pattern.compile(activityRegex);
 	    matcher = pattern.matcher(target);
 	    if (matcher.find()) {
-	    	showPhone(matcher.group(1));
+	    	showActivity(matcher.group(1));
 	        return;
 	    }
 	    String bRegex         = ".*\\/b\\/([0-9a-z]+)$";
 	    pattern = Pattern.compile(bRegex);
 	    matcher = pattern.matcher(target);
 	    if (matcher.find()) {
-	    	
+	    	showCreate(target);
 	        return;
 	    }
+	    showCreate(target);
 	}
 	
 	private void showPhone(String code) {
@@ -162,8 +166,17 @@ public class MessageViewAdapter extends BaseAdapter {
 		context.startActivity(intent);
 	}
 	
+	private void showActivity(String code) {
+		Intent intent = new Intent(context, AcivityViewMembers.class);
+		ActivityIntroEntity entity = new ActivityIntroEntity();
+		entity.code = code;
+		entity.content = " ";
+		entity.title = " ";
+		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+		context.startActivity(intent);
+	}
+	
 	private void showCard(String code) {
-		Logger.i(code);
 		Intent intent = new Intent(context, CardView.class);
 		CardIntroEntity entity = new CardIntroEntity();
 		entity.code = code;
@@ -171,6 +184,12 @@ public class MessageViewAdapter extends BaseAdapter {
 		entity.position = "";
 		entity.willRefresh = true;
 		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+		context.startActivity(intent);
+	}
+	
+	private void showCreate(String url) {
+		Intent intent = new Intent(context, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
 		context.startActivity(intent);
 	}
 }

@@ -10,7 +10,11 @@ import tools.UIHelper;
 import ui.adapter.ActivityViewMembersAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView.OnItemClickListener;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -96,7 +100,7 @@ public class AcivityViewMembers extends AppActivity{
 			AppManager.getAppManager().finishActivity(this);
 			break;
 		case R.id.rightBarButton:
-			showSMS();
+			SMSDialog();
 			break;
 		case R.id.addMyMobile:
 			String url = String.format("%s/activity/add/code/%s", CommonValue.BASE_URL, activityview.code);
@@ -253,6 +257,27 @@ public class AcivityViewMembers extends AppActivity{
 		Intent intent = new Intent(this,CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
         startActivityForResult(intent, RequestCode);
+	}
+	
+	protected void SMSDialog() {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage("允许群友通讯录发送短信?");
+		builder.setTitle("提示");
+		builder.setPositiveButton("确认", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				showSMS();
+			}
+		});
+
+	   builder.setNegativeButton("取消", new OnClickListener() {
+		   @Override
+		   public void onClick(DialogInterface dialog, int which) {
+			   dialog.dismiss();
+		   }
+	   });
+	   builder.create().show();
 	}
 	
 	private void showSMS() {
