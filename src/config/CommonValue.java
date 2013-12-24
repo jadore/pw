@@ -13,8 +13,8 @@ import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.vikaa.baseapp.R;
 
 public class CommonValue {
-	public static final String BASE_API = "http://pb.wcl.m0.hk/api/";
-	public static final String BASE_URL = "http://pb.wcl.m0.hk";
+	public static final String BASE_API = "http://pb.wc.m0.hk/api/";
+	public static final String BASE_URL = "http://pb.wc.m0.hk";
 	
 	public interface CacheKey {
 		String PhoneList = "PhoneList";

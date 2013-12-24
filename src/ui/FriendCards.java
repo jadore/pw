@@ -120,7 +120,7 @@ public class FriendCards extends AppActivity {
 		alpha1 = (QuickAlphabeticBar) lay0.findViewById(R.id.fast_scroller);
 		alpha1.initFrom(lay0);
 		alpha1.setListView(mBilateralListView);
-		alpha1.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
+		alpha1.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
 		
 		mFriendListView = (ListView) lay1.findViewById(R.id.tab1_listView);
 		noFriendView = (TextView) lay1.findViewById(R.id.noting_view);
@@ -131,7 +131,7 @@ public class FriendCards extends AppActivity {
 		alpha2 = (QuickAlphabeticBar) lay1.findViewById(R.id.fast_scroller);
 		alpha2.initFrom(lay1);
 		alpha2.setListView(mFriendListView);
-		alpha2.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
+		alpha2.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
 		
 		mFollowerListView = (ListView) lay2.findViewById(R.id.tab2_listView);
 		noFollowerView = (TextView) lay2.findViewById(R.id.noting_view);
@@ -142,7 +142,7 @@ public class FriendCards extends AppActivity {
 		alpha3 = (QuickAlphabeticBar) lay2.findViewById(R.id.fast_scroller);
 		alpha3.initFrom(lay2);
 		alpha3.setListView(mFollowerListView);
-		alpha3.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 88));
+		alpha3.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
 	}
 	
 	public void ButtonClick(View v) {

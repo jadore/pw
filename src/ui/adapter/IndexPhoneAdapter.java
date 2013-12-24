@@ -68,10 +68,10 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 		PhoneIntroEntity model = phones.get(section).get(position);
 		cell.titleView.setText(model.title);
 		if (section > 0) {
-			cell.desView.setText(String.format("人数%s 点击数%s", model.member, model.hits));
+			cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
 		}
 		else {
-			cell.desView.setText("");
+			cell.desView.setText(model.content);
 		}
 		return convertView;
 	}

@@ -41,23 +41,23 @@ public class ContactHomeAdapter extends BaseAdapter{
 		this.ctx = context;
 		this.inflater = LayoutInflater.from(context);
 		this.list = list; 
-		this.alphaIndexer = new HashMap<String, Integer>();
-		this.sections = new String[list.size()];
-
-		for (int i =0; i <list.size(); i++) {
-			String name = getAlpha(list.get(i).getSortKey());
-			if(!alphaIndexer.containsKey(name)){ 
-				alphaIndexer.put(name, i);
-			}
-		}
-		
-		Set<String> sectionLetters = alphaIndexer.keySet();
-		ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
-		Collections.sort(sectionList);
-		sections = new String[sectionList.size()];
-		sectionList.toArray(sections);
-
-		alpha.setAlphaIndexer(alphaIndexer);
+//		this.alphaIndexer = new HashMap<String, Integer>();
+//		this.sections = new String[list.size()];
+//
+//		for (int i =0; i <list.size(); i++) {
+//			String name = getAlpha(list.get(i).getSortKey());
+//			if(!alphaIndexer.containsKey(name)){ 
+//				alphaIndexer.put(name, i);
+//			}
+//		}
+//		
+//		Set<String> sectionLetters = alphaIndexer.keySet();
+//		ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
+//		Collections.sort(sectionList);
+//		sections = new String[sectionList.size()];
+//		sectionList.toArray(sections);
+//
+//		alpha.setAlphaIndexer(alphaIndexer);
 	}
 
 	@Override

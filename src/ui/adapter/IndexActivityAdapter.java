@@ -72,7 +72,7 @@ public class IndexActivityAdapter extends SectionedBaseAdapter {
 		}
 		ActivityIntroEntity model = activities.get(section).get(position);
 		cell.titleView.setText(model.title);
-		cell.desView.setText(String.format("活动时间%s 参加人数%s", model.begin_at, model.member));
+		cell.desView.setText(String.format("活动时间:%s 参加人数:%s", model.begin_at, model.member));
 		return convertView;
 	}
 

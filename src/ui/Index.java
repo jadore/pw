@@ -164,10 +164,12 @@ public class Index extends AppActivity {
 		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
 		PhoneIntroEntity mobile = new PhoneIntroEntity();
 		mobile.title = "手机通讯录";
+		mobile.content = "快来看看你的小伙伴";
 		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile);
 		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
 		mobile1.title = "个人微友通讯录";
+		mobile1.content = "快来看看你的微信小伙伴";
 		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile1);
 		phones.add(mobilesInPhone);
@@ -299,10 +301,12 @@ public class Index extends AppActivity {
 		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
 		PhoneIntroEntity mobile = new PhoneIntroEntity();
 		mobile.title = "手机通讯录";
+		mobile.content = "快来看看你的小伙伴";
 		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile);
 		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
 		mobile1.title = "个人微友通讯录";
+		mobile1.content = "快来看看你的微信小伙伴";
 		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile1);
 		phones.add(mobilesInPhone);
@@ -474,10 +478,12 @@ public class Index extends AppActivity {
 					List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
 					PhoneIntroEntity mobile = new PhoneIntroEntity();
 					mobile.title = "手机通讯录";
+					mobile.content = "快来看看你的小伙伴";
 					mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 					mobilesInPhone.add(mobile);
 					PhoneIntroEntity mobile1 = new PhoneIntroEntity();
 					mobile1.title = "个人微友通讯录";
+					mobile1.content = "快来看看你的微信小伙伴";
 					mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 					mobilesInPhone.add(mobile1);
 					phones.add(mobilesInPhone);

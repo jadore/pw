@@ -1,55 +1,41 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import other.SizeCallBackForMenu;
-
 import bean.ContactBean;
-import bean.GroupBean;
-
 import com.vikaa.mycontact.R;
 
 import sms.MessageBoxList;
 import tools.AppManager;
 import tools.BaseIntentUtil;
-import tools.Logger;
+import tools.ImageUtils;
+import tools.StringUtils;
 import ui.adapter.ContactHomeAdapter;
 import ui.adapter.MenuListAdapter;
 import widget.MenuHorizontalScrollView;
 import widget.QuickAlphabeticBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
-import android.provider.ContactsContract.Groups;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
 
 public class HomeContactActivity extends AppActivity {
 
@@ -91,7 +77,7 @@ public class HomeContactActivity extends AppActivity {
 		alpha = (QuickAlphabeticBar)this.findViewById(R.id.fast_scroller);
 		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
 		init();
-
+		setAdapter();
 //		menuBtn.setOnClickListener(new OnClickListener() {
 //			public void onClick(View v) {
 //				scrollView.clickMenuBtn(HomeContactActivity.this);
@@ -174,7 +160,7 @@ public class HomeContactActivity extends AppActivity {
 				
 				contactIdMap = new HashMap<Integer, ContactBean>();
 				
-				list = new ArrayList<ContactBean>();
+				
 				cursor.moveToFirst();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
@@ -207,7 +193,25 @@ public class HomeContactActivity extends AppActivity {
 					}
 				}
 				if (list.size() > 0) {
-					setAdapter(list);
+					adapter.notifyDataSetChanged();
+					HashMap<String, Integer> alphaIndexer = new HashMap<String, Integer>();
+					String[] sections = new String[list.size()];
+
+					for (int i =0; i <list.size(); i++) {
+						String name = StringUtils.getAlpha(list.get(i).getSortKey());
+						if(!alphaIndexer.containsKey(name)){ 
+							alphaIndexer.put(name, i);
+						}
+					}
+					
+					Set<String> sectionLetters = alphaIndexer.keySet();
+					ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
+					Collections.sort(sectionList);
+					sections = new String[sectionList.size()];
+					sectionList.toArray(sections);
+
+					alpha.setAlphaIndexer(alphaIndexer);
+					alpha.setVisibility(View.VISIBLE);
 				}
 			}
 		}
@@ -215,14 +219,13 @@ public class HomeContactActivity extends AppActivity {
 	}
 
 
-	private void setAdapter(List<ContactBean> list) {
+	private void setAdapter() {
+		list = new ArrayList<ContactBean>();
 		adapter = new ContactHomeAdapter(this, list, alpha);
 		personList.setAdapter(adapter);
 		alpha.init(HomeContactActivity.this);
 		alpha.setListView(personList);
-		alpha.setHight(alpha.getHeight());
-		Logger.i(alpha.getHeight()+"");
-		alpha.setVisibility(View.VISIBLE);
+		alpha.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
 		personList.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ContactBean cb = (ContactBean) adapter.getItem(position);
