@@ -4,8 +4,14 @@ import tools.AppManager;
 
 import com.vikaa.mycontact.R;
 
+import config.CommonValue;
+
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -33,9 +39,11 @@ public class Welcome extends AppActivity {
 	
 	private void redirectTo(){     
 		if(!appContext.isLogin()){
-			Intent intent = new Intent(this,LoginCode1.class);
-	        startActivity(intent);
-	        AppManager.getAppManager().finishActivity(this);
+			if(!showWhatsNewOnFirstLaunch()){
+				Intent intent = new Intent(this,LoginCode1.class);
+				startActivity(intent);
+				AppManager.getAppManager().finishActivity(this);
+			}
 		}
 		else {
 			Intent intent = new Intent(this,Index.class);
@@ -44,23 +52,23 @@ public class Welcome extends AppActivity {
 		}
     }
 	
-//	private boolean showWhatsNewOnFirstLaunch() {
-//	    try {
-//		      PackageInfo info = getPackageManager().getPackageInfo(ValueClass.PackageName, 0);
-//		      int currentVersion = info.versionCode;
-//		      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-//		      int lastVersion = prefs.getInt(KEY_HELP_VERSION_SHOWN, 0);
-//		      if (currentVersion > lastVersion) {
-//			        prefs.edit().putInt(KEY_HELP_VERSION_SHOWN, currentVersion).commit();
-//			        Intent intent = new Intent(this, GuidingPage.class);
-//			        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-//			        startActivity(intent);
-//			        finish();
-//			        return true;
-//		      	}
-//	    	} catch (PackageManager.NameNotFoundException e) {
-//	    		e.printStackTrace();
-//	    	}
-//	    return false;
-//	}
+	private boolean showWhatsNewOnFirstLaunch() {
+	    try {
+		      PackageInfo info = getPackageManager().getPackageInfo(CommonValue.PackageName, 0);
+		      int currentVersion = info.versionCode;
+		      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		      int lastVersion = prefs.getInt(CommonValue.KEY_GUIDE_SHOWN, 0);
+		      if (currentVersion > lastVersion) {
+			        
+			        Intent intent = new Intent(this, GuidePage.class);
+			        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+			        startActivity(intent);
+			        AppManager.getAppManager().finishActivity(this);
+			        return true;
+		      	}
+	    	} catch (PackageManager.NameNotFoundException e) {
+	    		e.printStackTrace();
+	    	}
+	    return false;
+	}
 }

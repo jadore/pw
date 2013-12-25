@@ -13,8 +13,17 @@ import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.vikaa.baseapp.R;
 
 public class CommonValue {
+	public static final String PackageName = "com.vikaa.mycontact";
+	
 	public static final String BASE_API = "http://pb.wc.m0.hk/api/";
 	public static final String BASE_URL = "http://pb.wc.m0.hk";
+	
+	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
+	
+	public interface subTitle {
+		String subtitle1 = "快来看看你的小伙伴";
+		String subtitle2 = "和你交换了名片的小伙伴都在这里哦";
+	}
 	
 	public interface CacheKey {
 		String PhoneList = "PhoneList";
