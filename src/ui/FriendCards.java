@@ -143,6 +143,13 @@ public class FriendCards extends AppActivity {
 		alpha3.initFrom(lay2);
 		alpha3.setListView(mFollowerListView);
 		alpha3.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
+		
+		int[] x = { 6, 2, 4, 1, 5, 9 };
+        int[] sorted = new int[x.length];
+        merge_sort(x, 0, x.length, sorted);
+        for (int i : sorted) {
+			Logger.i(i+"");
+		}
 	}
 	
 	public void ButtonClick(View v) {
@@ -174,6 +181,10 @@ public class FriendCards extends AppActivity {
 	}
 	
 	private void getFriendCard() {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.getFriendCard(appContext, new ClientCallback() {
 			@Override
@@ -250,11 +261,41 @@ public class FriendCards extends AppActivity {
 		Collections.sort(sectionList);
 		sections = new String[sectionList.size()];
 		sectionList.toArray(sections);
-		Logger.i(alphaIndexer.values().toString());
 		alpha.setAlphaIndexer(alphaIndexer);
 		alpha.setVisibility(View.VISIBLE);
 	}
 	
+	static void merge(int[] unsorted, int first, int mid, int last, int[] sorted)
+    {
+        int i = first, j = mid;
+        int k = 0;
+        while (i < mid && j < last)
+            if (unsorted[i] < unsorted[j])
+                sorted[k++] = unsorted[i++];
+            else
+                sorted[k++] = unsorted[j++];
+
+        while (i < mid)
+            sorted[k++] = unsorted[i++];
+        while (j < last)
+            sorted[k++] = unsorted[j++];
+
+        for (int v = 0; v < k; v++)
+            unsorted[first + v] = sorted[v];
+    }
+
+    static void merge_sort(int[] unsorted, int first, int last, int[] sorted)
+    {
+        if (first + 1 < last)
+        {
+            int mid = (first + last) / 2;
+            merge_sort(unsorted, first, mid, sorted);
+            merge_sort(unsorted, mid, last, sorted);
+            merge(unsorted, first, mid, last, sorted);
+        }
+    }
+
+    
 	public class MyOnPageChangeListener implements OnPageChangeListener {
 
 		public void onPageSelected(int arg0) {

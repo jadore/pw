@@ -96,6 +96,10 @@ public class Index extends AppActivity {
 		ShareSDK.initSDK(this);
 		initUI();
 		getCache();
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		checkLogin();
 	}
 	

@@ -153,6 +153,10 @@ public class AcivityViewMembers extends AppActivity{
 	}
 	
 	private void getActivityView(String code) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.getActivityView(appContext, code, new ClientCallback() {
 			@Override

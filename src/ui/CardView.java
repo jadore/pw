@@ -311,6 +311,10 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	}
 	
 	private void getCard(String code) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.getCard(appContext, code, new ClientCallback() {
 			@Override

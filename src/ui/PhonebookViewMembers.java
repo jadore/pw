@@ -164,6 +164,10 @@ public class PhonebookViewMembers extends AppActivity{
 	}
 	
 	private void getPhoneView(String code) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.getPhoneView(appContext, code, new ClientCallback() {
 			@Override

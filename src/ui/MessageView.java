@@ -69,6 +69,10 @@ public class MessageView extends AppActivity {
 	}
 	
 	private void getMessage() {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.getMessageList(appContext, new ClientCallback() {
 			@Override
