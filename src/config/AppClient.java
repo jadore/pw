@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
+import org.apache.james.mime4j.codec.DecoderUtil;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -29,10 +30,10 @@ import bean.UserEntity;
 import tools.AppContext;
 import tools.AppException;
 import tools.AppManager;
+import tools.DecodeUtil;
 import tools.Logger;
 
 public class AppClient {
-	private static final int[] key = {16,4,3,19,20, 10, 1, 7, 15, 21, 2, 0, 17, 18, 5, 8, 6, 12, 14, 9, 13, 11};
 	
     public interface ClientCallback{
         abstract void onSuccess(Entity data);
@@ -40,33 +41,6 @@ public class AppClient {
         abstract void onError(Exception e);
     }
     
-    protected static String decode(String origin) throws AppException {
-		String target;
-		try {
-			origin = origin.replace("O", "#");
-			origin = origin.replace("0", "O");
-			origin = origin.replace("I", "0");
-			origin = origin.replace("#", "I");
-			byte[] b = Base64.decode(origin, Base64.DEFAULT);
-			byte[] bnew = new byte[b.length];
-			for (int i=0;i<b.length;i++) {
-				bnew[(int)(Math.floor(i/key.length)*key.length)+key[i%key.length]] = b[i];
-			}
-			target = new String(bnew);
-			Pattern regex = Pattern.compile("\\{(.*)\\}\\d*");
-			Matcher matcher = regex.matcher(target);
-			if (matcher.find()) {
-				target = String.format("{%s}", matcher.group(1));
-			}
-			return target;
-		} catch (Exception e) {
-			Logger.i(origin);
-			e.printStackTrace();
-			if(e instanceof AppException)
-				throw (AppException)e;
-			throw AppException.json(e);
-		}
-	}
     
     private static void saveCache(MyApplication appContext, String key, Entity entity) {
     	appContext.saveObject(entity, String.format("%s-%s", key, appContext.getLoginUid()));
@@ -79,7 +53,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CodeEntity data = CodeEntity.parse(decode(new String(content)));
+					CodeEntity data = CodeEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -101,7 +75,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					UserEntity data = UserEntity.parse(decode(new String(content)));
+					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -121,7 +95,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					UserEntity data = UserEntity.parse(decode(new String(content)));
+					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -163,7 +137,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					PhoneListEntity data = PhoneListEntity.parse(decode(new String(content)));
+					PhoneListEntity data = PhoneListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.PhoneList, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -186,7 +160,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					PhoneViewEntity data = PhoneViewEntity.parse(decode(new String(content)));
+					PhoneViewEntity data = PhoneViewEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.PhoneView+"-"+code, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -211,7 +185,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CodeEntity data = CodeEntity.parse(decode(new String(content)));
+					CodeEntity data = CodeEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -235,7 +209,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CodeEntity data = CodeEntity.parse(decode(new String(content)));
+					CodeEntity data = CodeEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -255,7 +229,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					ActivityListEntity data = ActivityListEntity.parse(decode(new String(content)));
+					ActivityListEntity data = ActivityListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.ActivityList, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -278,7 +252,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					ActivityViewEntity data = ActivityViewEntity.parse(decode(new String(content)));
+					ActivityViewEntity data = ActivityViewEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.ActivityView+"-"+code, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -299,7 +273,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CardListEntity data = CardListEntity.parse(decode(new String(content)));
+					CardListEntity data = CardListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.CardList, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -322,7 +296,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CardIntroEntity data = CardIntroEntity.parse(decode(new String(content)));
+					CardIntroEntity data = CardIntroEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -343,7 +317,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					FriendCardListEntity data = FriendCardListEntity.parse(decode(new String(content)));
+					FriendCardListEntity data = FriendCardListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.FriendCardList, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -366,7 +340,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					CodeEntity data = CodeEntity.parse(decode(new String(content)));
+					CodeEntity data = CodeEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -386,7 +360,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					MessageListEntity data = MessageListEntity.parse(decode(new String(content)));
+					MessageListEntity data = MessageListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.MessageList, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -407,7 +381,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					MessageUnReadEntity data = MessageUnReadEntity.parse(decode(new String(content)));
+					MessageUnReadEntity data = MessageUnReadEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -439,7 +413,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					RecommendListEntity data = RecommendListEntity.parse(decode(new String(content)));
+					RecommendListEntity data = RecommendListEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
