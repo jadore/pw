@@ -21,6 +21,7 @@ import bean.KeyValue;
 import bean.Result;
 
 import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
 import cn.sharesdk.wechat.moments.WechatMoments;
 import com.vikaa.mycontact.R;
 
@@ -289,10 +290,10 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			AppManager.getAppManager().finishActivity(this);
 			break;
 		case R.id.shareFriendButton:
-			showShare(false, "Wechat");
+			showShare(false, Wechat.NAME);
 			break;
 		case R.id.shareTimelineButton:
-			showShare(false, "WechatMoments");
+			showShare(false, WechatMoments.NAME);
 			break;
 		case R.id.saveContactButton:
 			addContact();
@@ -349,7 +350,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我叫%s，这是我的名片，请多多指教", card.realname));
+			oks.setText(String.format("您好，我叫%s，这是我的名片，请多多指教,%s", card.realname, card.link));
 			oks.setImagePath("file:///android_asset/ic_launcher.png");
 			oks.setUrl(card.link);
 			oks.setSilent(silent);

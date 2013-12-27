@@ -199,11 +199,12 @@ public class PhonebookViewMembers extends AppActivity{
 	}
 	
 	private void showShare(boolean silent, String platform) {
+		Logger.i(phonebook.link);
 		try {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", titleBarView.getText().toString()));
+			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", titleBarView.getText().toString(), phonebook.link));
 			oks.setImagePath("file:///android_asset/ic_launcher.png");
 			oks.setUrl(phonebook.link);
 			oks.setSilent(silent);

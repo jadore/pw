@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -111,14 +112,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		convertView.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				if (phonebook.readable.equals(CommonValue.PhonebookLimitRight.PBreadable_Yes)) {
-					getRole(model);
-				}
-				else {
-					if (model.openid.equals(appContext.getLoginUid())) {
-						getRole(model);
-					}
-				}
+				getRole(model);
 			}
 		});
 		return convertView;
@@ -127,8 +121,11 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 	private void realnameEncode(CellHolder cell, CardIntroEntity model) {
 		String realName = null;
 		String mobile = null;
-		
-		if (phonebook.readable.equals(CommonValue.PhonebookLimitRight.PBreadable_Yes)) {
+		if (phonebook.wechat_id.equals(appContext.getLoginUid())) {
+			realName = String.format("%s(%s)", model.realname, model.nickname);
+			mobile = model.phone;
+		}
+		else if (phonebook.readable.equals(CommonValue.PhonebookLimitRight.PBreadable_Yes)) {
 			if (phonebook.wechat_id.equals(model.openid)) {
 				realName = String.format("%s(%s)", model.realname, model.nickname);
 				mobile = model.phone;
@@ -151,6 +148,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 			mobile = model.phone;
 		}
 		if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)) {
+			realName = String.format("%s(%s)", model.realname, model.nickname);
 			mobile = model.phone;
 		}
 		cell.mobileView.setText(mobile);
@@ -202,19 +200,60 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		context.startActivity(intent);
 	}
 	
+	private void show5OptionsDialog(final String[] arg ,final CardIntroEntity model){
+		new AlertDialog.Builder(context).setTitle(model.nickname).setItems(arg,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					if (arg[0].equals(Operation.CallMobile)) {
+						callMobile(model.phone);
+					}
+					break;
+				case 1:
+					if (arg[1].equals(Operation.CheckCard)) {
+						showCardView(model);
+					}
+					break;
+				case 2:
+					if (arg[2].equals(Operation.SetAdmin)) {
+						setRole(model, CommonValue.PhonebookLimitRight.RoleAdmin);
+					}
+					break;
+				case 3:
+					if (arg[3].equals(Operation.DeleteCard)) {
+						setRole(model, CommonValue.PhonebookLimitRight.RoleNone);
+					}
+					break;
+				case 4:
+					if (arg[4].equals(Operation.CancelPass)) {
+						setPass(model, CommonValue.PhonebookLimitRight.QunReadable_No);
+					}
+					else if (arg[4].equals(Operation.SetPass)) {
+						setPass(model, CommonValue.PhonebookLimitRight.QunReadable_Yes);
+					}
+					break;
+				}
+			}
+		}).show();
+	}
+	
 	private void show4OptionsDialog(final String[] arg ,final CardIntroEntity model){
 		new AlertDialog.Builder(context).setTitle(model.nickname).setItems(arg,
 				new DialogInterface.OnClickListener(){
 			public void onClick(DialogInterface dialog, int which){
 				switch(which){
 				case 0:
-					if (arg[0].equals(Operation.CheckCard)) {
-						showCardView(model);
+					if (arg[0].equals(Operation.CallMobile)) {
+						callMobile(model.phone);
+					}
+					else if (arg[0].equals(Operation.ExchangeCard)) {
+						exchangeCard(model);
 					}
 					break;
 				case 1:
-					if (arg[1].equals(Operation.SetAdmin)) {
-						setRole(model, CommonValue.PhonebookLimitRight.RoleAdmin);
+					if (arg[1].equals(Operation.CheckCard)) {
+						showCardView(model);
 					}
 					break;
 				case 2:
@@ -223,11 +262,14 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 					}
 					break;
 				case 3:
-					if (arg[3].equals(Operation.CancelPass)) {
-						setPass(model, CommonValue.PhonebookLimitRight.QunReadable_No);
+					if (arg[3].equals(Operation.CancelAdmin)) {
+						setRole(model, CommonValue.PhonebookLimitRight.RolePublic);
 					}
 					else if (arg[3].equals(Operation.SetPass)) {
 						setPass(model, CommonValue.PhonebookLimitRight.QunReadable_Yes);
+					}
+					else if (arg[3].equals(Operation.CancelPass)) {
+						setPass(model, CommonValue.PhonebookLimitRight.QunReadable_No);
 					}
 					break;
 				}
@@ -269,6 +311,29 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		}).show();
 	}
 	
+	private void show2OptionsDialog(final String[] arg ,final CardIntroEntity model){
+		new AlertDialog.Builder(context).setTitle(model.nickname).setItems(arg,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					if (arg[0].equals(Operation.CallMobile)) {
+						callMobile(model.phone);
+					}
+					else if (arg[0].equals(Operation.ExchangeCard)) {
+						exchangeCard(model);
+					}
+					break;
+				case 1:
+					if (arg[1].equals(Operation.CheckCard)) {
+						showCardView(model);
+					}
+					break;
+				}
+			}
+		}).show();
+	}
+	
 	private void show1OptionsDialog(final String[] arg ,final CardIntroEntity model){
 		new AlertDialog.Builder(context).setTitle(model.nickname).setItems(arg,
 				new DialogInterface.OnClickListener(){
@@ -296,7 +361,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 	interface Operation {
 		String EditCard = "查看名片";
 		String ExchangeCard = "交换名片";
-		String Wait = "交换名片申请中，等待对方同意";
+		String Wait = "查看名片";
 		String CheckCard = "查看名片";
 		
 		String DeleteCard = "移除名片";
@@ -307,6 +372,8 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		
 		String SetPass = "批准TA查看通讯录";
 		String CancelPass = "禁止TA查看通讯录";
+		
+		String CallMobile = "拨打电话";
 	}
 	
 	private void getRole(CardIntroEntity model) {
@@ -330,49 +397,49 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		}
 		else {
 			if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
-				oprators = new String[] { Operation.ExchangeCard };
-				show1OptionsDialog(oprators, model);
+				oprators = new String[] { Operation.ExchangeCard, Operation.CheckCard };
+				show2OptionsDialog(oprators, model);
 			}
 			else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
 				oprators = new String[] { Operation.Wait };
 				show1OptionsDialog(oprators, model);
 			}
 			else {
-				oprators = new String[] { Operation.CheckCard };
-				show1OptionsDialog(oprators, model);
+				oprators = new String[] { Operation.CallMobile, Operation.CheckCard };
+				show2OptionsDialog(oprators, model);
 			}
 		}
 	}
 	
 	private void RoleAdmin(CardIntroEntity model) {
 		String[] oprators;
-		if (model.role.equals(CommonValue.PhonebookLimitRight.RolePublic)) { //普通成员
-			if (model.openid.equals(appContext.getLoginUid())) { // 自己 修改我的名片
-				oprators = new String[] { Operation.EditCard };
-				show1OptionsDialog(oprators, model);
-			}
-			else  {
-//				if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
-//					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
-//						oprators = new String[] { Operation.ExchangeCard, Operation.DeleteCard, Operation.CancelPass };
-//						show3OptionsDialog(oprators, model);
-//					} 
-//					else {
-//						oprators = new String[] { Operation.ExchangeCard, Operation.DeleteCard, Operation.SetPass };
-//						show3OptionsDialog(oprators, model);
-//					}
-//				}
-//				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
-//					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
-//						oprators = new String[] { Operation.Wait, Operation.DeleteCard, Operation.CancelPass };
-//						show3OptionsDialog(oprators, model);
-//					} 
-//					else {
-//						oprators = new String[] { Operation.Wait, Operation.DeleteCard, Operation.SetPass };
-//						show3OptionsDialog(oprators, model);
-//					}
-//				}
-//				else {
+		if (model.openid.equals(appContext.getLoginUid())) { // 自己 修改我的名片
+			oprators = new String[] { Operation.EditCard };
+			show1OptionsDialog(oprators, model);
+		}
+		else {
+			if (model.role.equals(CommonValue.PhonebookLimitRight.RolePublic)) { //普通成员
+				if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)) {
+					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
+						oprators = new String[] { Operation.CallMobile, Operation.CheckCard, Operation.DeleteCard, Operation.CancelPass };
+						show4OptionsDialog(oprators, model);
+					} 
+					else {
+						oprators = new String[] { Operation.CallMobile, Operation.CheckCard, Operation.DeleteCard, Operation.SetPass };
+						show4OptionsDialog(oprators, model);
+					}
+				}
+				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
+					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
+						oprators = new String[] { Operation.ExchangeCard, Operation.CheckCard, Operation.DeleteCard, Operation.CancelPass };
+						show4OptionsDialog(oprators, model);
+					} 
+					else {
+						oprators = new String[] { Operation.ExchangeCard, Operation.CheckCard, Operation.DeleteCard, Operation.SetPass };
+						show4OptionsDialog(oprators, model);
+					}
+				}	
+				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
 					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
 						oprators = new String[] { Operation.CheckCard, Operation.DeleteCard, Operation.CancelPass };
 						show3OptionsDialog(oprators, model);
@@ -381,17 +448,26 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 						oprators = new String[] { Operation.CheckCard, Operation.DeleteCard, Operation.SetPass };
 						show3OptionsDialog(oprators, model);
 					}
-//				}
+				}
 			}
-		}
-		else if (model.role.equals(CommonValue.PhonebookLimitRight.RoleNone)) {
-			oprators = new String[] { Operation.AddCard };
-			show1OptionsDialog(oprators, model);
-		}
-		else { // 管理员及发起人
-//			RolePublic(model);
-			oprators = new String[] { Operation.CheckCard };
-			show1OptionsDialog(oprators, model);
+			else if (model.role.equals(CommonValue.PhonebookLimitRight.RoleNone)) {
+				oprators = new String[] { Operation.AddCard };
+				show1OptionsDialog(oprators, model);
+			}
+			else { // 管理员及发起人
+				if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)) {
+					oprators = new String[] { Operation.CallMobile, Operation.CheckCard };
+					show2OptionsDialog(oprators, model);
+				}
+				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
+					oprators = new String[] { Operation.ExchangeCard, Operation.CheckCard };
+					show2OptionsDialog(oprators, model);
+				}	
+				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
+					oprators = new String[] { Operation.CheckCard };
+					show1OptionsDialog(oprators, model);
+				}
+			}
 		}
 	}
 	
@@ -403,56 +479,31 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 		}
 		else {
 			if (model.role.equals(CommonValue.PhonebookLimitRight.RoleAdmin)) { //管理员
-//				if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
-//					oprators = new String[] { Operation.ExchangeCard, Operation.DeleteCard, Operation.CancelAdmin  };
-//					show3OptionsDialog(oprators, model);
-//				}
-//				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
-//					oprators = new String[] { Operation.Wait, Operation.DeleteCard, Operation.CancelAdmin };
-//					show3OptionsDialog(oprators, model);
-//				}
-//				else {
-					oprators = new String[] { Operation.CheckCard, Operation.DeleteCard, Operation.CancelAdmin };
-					show3OptionsDialog(oprators, model);
-//				}
+					oprators = new String[] { Operation.CallMobile, Operation.CheckCard, Operation.DeleteCard, Operation.CancelAdmin };
+					show4OptionsDialog(oprators, model);
 			}
 			else if (model.role.equals(CommonValue.PhonebookLimitRight.RoleNone)) {
 				oprators = new String[] { Operation.AddCard };
 				show1OptionsDialog(oprators, model);
 			}
 			else {
-//				if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
-//					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
-//						oprators = new String[] { Operation.ExchangeCard, Operation.SetAdmin, Operation.DeleteCard, Operation.CancelPass };
-//						show4OptionsDialog(oprators, model);
-//					}
-//					else {
-//						oprators = new String[] { Operation.ExchangeCard, Operation.SetAdmin, Operation.DeleteCard, Operation.SetPass };
-//						show4OptionsDialog(oprators, model);
-//					}
-//				}
-//				else if (model.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
-//					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
-//						oprators = new String[] { Operation.Wait, Operation.SetAdmin, Operation.DeleteCard, Operation.CancelPass };
-//						show4OptionsDialog(oprators, model);
-//					}
-//					else {
-//						oprators = new String[] { Operation.Wait, Operation.SetAdmin, Operation.DeleteCard, Operation.SetPass };
-//						show4OptionsDialog(oprators, model);
-//					}
-//				}
-//				else {
 					if (model.qun_readable.equals(CommonValue.PhonebookLimitRight.QunReadable_Yes)) {
-						oprators = new String[] { Operation.CheckCard, Operation.SetAdmin, Operation.DeleteCard, Operation.CancelPass };
-						show4OptionsDialog(oprators, model);
+						oprators = new String[] { Operation.CallMobile, Operation.CheckCard, Operation.SetAdmin, Operation.DeleteCard, Operation.CancelPass };
+						show5OptionsDialog(oprators, model);
 					}
 					else {
-						oprators = new String[] { Operation.CheckCard, Operation.SetAdmin, Operation.DeleteCard, Operation.SetPass };
-						show4OptionsDialog(oprators, model);
+						oprators = new String[] { Operation.CallMobile, Operation.CheckCard, Operation.SetAdmin, Operation.DeleteCard, Operation.SetPass };
+						show5OptionsDialog(oprators, model);
 					}
-//				}
 			}
 		}
+	}
+	
+	private void callMobile(String moblie) {
+		Uri uri = null;
+		uri = Uri.parse("tel:" + moblie);
+		Intent it = new Intent(Intent.ACTION_CALL, uri);
+		context.startActivity(it);
 	}
 	
 	private void setRole(final CardIntroEntity model, final String role) {

@@ -146,13 +146,13 @@ public class MessageViewAdapter extends BaseAdapter {
 	    	showActivity(matcher.group(1));
 	        return;
 	    }
-	    String bRegex         = ".*\\/b\\/([0-9a-z]+)$";
-	    pattern = Pattern.compile(bRegex);
-	    matcher = pattern.matcher(target);
-	    if (matcher.find()) {
-	    	showCreate(target);
-	        return;
-	    }
+//	    String bRegex         = ".*\\/b\\/([0-9a-z]+)$";
+//	    pattern = Pattern.compile(bRegex);
+//	    matcher = pattern.matcher(target);
+//	    if (matcher.find()) {
+//	    	showCreate(target);
+//	        return;
+//	    }
 	    showCreate(target);
 	}
 	
@@ -188,6 +188,7 @@ public class MessageViewAdapter extends BaseAdapter {
 	}
 	
 	private void showCreate(String url) {
+		Logger.i(url);
 		Intent intent = new Intent(context, CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
 		context.startActivity(intent);

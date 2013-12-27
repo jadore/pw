@@ -228,6 +228,7 @@ public class PhonebookSMSBody extends AppActivity{
         	PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, sentIntent,  0); 
             sManage.sendTextMessage(number, null, content, sentPI, null);  
         }  
+		UIHelper.dismissProgress(loadingPd);
 		setResult(RESULT_OK);
 	}
 	

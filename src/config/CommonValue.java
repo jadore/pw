@@ -21,8 +21,8 @@ public class CommonValue {
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
 	public interface subTitle {
-		String subtitle1 = "快来看看你的小伙伴";
-		String subtitle2 = "和你交换了名片的小伙伴都在这里哦";
+		String subtitle1 = "查看手机通讯录";
+		String subtitle2 = "查看交换名片的朋友";
 	}
 	
 	public interface CacheKey {
