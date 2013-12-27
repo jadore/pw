@@ -310,6 +310,8 @@ public class AcivityViewMembers extends AppActivity{
 			setResult(RESULT_OK);
 			break;
 		case CommonValue.PhonebookViewUrlRequest.deletePhoneview:
+			setResult(RESULT_OK);
+			AppManager.getAppManager().finishActivity(AcivityViewMembers.this);
 			break;
 		}
 	}

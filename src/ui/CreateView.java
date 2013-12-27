@@ -117,7 +117,8 @@ public class CreateView extends AppActivity {
 	    	mJSHandler.sendMessage(msg);
 	    }
 	    
-	    public void goPhonebookList(){
+	    public void goPhonebookList(String c){
+	    	Logger.i("aaa");
 	    	Message msg = new Message();
 	    	msg.what = CommonValue.CreateViewJSType.goPhonebookList;
 	    	mJSHandler.sendMessage(msg);
@@ -129,16 +130,15 @@ public class CreateView extends AppActivity {
 	    	msg.obj = code;
 	    	mJSHandler.sendMessage(msg);
 	    }
-	    public void goActivityList(){
+	    public void goActivityList(String c){
 	    	Message msg = new Message();
 	    	msg.what = CommonValue.CreateViewJSType.goActivityList;
 	    	mJSHandler.sendMessage(msg);
 	    }
-	    public void goCardView(String code) {
+	    public void goCardList(String code) {
 	    	Logger.i(code+"");
 	    	Message msg = new Message();
 	    	msg.what = CommonValue.CreateViewJSType.goCardView;
-	    	msg.obj = code;
 	    	mJSHandler.sendMessage(msg);
 	    }
     }
@@ -153,24 +153,31 @@ public class CreateView extends AppActivity {
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				finish();
+				AppManager.getAppManager().finishActivity(CreateView.this);
 				break;
 			case CommonValue.CreateViewJSType.goPhonebookList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				finish();
+				AppManager.getAppManager().finishActivity(CreateView.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityView:
 				code = (String) msg.obj;
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				finish();
+				AppManager.getAppManager().finishActivity(CreateView.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				finish();
+				AppManager.getAppManager().finishActivity(CreateView.this);
+				break;
+			case CommonValue.CreateViewJSType.goCardView:
+//				code = (String) msg.obj;
+//				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
+//				intent.putExtra("resultdata", code);
+				setResult(RESULT_OK, intent);
+				AppManager.getAppManager().finishActivity(CreateView.this);
 				break;
 			}
 		};

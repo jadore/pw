@@ -126,6 +126,15 @@ public class CommonValue {
 		int deletePhoneview = 5;
 	}
 	
+	public interface ActivityViewUrlRequest {
+		int editActivity = 14;
+		int deleteActivity = 15;
+	}
+	
+	public interface CardViewUrlRequest {
+		int editCard = 24;
+	}
+	
 	public interface PhonebookViewIsAdd {
 		int No = 0;
 	}

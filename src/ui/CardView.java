@@ -300,7 +300,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			break;
 		case R.id.editMyMobile:
 			String url1 = String.format("%s/card/setting/id/%s", CommonValue.BASE_URL, card.code);
-			showCreate(url1, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+			showCreate(url1, CommonValue.CardViewUrlRequest.editCard);
 			break;
 		case R.id.exchangeMobile:
 			exchangeCard(card);
@@ -541,5 +541,18 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("phoneNumber", moblie);
 		BaseIntentUtil.intentSysDefault(CardView.this, MessageBoxList.class, map);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode != RESULT_OK) {
+			return;
+		}
+		switch (requestCode) {
+		case CommonValue.CardViewUrlRequest.editCard:
+			getCard(card.code);
+			setResult(RESULT_OK);
+			break;
+		}
 	}
 }

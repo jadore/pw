@@ -249,7 +249,13 @@ public class Index extends AppActivity {
 	private void showActivityView(ActivityIntroEntity entity) {
 		Intent intent = new Intent(this, AcivityViewMembers.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-		startActivity(intent);
+		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
+	}
+	
+	private void showCardView(CardIntroEntity entity) {
+		Intent intent = new Intent(this, CardView.class);
+		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMessage() {
@@ -769,15 +775,31 @@ public class Index extends AppActivity {
 				entity.content = " ";
 				showPhoneView(entity);
 			}
+			mPager.setCurrentItem(PAGE1);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.ActivityCreateCreat:
 			getActivityList();
+			int result1 = data.getIntExtra("resultcode", 0);
+			if (result1 == CommonValue.CreateViewJSType.goPhonebookView) {
+				ActivityIntroEntity entity = new ActivityIntroEntity();
+				entity.code = data.getStringExtra("resultdata");
+				entity.content = " ";
+				showActivityView(entity);
+			}
+			mPager.setCurrentItem(PAGE2);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.CardCreat:
 			getCardList();
+			mPager.setCurrentItem(PAGE3);
 			break;
 		case CommonValue.PhonebookViewUrlRequest.editPhoneview:
 			getPhoneList();
+			break;
+		case CommonValue.ActivityViewUrlRequest.editActivity:
+			getActivityList();
+			break;
+		case CommonValue.CardViewUrlRequest.editCard:
+			getCardList();
 			break;
 		}
 	}
