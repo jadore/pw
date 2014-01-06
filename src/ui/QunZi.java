@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tools.AppException;
+import tools.Logger;
 import tools.UIHelper;
 import ui.adapter.QuanZiAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
@@ -12,13 +13,19 @@ import bean.PhoneIntroEntity;
 import bean.PhoneListEntity;
 import bean.Result;
 
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
+import cn.sharesdk.wechat.moments.WechatMoments;
+
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -104,8 +111,50 @@ public class QunZi extends AppActivity {
 	}
 	
 	public void showCreate(String url, int RequestCode) {
-		Intent intent = new Intent(this,CreateView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
-        startActivityForResult(intent, RequestCode);
+//		Intent intent = new Intent(this,CreateView.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
+//        startActivityForResult(intent, RequestCode);
+	}
+	
+	public void showPhoneView(PhoneIntroEntity entity) {
+	Intent intent = new Intent(this, PhonebookViewMembers.class);
+	intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+	startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+	}
+	
+	private String[] ot = new String[] { "推荐给好友", "分享到朋友圈"};
+	
+	public void showShareDialog(final PhoneIntroEntity phoneIntro){
+		new AlertDialog.Builder(this).setTitle("").setItems(ot,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					showShare(false, Wechat.NAME, phoneIntro);
+					break;
+				case 1:
+					showShare(false, WechatMoments.NAME, phoneIntro);
+					break;
+				}
+			}
+		}).show();
+	}
+	
+	private void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+		try {
+			final OnekeyShare oks = new OnekeyShare();
+			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+			oks.setTitle("群友通讯录");
+			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
+			oks.setImagePath("file:///android_asset/ic_launcher.png");
+			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+			oks.setSilent(silent);
+			if (platform != null) {
+				oks.setPlatform(platform);
+			}
+			oks.show(this);
+		} catch (Exception e) {
+			Logger.i(e);
+		}
 	}
 }

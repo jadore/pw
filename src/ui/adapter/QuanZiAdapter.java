@@ -2,15 +2,26 @@ package ui.adapter;
 
 import java.util.List;
 
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
+import cn.sharesdk.wechat.moments.WechatMoments;
+
 import com.vikaa.mycontact.R;
 
+import config.CommonValue;
+
 import bean.PhoneIntroEntity;
+import tools.AppException;
+import tools.Logger;
 import ui.QunZi;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -74,6 +85,13 @@ public class QuanZiAdapter extends SectionedBaseAdapter {
 			@Override
 			public void onClick(View v) {
 				((QunZi)context).showPhoneViewWeb(model, 45);
+			}
+		});
+		convertView.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View arg0) {
+				((QunZi)context).showShareDialog(model);
+				return false;
 			}
 		});
 		return convertView;

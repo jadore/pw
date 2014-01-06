@@ -213,7 +213,7 @@ public class PhonebookViewMembers extends AppActivity{
 			}
 			oks.show(this);
 		} catch (Exception e) {
-			((AppException)e).makeToast(getApplicationContext());
+			Logger.i(e);
 		}
 	}
 	

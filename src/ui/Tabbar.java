@@ -6,6 +6,8 @@ import bean.Entity;
 import bean.Result;
 import bean.UserEntity;
 
+import cn.sharesdk.framework.ShareSDK;
+
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -51,6 +53,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.tabbar);
+		ShareSDK.initSDK(this);
         AppManager.getAppManager().addActivity(this);
         mainTab=(RadioGroup)findViewById(R.id.main_tab);
         mainTab.setOnCheckedChangeListener(this);
@@ -69,7 +72,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	private void prepareIntent() {
 		homeIntent = new Intent(this, MessageView.class);
 		nearmeIntent = new Intent(this, QunZi.class);
-		meIntent = new Intent(this, MessageView.class);
+		meIntent = new Intent(this, Find.class);
 		moreIntent = new Intent(this, MessageView.class);
 	}
 	
