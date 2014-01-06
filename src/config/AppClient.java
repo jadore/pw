@@ -90,6 +90,29 @@ public class AppClient {
 		});
 	}
 	
+	public static void vertifiedCode(final MyApplication appContext, String code, String mobile, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		params.add("code", code);
+		params.add("phone", mobile);
+		QYRestClient.post("user/login", params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
+	
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
 		QYRestClient.post("user/autologin", null, new AsyncHttpResponseHandler() {
 			@Override

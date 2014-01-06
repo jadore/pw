@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:background="@color/background_color">
+    
+    <LinearLayout
+        android:layout_marginTop="20dp" 
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:background="@color/white"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:orientation="vertical"
+        >
+        <TextView 
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:text="需要梳理微信好友,收集通讯录?"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:gravity="center"
+            />
+        <Button 
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="15dp"
+            android:background="#4e7398"
+            android:text="发起通讯录"
+            android:textColor="@color/white"
+            />
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:layout_marginTop="20dp"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:orientation="vertical"
+	    android:background="@color/white" >
+	    <TextView 
+	        android:id="@+id/title"
+	        android:layout_width="match_parent"
+	        android:layout_height="20dp"
+	        android:layout_marginTop="10dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="15sp"
+	        android:textColor="#2b2b2b"
+	        android:text="公开的圈子"
+	        />
+	    
+	    <TextView 
+	        android:id="@+id/des"
+	        android:layout_width="match_parent"
+	        android:layout_height="16dp"
+	        android:layout_marginTop="4dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="12sp"
+	        android:textColor="#999999"
+	        />
+	    
+	    <View 
+	        android:layout_width="match_parent"
+	        android:layout_height="1dp"
+	        android:layout_marginTop="10dp"
+	        android:background="#e4e4e4"
+	        />
+		
+	</LinearLayout>
+
+</LinearLayout>

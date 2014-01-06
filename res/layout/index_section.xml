@@ -11,11 +11,10 @@
         android:id="@+id/titleView"
         android:layout_width="match_parent"
         android:layout_height="16dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="9dp"
         android:layout_marginLeft="18dp"
         android:textSize="12sp"
         android:textColor="#999999"
-        android:text="人数 20   点击数 200"
         />
     
     <View 

@@ -74,13 +74,37 @@
         </activity>
         
         <activity
+            android:name="ui.Tabbar"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask" >
+        </activity>
+        
+        <activity
             android:name="ui.Index"
             android:screenOrientation="portrait"
             android:launchMode="singleTask" >
         </activity>
         
         <activity
+            android:name="ui.IndexWeb"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask" >
+        </activity>
+        
+        <activity
+            android:name="ui.QunZi"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask" >
+        </activity>
+        
+        <activity
             android:name="ui.PhonebookViewMembers"
+            android:screenOrientation="portrait"
+             >
+        </activity>
+        
+        <activity
+            android:name="ui.PhonebookViewWeb"
             android:screenOrientation="portrait"
              >
         </activity>
@@ -99,6 +123,12 @@
         
         <activity
             android:name="ui.AcivityViewMembers"
+            android:screenOrientation="portrait"
+             >
+        </activity>
+        
+        <activity
+            android:name="ui.ActivityViewWeb"
             android:screenOrientation="portrait"
              >
         </activity>

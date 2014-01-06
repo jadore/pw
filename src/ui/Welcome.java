@@ -46,7 +46,7 @@ public class Welcome extends AppActivity {
 			}
 		}
 		else {
-			Intent intent = new Intent(this,Index.class);
+			Intent intent = new Intent(this, Tabbar.class);
 	        startActivity(intent);
 	        AppManager.getAppManager().finishActivity(this);
 		}

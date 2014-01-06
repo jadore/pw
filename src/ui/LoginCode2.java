@@ -140,7 +140,7 @@ public class LoginCode2 extends AppActivity{
 	
 	private void vertifiedCode(final String code) {
 		loadingPd = UIHelper.showProgress(this, null, null, true);
-		AppClient.vertifiedCode(appContext, code, new ClientCallback() {
+		AppClient.vertifiedCode(appContext, code, mobile, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
 				UIHelper.dismissProgress(loadingPd);
@@ -171,7 +171,7 @@ public class LoginCode2 extends AppActivity{
 	}
 	
 	private void enterIndex() {
-		Intent intent = new Intent(this, Index.class);
+		Intent intent = new Intent(this, Tabbar.class);
 		startActivity(intent);
 		setResult(RESULT_OK);
 		AppManager.getAppManager().finishActivity(this);

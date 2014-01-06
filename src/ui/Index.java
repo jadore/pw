@@ -97,10 +97,10 @@ public class Index extends AppActivity {
 		initUI();
 		getCache();
 		if (!appContext.isNetworkConnected()) {
-			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-			return;
-		}
-		checkLogin();
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
+        checkLogin();
 	}
 	
 	private void blindBaidu() {
@@ -191,7 +191,8 @@ public class Index extends AppActivity {
 					int position, long id) {
 				if (section > 0) {
 					PhoneIntroEntity entity = phones.get(section).get(position);
-					showPhoneView(entity);
+//					showPhoneView(entity);
+					showPhoneViewWeb(entity, 45);
 				}
 				else if (section == 0) {
 					Intent intent;
@@ -226,7 +227,7 @@ public class Index extends AppActivity {
 			public void onItemClick(AdapterView<?> adapterView, View view, int section,
 					int position, long id) {
 				ActivityIntroEntity entity = activities.get(section).get(position);
-				showActivityView(entity);
+				showActivityViewWeb(entity, 46);
 			}
 		});
 		
@@ -240,16 +241,29 @@ public class Index extends AppActivity {
 //		mListView3.setDividerHeight(0);
 	}
 	
-	private void showPhoneView(PhoneIntroEntity entity) {
-		Intent intent = new Intent(this, PhonebookViewMembers.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+//	private void showPhoneView(PhoneIntroEntity entity) {
+//		Intent intent = new Intent(this, PhonebookViewMembers.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+//		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+//	}
+	
+	private void showPhoneViewWeb(PhoneIntroEntity entity, int RequestCode) {
+		Intent intent = new Intent(this, PhonebookViewWeb.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
+	    startActivityForResult(intent, RequestCode);
 	}
 	
-	private void showActivityView(ActivityIntroEntity entity) {
-		Intent intent = new Intent(this, AcivityViewMembers.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
+	
+//	private void showActivityView(ActivityIntroEntity entity) {
+//		Intent intent = new Intent(this, AcivityViewMembers.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+//		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
+//	}
+	
+	private void showActivityViewWeb(ActivityIntroEntity entity, int RequestCode) {
+		Intent intent = new Intent(this, ActivityViewWeb.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
+	    startActivityForResult(intent, RequestCode);
 	}
 	
 	private void showCardView(CardIntroEntity entity) {
@@ -773,7 +787,8 @@ public class Index extends AppActivity {
 				PhoneIntroEntity entity = new PhoneIntroEntity();
 				entity.code = data.getStringExtra("resultdata");
 				entity.content = " ";
-				showPhoneView(entity);
+//				showPhoneView(entity);
+				showPhoneViewWeb(entity, 45);
 			}
 			mPager.setCurrentItem(PAGE1);
 			break;
@@ -784,7 +799,7 @@ public class Index extends AppActivity {
 				ActivityIntroEntity entity = new ActivityIntroEntity();
 				entity.code = data.getStringExtra("resultdata");
 				entity.content = " ";
-				showActivityView(entity);
+				showActivityViewWeb(entity, 46);
 			}
 			mPager.setCurrentItem(PAGE2);
 			break;

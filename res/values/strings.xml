@@ -6,4 +6,9 @@
 	<string name="wechat_login"><u>使用微信登录</u></string>
 	<string name="code_retake"><u>重新获取验证码</u></string>
 	
+	<string name="main_home">首页</string>
+    <string name="main_my_card">我的微友</string>
+    <string name="main_message">消息</string>
+    <string name="main_more">更多</string>
+	
 </resources>
