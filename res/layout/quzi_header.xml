@@ -24,6 +24,8 @@
             android:gravity="center"
             />
         <Button 
+            android:id="@+id/createPhonebook"
+            android:onClick="ButtonClick"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginLeft="20dp"
@@ -40,7 +42,11 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
 	    android:orientation="vertical"
-	    android:background="@color/white" >
+	    android:background="@color/white" 
+	    android:id="@+id/openQuanZi"
+	    android:clickable="true"
+	    android:onClick="ButtonClick"
+	    >
 	    <TextView 
 	        android:id="@+id/title"
 	        android:layout_width="match_parent"
