@@ -117,9 +117,9 @@ public class QunZi extends AppActivity {
 	}
 	
 	public void showPhoneView(PhoneIntroEntity entity) {
-	Intent intent = new Intent(this, PhonebookViewMembers.class);
-	intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-	startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+		Intent intent = new Intent(this, PhonebookViewMembers.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
 	private String[] ot = new String[] { "推荐给好友", "分享到朋友圈"};

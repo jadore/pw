@@ -8,6 +8,7 @@ import bean.UserEntity;
 
 import cn.sharesdk.framework.ShareSDK;
 
+import com.google.zxing.client.android.common.executor.HoneycombAsyncTaskExecInterface;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -71,9 +72,9 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	
 	private void prepareIntent() {
 		homeIntent = new Intent(this, MessageView.class);
-		nearmeIntent = new Intent(this, QunZi.class);
+		nearmeIntent = new Intent(this, IndexWeb.class);
 		meIntent = new Intent(this, Find.class);
-		moreIntent = new Intent(this, MessageView.class);
+		moreIntent = new Intent(this, HomeContactActivity.class);
 	}
 	
 	private void setupIntent() {

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="fill_parent"
+             android:layout_height="fill_parent">
+
+  <SurfaceView android:id="@+id/preview_view"
+               android:layout_width="fill_parent"
+               android:layout_height="fill_parent"/>
+
+  <com.google.zxing.client.android.ViewfinderView
+      android:id="@+id/viewfinder_view"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"/>
+  
+  
+  
+	<RelativeLayout
+	    android:id="@+id/scan1Layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"  
+        android:background="@drawable/capture_background">
+        <LinearLayout 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal"
+            android:layout_marginTop="35dp"
+            android:layout_alignParentTop="true">
+            <ImageView 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+            <LinearLayout 
+                android:layout_marginLeft="15dp"
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+				    style="@style/capture_text_style"
+		        />
+			    <TextView
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+				    style="@style/capture_text_style"
+			        />
+            </LinearLayout>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/scan2Layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
+            <Button 
+                android:id="@+id/home_button"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+            <Button 
+                android:id="@+id/input_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                style="@style/capture_input_button"/>
+            <Button 
+                android:id="@+id/flashmode_button"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
+</FrameLayout>

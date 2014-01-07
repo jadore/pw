@@ -14,6 +14,7 @@ import sms.MessageBoxList;
 import tools.AppManager;
 import tools.BaseIntentUtil;
 import tools.ImageUtils;
+import tools.Logger;
 import tools.StringUtils;
 import ui.adapter.ContactHomeAdapter;
 import ui.adapter.MenuListAdapter;
@@ -164,6 +165,10 @@ public class HomeContactActivity extends AppActivity {
 				cursor.moveToFirst();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
+					 int phoneCount = cursor  
+                             .getInt(cursor  
+                                     .getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)); 
+					 Logger.i(phoneCount+"");
 					String name = cursor.getString(1);
 					String number = cursor.getString(2);
 					String sortKey = cursor.getString(3);

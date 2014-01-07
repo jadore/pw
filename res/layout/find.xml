@@ -5,5 +5,17 @@
     android:background="@color/white"
     android:orientation="vertical" >
     
+    <Button 
+        android:id="@+id/scanit"
+        android:onClick="ButtonClick"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="15dp"
+        android:background="#4e7398"
+        android:text="扫一扫"
+        android:textColor="@color/white"
+        />
 
 </LinearLayout>

@@ -116,6 +116,7 @@ public class PhonebookViewWeb extends AppActivity {
 			}
 			else {
 				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			}
 			break;
 		default:
@@ -125,10 +126,22 @@ public class PhonebookViewWeb extends AppActivity {
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
-			webView.goBack();// 返回前一个页面
-			return true;
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			if (webView.canGoBack()) {
+				webView.goBack();// 返回前一个页面
+				return true;
+			}
+			else {
+				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			}
+			break;
+
+		default:
+			break;
 		}
+		
 		return super.onKeyDown(keyCode, event);
 	}
 	
