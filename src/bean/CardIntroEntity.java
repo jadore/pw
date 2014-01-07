@@ -95,7 +95,9 @@ public class CardIntroEntity extends Entity {
 			data.intro = info.getString("intro");
 			data.wechat= info.getString("wechat");
 			data.link = info.getString("link");
-			data.headimgurl = info.getString("headimgurl");
+			if (!info.isNull("headimgurl")) {
+				data.headimgurl = info.getString("headimgurl");
+			}
 			data.cardSectionType = sectionType;
 			data.willRefresh = false;
 			data.pinyin = info.getString("pinyin");
@@ -167,7 +169,9 @@ public class CardIntroEntity extends Entity {
 				data.intro = info.getString("intro");
 				data.wechat= info.getString("wechat");
 				data.link = info.getString("link");
-				data.headimgurl = info.getString("headimgurl");
+				if (!info.isNull("headimgurl")) {
+					data.headimgurl = info.getString("headimgurl");
+				}
 				data. needs = info.getString("needs");
 				data. hometown = info.getString("hometown");
 				data. interest = info.getString("interest");

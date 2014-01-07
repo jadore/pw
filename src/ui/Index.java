@@ -18,6 +18,9 @@ import bean.Result;
 import bean.UserEntity;
 
 import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
+import cn.sharesdk.wechat.moments.WechatMoments;
 
 import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
@@ -48,6 +51,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import tools.AppException;
+import tools.Logger;
 import tools.UIHelper;
 import ui.adapter.IndexActivityAdapter;
 import ui.adapter.IndexCardAdapter;
@@ -106,21 +110,13 @@ public class Index extends AppActivity {
 	private void blindBaidu() {
 		Resources resource = this.getResources();
 		String pkgName = this.getPackageName();
-		// Push: 以apikey的方式登录，一般放在主Activity的onCreate中。
-		// 这里把apikey存放于manifest文件中，只是一种存放方式，
-		// 您可以用自定义常量等其它方式实现，来替换参数中的Utils.getMetaValue(PushDemoActivity.this, "api_key")
-		// 通过share preference实现的绑定标志开关，如果已经成功绑定，就取消这次绑定
 		if (!Utils.hasBind(getApplicationContext())) {
 			PushManager.startWork(getApplicationContext(),
 					PushConstants.LOGIN_TYPE_API_KEY, 
 					Utils.getMetaValue(this, "api_key"));
-			// Push: 如果想基于地理位置推送，可以打开支持地理位置的推送的开关
 			PushManager.enableLbs(getApplicationContext());
 		}
 		
-		// Push: 设置自定义的通知样式，具体API介绍见用户手册，如果想使用系统默认的可以不加这段代码
-		// 请在通知推送界面中，高级设置->通知栏样式->自定义样式，选中并且填写值：1，
-		// 与下方代码中 PushManager.setNotificationBuilder(this, 1, cBuilder)中的第二个参数对应
         CustomPushNotificationBuilder cBuilder = new CustomPushNotificationBuilder(
         		getApplicationContext(),
         		resource.getIdentifier("notification_custom_builder", "layout", pkgName), 
@@ -179,36 +175,35 @@ public class Index extends AppActivity {
 		phones.add(mobilesInPhone);
 		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
 		mPinedListView1.setAdapter(mPhoneAdapter);
-		mPinedListView1.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onSectionClick(AdapterView<?> adapterView, View view,
-					int section, long id) {
-				
-			}
-			
-			@Override
-			public void onItemClick(AdapterView<?> adapterView, View view, int section,
-					int position, long id) {
-				if (section > 0) {
-					PhoneIntroEntity entity = phones.get(section).get(position);
+//		mPinedListView1.setOnItemClickListener(new OnItemClickListener() {
+//			@Override
+//			public void onSectionClick(AdapterView<?> adapterView, View view,
+//					int section, long id) {
+//				
+//			}
+//			
+//			@Override
+//			public void onItemClick(AdapterView<?> adapterView, View view, int section,
+//					int position, long id) {
+//				if (section > 0) {
+//					PhoneIntroEntity entity = phones.get(section).get(position);
 //					showPhoneView(entity);
-					showPhoneViewWeb(entity, 45);
-				}
-				else if (section == 0) {
-					Intent intent;
-					switch (position) {
-					case 0:
-						intent = new Intent(Index.this, HomeContactActivity.class);
-						startActivity(intent);
-						break;
-					default:
-						intent = new Intent(Index.this, FriendCards.class);
-						startActivity(intent);
-						break;
-					}
-				}
-			}
-		});
+//				}
+//				else if (section == 0) {
+//					Intent intent;
+//					switch (position) {
+//					case 0:
+//						intent = new Intent(Index.this, HomeContactActivity.class);
+//						startActivity(intent);
+//						break;
+//					default:
+//						intent = new Intent(Index.this, FriendCards.class);
+//						startActivity(intent);
+//						break;
+//					}
+//				}
+//			}
+//		});
 		
 		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
 		mPinedListView2.setDividerHeight(0);
@@ -241,17 +236,27 @@ public class Index extends AppActivity {
 //		mListView3.setDividerHeight(0);
 	}
 	
-//	private void showPhoneView(PhoneIntroEntity entity) {
-//		Intent intent = new Intent(this, PhonebookViewMembers.class);
-//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-//		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
-//	}
-	
-	private void showPhoneViewWeb(PhoneIntroEntity entity, int RequestCode) {
-		Intent intent = new Intent(this, PhonebookViewWeb.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
-	    startActivityForResult(intent, RequestCode);
+	public void showMobileView() {
+		Intent intent = new Intent(this, HomeContactActivity.class);
+		startActivity(intent);
 	}
+	
+	public void showFriendCardView() {
+		Intent intent = new Intent(this, FriendCards.class);
+		startActivity(intent);
+	}
+	
+	public void showPhoneView(PhoneIntroEntity entity) {
+		Intent intent = new Intent(this, PhonebookViewMembers.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+	}
+	
+//	private void showPhoneViewWeb(PhoneIntroEntity entity, int RequestCode) {
+//		Intent intent = new Intent(this, PhonebookViewWeb.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
+//	    startActivityForResult(intent, RequestCode);
+//	}
 	
 	
 //	private void showActivityView(ActivityIntroEntity entity) {
@@ -773,6 +778,42 @@ public class Index extends AppActivity {
 
 		}
 	}
+	
+	private String[] ot = new String[] { "推荐给好友", "分享到朋友圈"};
+	
+	public void showShareDialog(final PhoneIntroEntity phoneIntro){
+		new AlertDialog.Builder(this).setTitle("").setItems(ot,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					showShare(false, Wechat.NAME, phoneIntro);
+					break;
+				case 1:
+					showShare(false, WechatMoments.NAME, phoneIntro);
+					break;
+				}
+			}
+		}).show();
+	}
+	
+	private void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+		try {
+			final OnekeyShare oks = new OnekeyShare();
+			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+			oks.setTitle("群友通讯录");
+			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
+			oks.setImagePath("file:///android_asset/ic_launcher.png");
+			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+			oks.setSilent(silent);
+			if (platform != null) {
+				oks.setPlatform(platform);
+			}
+			oks.show(this);
+		} catch (Exception e) {
+			Logger.i(e);
+		}
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -787,8 +828,7 @@ public class Index extends AppActivity {
 				PhoneIntroEntity entity = new PhoneIntroEntity();
 				entity.code = data.getStringExtra("resultdata");
 				entity.content = " ";
-//				showPhoneView(entity);
-				showPhoneViewWeb(entity, 45);
+				showPhoneView(entity);
 			}
 			mPager.setCurrentItem(PAGE1);
 			break;

@@ -5,10 +5,17 @@ import java.util.List;
 import com.vikaa.mycontact.R;
 
 import bean.PhoneIntroEntity;
+import ui.FriendCards;
+import ui.HomeContactActivity;
+import ui.Index;
+import ui.QunZi;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -65,9 +72,42 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 		else {
 			cell = (CellHolder) convertView.getTag();
 		}
-		PhoneIntroEntity model = phones.get(section).get(position);
+		final PhoneIntroEntity model = phones.get(section).get(position);
+		if (section > 0) {
+			cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
+			convertView.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					((Index)context).showPhoneView(model);
+				}
+			});
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View arg0) {
+					((Index)context).showShareDialog(model);
+					return false;
+				}
+			});
+		}
+		else {
+			cell.desView.setText(model.content);
+			if (position == 0) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showMobileView();
+					}
+				});
+			} else {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showFriendCardView();
+					}
+				});
+			}
+		}
 		cell.titleView.setText(model.title);
-		cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
 		return convertView;
 	}
 
