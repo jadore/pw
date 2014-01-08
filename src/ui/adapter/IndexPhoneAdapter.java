@@ -106,6 +106,12 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 					}
 				});
 			}
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View arg0) {
+					return false;
+				}
+			});
 		}
 		cell.titleView.setText(model.title);
 		return convertView;

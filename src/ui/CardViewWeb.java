@@ -113,6 +113,22 @@ public class CardViewWeb extends AppActivity {
     	}
 	}
 	
+	public void ButtonClick(View v) {
+		switch (v.getId()) {
+		case R.id.leftBarButton:
+			if (webView.canGoBack()) {
+				webView.goBack();// 返回前一个页面
+			}
+			else {
+				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {

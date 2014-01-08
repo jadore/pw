@@ -5,6 +5,8 @@ import tools.AppManager;
 import tools.Logger;
 import tools.UIHelper;
 
+import bean.PhoneIntroEntity;
+
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
@@ -28,11 +30,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
+import android.widget.Button;
 import android.widget.Toast;
 
 public class PhonebookViewWeb extends AppActivity {
 	private WebView webView;
 	private ProgressDialog loadingPd;
+	private Button rightBarButton;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -43,11 +47,17 @@ public class PhonebookViewWeb extends AppActivity {
 	
 	private void initUI() {
 		webView = (WebView) findViewById(R.id.webview);
+		rightBarButton = (Button) findViewById(R.id.rightBarButton);
 	}
 	
 	private void initData() {
 		pbwc mJS = new pbwc();  
-		String url = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
+		PhoneIntroEntity entity = (PhoneIntroEntity) getIntent().getSerializableExtra(CommonValue.IndexIntentKeyValue.CreateView);
+		String url = String.format("%s/book/%s", CommonValue.BASE_URL, entity.code);
+//		String openid = entity.wechat_id;
+//		if (openid.equals(appContext.getLoginUid())) {
+//			rightBarButton.setVisibility(View.VISIBLE);
+//		}
 		Logger.i(url);
 		
 		WebSettings webseting = webView.getSettings();  
@@ -69,7 +79,7 @@ public class PhonebookViewWeb extends AppActivity {
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				Logger.i(url);
+				loadingPd = UIHelper.showProgress(PhonebookViewWeb.this, null, null, true);
 				view.loadUrl(url);
 				return true;
 			}
@@ -80,9 +90,8 @@ public class PhonebookViewWeb extends AppActivity {
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
 		    public void onProgressChanged(WebView view, int progress) {
-		        setTitle("页面加载中，请稍候..." + progress + "%");
-		        setProgress(progress * 100);
-		        if (progress == 100) {
+		        
+		        if (progress >= 50) {
 		        	UIHelper.dismissProgress(loadingPd);
 		        }
 		    }
@@ -105,7 +114,7 @@ public class PhonebookViewWeb extends AppActivity {
 		cookieManager.removeAllCookie();
 		cookieManager.setCookie(url, cookieString2);
 		cookieManager.setCookie(url, cookieString3);
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+		loadingPd = UIHelper.showProgress(PhonebookViewWeb.this, null, null, true);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);

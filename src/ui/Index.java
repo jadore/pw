@@ -230,10 +230,9 @@ public class Index extends AppActivity {
 	
 	public void showPhoneViewWeb(PhoneIntroEntity entity) {
 		Intent intent = new Intent(this, PhonebookViewWeb.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity);
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
-	
 	
 //	private void showActivityView(ActivityIntroEntity entity) {
 //		Intent intent = new Intent(this, AcivityViewMembers.class);
@@ -261,6 +260,11 @@ public class Index extends AppActivity {
 	
 	public void showScan() {
 		Intent intent = new Intent(this, CaptureActivity.class);
+		startActivity(intent);
+	}
+	
+	public void showFeedback() {
+		Intent intent = new Intent(this, Feedback.class);
 		startActivity(intent);
 	}
 	
@@ -822,13 +826,13 @@ public class Index extends AppActivity {
 		ops.add(op2);
 		cards.add(ops);
 		
-		List<CardIntroEntity> ops1 = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op11 = new CardIntroEntity();
-		op11.realname = "加V认证";
-		op11.department = CommonValue.subTitle.subtitle1;
-		op11.cardSectionType = CommonValue.CardSectionType .VSectionType;
-		ops1.add(op11);
-		cards.add(ops1);
+//		List<CardIntroEntity> ops1 = new ArrayList<CardIntroEntity>();
+//		CardIntroEntity op11 = new CardIntroEntity();
+//		op11.realname = "加V认证";
+//		op11.department = CommonValue.subTitle.subtitle1;
+//		op11.cardSectionType = CommonValue.CardSectionType .VSectionType;
+//		ops1.add(op11);
+//		cards.add(ops1);
 		
 		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
 		CardIntroEntity op21 = new CardIntroEntity();

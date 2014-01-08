@@ -89,7 +89,11 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 		}
 		else if (model.cardSectionType.equals(CommonValue.CardSectionType.BarcodeSectionType)) {
 			if (position == 0) {
-				
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+					}
+				});
 			}
 			else {
 				convertView.setOnClickListener(new OnClickListener() {
@@ -100,11 +104,13 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 				});
 			}
 		}
-		else if (model.cardSectionType.equals(CommonValue.CardSectionType.VSectionType)) {
-			
-		}
 		else if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
-			
+			convertView.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					((Index)context).showFeedback();
+				}
+			});
 		}
 		return convertView;
 	}
