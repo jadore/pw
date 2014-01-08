@@ -25,6 +25,7 @@ import cn.sharesdk.wechat.moments.WechatMoments;
 import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
+import com.google.zxing.client.android.CaptureActivity;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
@@ -167,6 +168,11 @@ public class Index extends AppActivity {
 		mobile.content = CommonValue.subTitle.subtitle1;
 		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile);
+		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+		mobile0.title = "家庭族谱通讯录";
+		mobile0.content = CommonValue.subTitle.subtitle2;
+		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+		mobilesInPhone.add(mobile0);
 		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
 		mobile1.title = "个人微友通讯录";
 		mobile1.content = CommonValue.subTitle.subtitle2;
@@ -175,36 +181,6 @@ public class Index extends AppActivity {
 		phones.add(mobilesInPhone);
 		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
 		mPinedListView1.setAdapter(mPhoneAdapter);
-//		mPinedListView1.setOnItemClickListener(new OnItemClickListener() {
-//			@Override
-//			public void onSectionClick(AdapterView<?> adapterView, View view,
-//					int section, long id) {
-//				
-//			}
-//			
-//			@Override
-//			public void onItemClick(AdapterView<?> adapterView, View view, int section,
-//					int position, long id) {
-//				if (section > 0) {
-//					PhoneIntroEntity entity = phones.get(section).get(position);
-//					showPhoneView(entity);
-//				}
-//				else if (section == 0) {
-//					Intent intent;
-//					switch (position) {
-//					case 0:
-//						intent = new Intent(Index.this, HomeContactActivity.class);
-//						startActivity(intent);
-//						break;
-//					default:
-//						intent = new Intent(Index.this, FriendCards.class);
-//						startActivity(intent);
-//						break;
-//					}
-//				}
-//			}
-//		});
-		
 		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
 		mPinedListView2.setDividerHeight(0);
 		activities = new ArrayList<List<ActivityIntroEntity>>();
@@ -252,11 +228,11 @@ public class Index extends AppActivity {
 		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
-//	private void showPhoneViewWeb(PhoneIntroEntity entity, int RequestCode) {
-//		Intent intent = new Intent(this, PhonebookViewWeb.class);
-//		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
-//	    startActivityForResult(intent, RequestCode);
-//	}
+	public void showPhoneViewWeb(PhoneIntroEntity entity) {
+		Intent intent = new Intent(this, PhonebookViewWeb.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
+	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+	}
 	
 	
 //	private void showActivityView(ActivityIntroEntity entity) {
@@ -271,15 +247,20 @@ public class Index extends AppActivity {
 	    startActivityForResult(intent, RequestCode);
 	}
 	
-	private void showCardView(CardIntroEntity entity) {
-		Intent intent = new Intent(this, CardView.class);
-		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+	public void showCardViewWeb(CardIntroEntity entity) {
+		Intent intent = new Intent(this, CardViewWeb.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMessage() {
 		messageView.setVisibility(View.INVISIBLE);
 		Intent intent = new Intent(this, MessageView.class);
+		startActivity(intent);
+	}
+	
+	public void showScan() {
+		Intent intent = new Intent(this, CaptureActivity.class);
 		startActivity(intent);
 	}
 	
@@ -334,6 +315,11 @@ public class Index extends AppActivity {
 		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 		mobilesInPhone.add(mobile);
 		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
+		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+		mobile0.title = "家庭族谱通讯录";
+		mobile0.content = CommonValue.subTitle.subtitle2;
+		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+		mobilesInPhone.add(mobile0);
 		mobile1.title = "个人微友通讯录";
 		mobile1.content = CommonValue.subTitle.subtitle2;
 		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
@@ -374,6 +360,7 @@ public class Index extends AppActivity {
 		if (entity.owned.size()>0) {
 			cards.add(entity.owned);
 		}
+		addCardOp();
 		mCardAdapter.notifyDataSetChanged();
 	}
 	
@@ -510,6 +497,11 @@ public class Index extends AppActivity {
 					mobile.content = CommonValue.subTitle.subtitle1;
 					mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
 					mobilesInPhone.add(mobile);
+					PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+					mobile0.title = "家庭族谱通讯录";
+					mobile0.content = CommonValue.subTitle.subtitle2;
+					mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+					mobilesInPhone.add(mobile0);
 					PhoneIntroEntity mobile1 = new PhoneIntroEntity();
 					mobile1.title = "个人微友通讯录";
 					mobile1.content = CommonValue.subTitle.subtitle2;
@@ -635,6 +627,7 @@ public class Index extends AppActivity {
 					if (entity.owned.size()>0) {
 						cards.add(entity.owned);
 					}
+					addCardOp();
 					mCardAdapter.notifyDataSetChanged();
 					break;
 				default:
@@ -813,6 +806,38 @@ public class Index extends AppActivity {
 		} catch (Exception e) {
 			Logger.i(e);
 		}
+	}
+	
+	private void addCardOp() {
+		List<CardIntroEntity> ops = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op1 = new CardIntroEntity();
+		op1.realname = "我微友通讯录二维码";
+		op1.department = CommonValue.subTitle.subtitle1;
+		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		ops.add(op1);
+		CardIntroEntity op2 = new CardIntroEntity();
+		op2.realname = "扫一扫";
+		op2.department = CommonValue.subTitle.subtitle1;
+		op2.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		ops.add(op2);
+		cards.add(ops);
+		
+		List<CardIntroEntity> ops1 = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op11 = new CardIntroEntity();
+		op11.realname = "加V认证";
+		op11.department = CommonValue.subTitle.subtitle1;
+		op11.cardSectionType = CommonValue.CardSectionType .VSectionType;
+		ops1.add(op11);
+		cards.add(ops1);
+		
+		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op21 = new CardIntroEntity();
+		op21.realname = "客服反馈";
+		op21.department = CommonValue.subTitle.subtitle1;
+		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		ops2.add(op21);
+		cards.add(ops2);
+		
 	}
 
 	@Override

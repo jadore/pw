@@ -28,6 +28,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
+import android.widget.Toast;
 
 public class PhonebookViewWeb extends AppActivity {
 	private WebView webView;
@@ -106,6 +107,10 @@ public class PhonebookViewWeb extends AppActivity {
 		cookieManager.setCookie(url, cookieString3);
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		webView.loadUrl(url);
+		if (!appContext.isNetworkConnected()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
 	}
 	
 	public void ButtonClick(View v) {

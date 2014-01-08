@@ -175,6 +175,13 @@
         </activity>
         
         <activity
+            android:name="ui.CardViewWeb"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.SlideLeft"
+             >
+        </activity>
+        
+        <activity
             android:name="ui.MessageView"
             android:screenOrientation="portrait"
             android:launchMode="singleTask"

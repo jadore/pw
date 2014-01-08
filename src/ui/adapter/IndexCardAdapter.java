@@ -17,6 +17,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import ui.CardView;
+import ui.Index;
 import ui.adapter.IndexActivityAdapter.CellHolder;
 import ui.adapter.IndexActivityAdapter.SectionView;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
@@ -78,12 +79,33 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 		final CardIntroEntity model = cards.get(section).get(position);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
-		convertView.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				showCardView(model);
+		if (model.cardSectionType.equals(CommonValue.CardSectionType.OwnedSectionType)) {
+			convertView.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					((Index)context).showCardViewWeb(model);
+				}
+			});
+		}
+		else if (model.cardSectionType.equals(CommonValue.CardSectionType.BarcodeSectionType)) {
+			if (position == 0) {
+				
 			}
-		});
+			else {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showScan();
+					}
+				});
+			}
+		}
+		else if (model.cardSectionType.equals(CommonValue.CardSectionType.VSectionType)) {
+			
+		}
+		else if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
+			
+		}
 		return convertView;
 	}
 
@@ -104,11 +126,4 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 		return convertView;
 	}
 	
-	private void showCardView(CardIntroEntity entity) {
-		Intent intent = new Intent(context, CardView.class);
-		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
-		context.startActivity(intent);
-	}
-
-
 }

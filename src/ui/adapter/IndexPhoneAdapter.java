@@ -78,7 +78,7 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 			convertView.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View arg0) {
-					((Index)context).showPhoneView(model);
+					((Index)context).showPhoneViewWeb(model);
 				}
 			});
 			convertView.setOnLongClickListener(new OnLongClickListener() {
@@ -98,7 +98,7 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 						((Index)context).showMobileView();
 					}
 				});
-			} else {
+			} else if (position == 2) {
 				convertView.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {

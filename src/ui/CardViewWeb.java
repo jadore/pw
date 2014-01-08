@@ -1,22 +1,13 @@
 package ui;
 
-import java.util.List;
-
-import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.util.EncodingUtils;
-
 import tools.AppManager;
 import tools.Logger;
 import tools.UIHelper;
 
-import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
-import com.loopj.android.http.RequestParams;
 import com.vikaa.mycontact.R;
 
-import config.AppClient;
 import config.CommonValue;
 import config.QYRestClient;
 
@@ -27,23 +18,25 @@ import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
+import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Toast;
 
-public class CreateView extends AppActivity {
+public class CardViewWeb extends AppActivity {
 	private WebView webView;
 	private ProgressDialog loadingPd;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.create_view);
+		setContentView(R.layout.card_view_webview);
 		initUI();
 		initData();
 	}
@@ -55,12 +48,24 @@ public class CreateView extends AppActivity {
 	private void initData() {
 		pbwc mJS = new pbwc();  
 		String url = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
-		webView.getSettings().setLightTouchEnabled(true);
-		webView.getSettings().setJavaScriptEnabled(true);
-		webView.clearCache(true);
-		webView.clearHistory();
-		webView.clearFormData();
-		webView.addJavascriptInterface(mJS, "pbwc");
+		Logger.i(url);
+		
+		WebSettings webseting = webView.getSettings();  
+		webseting.setJavaScriptEnabled(true);
+		webseting.setLightTouchEnabled(true);
+	    webseting.setDomStorageEnabled(true);             
+	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
+	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
+        webseting.setAppCachePath(appCacheDir);  
+        webseting.setAllowFileAccess(true);  
+        webseting.setAppCacheEnabled(true); 
+        if (appContext.isNetworkConnected()) {
+        	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+		}
+        else {
+        	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
+        }
+        
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -80,6 +85,12 @@ public class CreateView extends AppActivity {
 		        if (progress == 100) {
 		        	UIHelper.dismissProgress(loadingPd);
 		        }
+		    }
+		    
+		    @Override
+		    public void onReachedMaxAppCacheSize(long spaceNeeded,
+		    		long quota, QuotaUpdater quotaUpdater) {
+		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
 		    }
 		});
 		CookieStore cookieStore = new PersistentCookieStore(this);  
@@ -102,17 +113,29 @@ public class CreateView extends AppActivity {
     	}
 	}
 	
-	public void ButtonClick(View v) {
-		switch (v.getId()) {
-		case R.id.leftBarButton:
-			AppManager.getAppManager().finishActivity(this);
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			if (webView.canGoBack()) {
+				webView.goBack();// 返回前一个页面
+				return true;
+			}
+			else {
+				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			}
 			break;
+
 		default:
 			break;
 		}
+		
+		return super.onKeyDown(keyCode, event);
 	}
 	
 	public class pbwc {
+		
 	    public void goPhonebookView(String code) {
 	    	Logger.i(code+"");
 	    	Message msg = new Message();
@@ -157,31 +180,31 @@ public class CreateView extends AppActivity {
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(CardViewWeb.this);
 				break;
 			case CommonValue.CreateViewJSType.goPhonebookList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(CardViewWeb.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityView:
 				code = (String) msg.obj;
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(CardViewWeb.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(CardViewWeb.this);
 				break;
 			case CommonValue.CreateViewJSType.goCardView:
 //				code = (String) msg.obj;
 //				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 //				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(CardViewWeb.this);
 				break;
 			}
 		};

@@ -39,6 +39,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:gravity="center"
+            android:visibility="invisible"
             />
         <Button
             android:id="@+id/rightBarButton"

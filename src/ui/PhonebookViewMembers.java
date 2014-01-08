@@ -47,11 +47,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class PhonebookViewMembers extends AppActivity{
-	private TextView titleBarView;
 	private List<List<CardIntroEntity>> cards;
 	private PinnedHeaderListView mPinedListView;
 	private PhonebookViewMembersAdapter mCardAdapter;
-	private TextView contentView;
+	
 	private ProgressDialog loadingPd;
 	private TextView nothingView;
 	private Button addMyMobileButton;
@@ -60,6 +59,9 @@ public class PhonebookViewMembers extends AppActivity{
 	private PhoneViewEntity phonebook;
 	private Button rightBarButton;
 	private SMSPersonList smsPersons;
+	private TextView titleView;
+	private TextView contentView;
+	private TextView creatorView;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -70,10 +72,11 @@ public class PhonebookViewMembers extends AppActivity{
 	
 	private void initUI() {
 		rightBarButton = (Button) findViewById(R.id.rightBarButton);
-		titleBarView = (TextView) findViewById(R.id.titleBarView);
 		LayoutInflater inflater = LayoutInflater.from(this);
 		View header = inflater.inflate(R.layout.view_members_header, null);
+		titleView = (TextView) header.findViewById(R.id.titleView);
 		contentView = (TextView) header.findViewById(R.id.headerContentView);
+		creatorView = (TextView) header.findViewById(R.id.creatorView);
 		View footer = inflater.inflate(R.layout.phoneview_members_footer, null);
 		nothingView = (TextView) footer.findViewById(R.id.nothingView);
 		addMyMobileButton = (Button)footer.findViewById(R.id.addMyMobile);
@@ -92,8 +95,9 @@ public class PhonebookViewMembers extends AppActivity{
 	private void initData() {
 		smsPersons = new SMSPersonList();
 		PhoneIntroEntity entity = (PhoneIntroEntity) getIntent().getSerializableExtra(CommonValue.IndexIntentKeyValue.PhoneView);
-		titleBarView.setText(entity.title);
-		contentView.setText(String.format("%s", entity.content));
+		Logger.i(entity.code);
+		titleView.setText(entity.title);
+		contentView.setText(entity.content);
 		getPhoneViewFromCache(entity);
 	}
 	
@@ -204,7 +208,7 @@ public class PhonebookViewMembers extends AppActivity{
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", titleBarView.getText().toString(), phonebook.link));
+			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phonebook.title, phonebook.link));
 			oks.setImagePath("file:///android_asset/ic_launcher.png");
 			oks.setUrl(phonebook.link);
 			oks.setSilent(silent);
@@ -254,8 +258,9 @@ public class PhonebookViewMembers extends AppActivity{
 			adminLayout.setVisibility(View.VISIBLE);
 			break;
 		}
-		titleBarView.setText(entity.title);
-		contentView.setText(String.format("通讯录由%s发起\n%s", entity.creator, entity.content));
+		titleView.setText(entity.title);
+		creatorView.setText("通讯录由"+entity.creator+"发起");
+		contentView.setText(entity.content);
 		ViewTreeObserver observer = contentView.getViewTreeObserver();
 		observer.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			@Override

@@ -72,7 +72,7 @@ public class CommonValue {
 	}
 	
 	public interface PhoneSectionType {
-		String MobileSectionType = "手机通讯录";
+		String MobileSectionType = "我的通讯录";
 		String OwnedSectionType = "我发起的通讯录";
 		String JoinedSectionType = "我参与的通讯录";
 	}
@@ -90,6 +90,9 @@ public class CommonValue {
 	
 	public interface CardSectionType {
 		String OwnedSectionType = "我的名片";
+		String BarcodeSectionType = "二维码扫一扫";
+		String VSectionType = "名片加V认证";
+		String FeedbackSectionType = "信息反馈";
 	}
 	
 	public interface CardViewIntentKeyValue {
