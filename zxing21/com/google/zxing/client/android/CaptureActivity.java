@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
 import tools.AppManager;
 import tools.Logger;
 import ui.AppActivity;
+import ui.CreateView;
+import ui.FriendCards;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -37,6 +39,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
+import bean.CardIntroEntity;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
@@ -48,6 +51,8 @@ import com.google.zxing.client.android.history.HistoryManager;
 import com.google.zxing.client.android.result.ResultHandler;
 import com.google.zxing.client.android.result.ResultHandlerFactory;
 import com.vikaa.mycontact.R;
+
+import config.CommonValue;
 
 /**
  * This activity opens the camera and does the actual scanning on a background thread. It draws a
@@ -297,6 +302,15 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
     super.onDestroy();
   }
 
+  public void ButtonClick(View v) {
+		switch (v.getId()) {
+		case R.id.leftBarButton:
+			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			break;
+		}
+	}
+  
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     switch (keyCode) {
@@ -467,16 +481,9 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
   private void handleDecodeInternally(Result rawResult, ResultHandler resultHandler, Bitmap barcode) {
 	  String content = rawResult.getText();
 	  
-//	  if(content.indexOf("card.momoka.cc") != -1){
-//			String rule = "\\d+";
-//			Pattern pattern = Pattern.compile(rule);
-//			Matcher ma = pattern.matcher(content);
-//			if(ma.find()){  
-//				Intent it = new Intent(CaptureActivity.this,MOMOCard.class);
-//				it.putExtra("pncode", ma.group());
-//				startActivity(it);
-//				finish();
-//	        } 
+	  if(content.indexOf("pb.wc") != -1){
+		  showCardView(content);
+	  }
 //		}else{
 //			Intent it = new Intent(CaptureActivity.this,LoveCode.class);
 //			it.putExtra("content", content);
@@ -484,6 +491,12 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
 //			startActivity(it);
 //		}
   }
+  
+  	private void showCardView(String url) {
+		Intent intent = new Intent(this, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
+		startActivity(intent);
+	}
 
   // Briefly show the contents of the barcode, then handle the result outside Barcode Scanner.
   private void handleDecodeExternally(Result rawResult, ResultHandler resultHandler, Bitmap barcode) {

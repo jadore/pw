@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+	<LinearLayout 
+	    android:onClick="ButtonClick"
+	    android:id="@+id/navmobile"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:background="@color/white" >
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="20dp"
+	        android:layout_marginTop="10dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="15sp"
+	        android:textColor="#2b2b2b"
+	        android:text="手机通讯录"
+	        />
+	    
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="16dp"
+	        android:layout_marginTop="4dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="12sp"
+	        android:textColor="#999999"
+	        android:text="查看手机通讯录"
+	        />
+	    
+	    <View 
+	        android:layout_width="match_parent"
+	        android:layout_height="1dp"
+	        android:layout_marginTop="10dp"
+	        android:background="#e4e4e4"
+	        />
+	</LinearLayout>
+	<LinearLayout 
+	    android:visibility="gone"
+	    android:onClick="ButtonClick"
+	    android:id="@+id/familymobile"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:background="@color/white" >
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="20dp"
+	        android:layout_marginTop="10dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="15sp"
+	        android:textColor="#2b2b2b"
+	        android:text="家庭族谱通讯录"
+	        />
+	    
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="16dp"
+	        android:layout_marginTop="4dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="12sp"
+	        android:textColor="#999999"
+	        android:text=""
+	        />
+	    
+	    <View 
+	        android:layout_width="match_parent"
+	        android:layout_height="1dp"
+	        android:layout_marginTop="10dp"
+	        android:background="#e4e4e4"
+	        />
+	</LinearLayout>
+	<LinearLayout 
+	    android:onClick="ButtonClick"
+	    android:id="@+id/friendmobile"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:background="@color/white" >
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="20dp"
+	        android:layout_marginTop="10dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="15sp"
+	        android:textColor="#2b2b2b"
+	        android:text="个人微友通讯录"
+	        />
+	    
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="16dp"
+	        android:layout_marginTop="4dp"
+	        android:layout_marginLeft="18dp"
+	        android:textSize="12sp"
+	        android:textColor="#999999"
+	        android:text="查看交换名片的朋友"
+	        />
+	    
+	    <View 
+	        android:layout_width="match_parent"
+	        android:layout_height="1dp"
+	        android:layout_marginTop="10dp"
+	        android:background="#e4e4e4"
+	        />
+	</LinearLayout>
+    
+
+</LinearLayout>

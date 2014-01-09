@@ -3,6 +3,9 @@ package ui.adapter;
 import java.util.List;
 import tools.StringUtils;
 import ui.CardView;
+import ui.CreateView;
+import ui.FriendCards;
+
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
 
@@ -89,9 +92,12 @@ public class FriendCardAdapter extends BaseAdapter {
 	}
 	
 	private void showCardView(CardIntroEntity entity) {
-		Intent intent = new Intent(context, CardView.class);
-		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
-		context.startActivity(intent);
+//		Intent intent = new Intent(context, CardView.class);
+//		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+//		context.startActivity(intent);
+		Intent intent = new Intent(context, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
+		((FriendCards)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 }

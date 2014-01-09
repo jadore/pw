@@ -27,13 +27,17 @@ import config.AppClient;
 import config.CommonValue;
 import config.QYRestClient;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.location.Address;
 import android.net.Uri;
@@ -59,13 +63,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
+import android.widget.Button;
 import android.widget.Toast;
 
 public class CreateView extends AppActivity {
 	private WebView webView;
 	private ProgressDialog loadingPd;
-	
+	private Button rightBarButton;
 	private MyAsyncQueryHandler asyncQuery;
+	private String keyCode;
+	private int keyType;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -75,6 +82,7 @@ public class CreateView extends AppActivity {
 	}
 	
 	private void initUI() {
+		rightBarButton = (Button) findViewById(R.id.rightBarButton);
 		webView = (WebView) findViewById(R.id.webview);
 	}
 	
@@ -103,11 +111,17 @@ public class CreateView extends AppActivity {
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				rightBarButton.setVisibility(View.INVISIBLE);
+				if (!appContext.isNetworkConnected()) {
+		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+		    		return true;
+		    	}
 				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
 	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
 	                startActivity(intent); 
 	            }
 				else {
+					loadingPd = UIHelper.showProgress(CreateView.this, null, null, true);
 					view.loadUrl(url);
 				}
 				return true;
@@ -121,7 +135,8 @@ public class CreateView extends AppActivity {
 		    public void onProgressChanged(WebView view, int progress) {
 		        setTitle("页面加载中，请稍候..." + progress + "%");
 		        setProgress(progress * 100);
-		        if (progress == 100) {
+		        
+		        if (progress >= 50) {
 		        	UIHelper.dismissProgress(loadingPd);
 		        }
 		    }
@@ -164,7 +179,8 @@ public class CreateView extends AppActivity {
 			}
 			
 			break;
-		default:
+		case R.id.rightBarButton:
+			SMSDialog(keyType);
 			break;
 		}
 	}
@@ -296,10 +312,16 @@ public class CreateView extends AppActivity {
 				break;
 			case CommonValue.CreateViewJSType.showPhonebookSmsButton:
 				code = (String) msg.obj;
+				keyCode = code;
+				keyType = 1;
+				rightBarButton.setVisibility(View.VISIBLE);
 				Logger.i(code);
 				break;
 			case CommonValue.CreateViewJSType.showActivitySmsButton:
 				code = (String) msg.obj;
+				keyCode = code;
+				keyType = 2;
+				rightBarButton.setVisibility(View.VISIBLE);
 				Logger.i(code);
 				break;
 			}
@@ -475,5 +497,33 @@ public class CreateView extends AppActivity {
             values.put(Contacts.ContactMethods.DATA, card.address);
             this.getContentResolver().insert(
                     android.provider.ContactsContract.Data.CONTENT_URI, values);
+	}
+	
+	protected void SMSDialog(final int type) {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage("允许群友通讯录发送短信?");
+		builder.setTitle("提示");
+		builder.setPositiveButton("确认", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				showSMS(type);
+			}
+		});
+
+	   builder.setNegativeButton("取消", new OnClickListener() {
+		   @Override
+		   public void onClick(DialogInterface dialog, int which) {
+			   dialog.dismiss();
+		   }
+	   });
+	   builder.create().show();
+	}
+	
+	private void showSMS(int type) {
+		Intent intent = new Intent(this,PhonebookSMS.class);
+		intent.putExtra(CommonValue.PhonebookViewIntentKeyValue.SMS, keyCode);
+		intent.putExtra("type", type);
+        startActivityForResult(intent, CommonValue.PhonebookViewIntentKeyValue.SMSRequest);
 	}
 }

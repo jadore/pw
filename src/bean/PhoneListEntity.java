@@ -30,12 +30,12 @@ public class PhoneListEntity extends Entity{
 				JSONObject info = js.getJSONObject("info");
 				JSONArray ownedArr = info.getJSONArray("owned");
 				for (int i=0;i<ownedArr.length();i++) {
-					PhoneIntroEntity phone = PhoneIntroEntity.parse(ownedArr.getJSONObject(i), CommonValue.PhoneSectionType.OwnedSectionType);
+					PhoneIntroEntity phone = PhoneIntroEntity.parsePhonebookAndActivity(ownedArr.getJSONObject(i), CommonValue.PhoneSectionType.OwnedSectionType);
 					data.owned.add(phone);
 				}
 				JSONArray joinedArr = info.getJSONArray("joined");
 				for (int i=0;i<joinedArr.length();i++) {
-					PhoneIntroEntity phone = PhoneIntroEntity.parse(joinedArr.getJSONObject(i), CommonValue.PhoneSectionType.JoinedSectionType);
+					PhoneIntroEntity phone = PhoneIntroEntity.parsePhonebookAndActivity(joinedArr.getJSONObject(i), CommonValue.PhoneSectionType.JoinedSectionType);
 					data.joined.add(phone);
 				}
 			}

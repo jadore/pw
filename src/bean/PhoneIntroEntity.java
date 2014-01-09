@@ -1,6 +1,7 @@
 package bean;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 import com.google.gson.JsonObject;
 
 import tools.AppException;
+import tools.StringUtils;
 
 public class PhoneIntroEntity extends Entity {
 	
@@ -40,6 +42,47 @@ public class PhoneIntroEntity extends Entity {
 			data.member = info.getString("member");
 			data.phoneSectionType = sectionType;
 			data.willRefresh = false;
+		} catch (JSONException e) {
+			throw AppException.json(e);
+		}
+		return data;
+	}
+	
+	
+	public String begin_at;
+	public String end_at;
+	public String count;
+	public String creator;
+	public static PhoneIntroEntity parsePhonebookAndActivity(JSONObject info, String sectionType) throws IOException, AppException {
+		PhoneIntroEntity data = new PhoneIntroEntity();
+		try {
+			data.code = info.getString("code");
+			data.title = info.getString("title");
+			data.content = info.getString("content");
+			data.privacy = info.getString("privacy");
+			data.dateline = info.getString("dateline");
+			data.hits = info.getString("hits");
+			data.type = info.getString("type");
+			if (!info.isNull("question")) {
+				data.question = info.getString("question");
+			}
+			if (!info.isNull("member")) {
+				data.member = info.getString("member");
+			}
+			if (!info.isNull("begin_at")) {
+				data.begin_at = StringUtils.phpLongtoDate(info.getString("begin_at"), new SimpleDateFormat("yyyy-MM-dd"));
+			}
+			if (!info.isNull("end_at")) {
+				data.end_at = StringUtils.phpLongtoDate(info.getString("end_at"), new SimpleDateFormat("yyyy-MM-dd"));
+			}
+			if (!info.isNull("count")) {
+				data.count = info.getString("count");
+			}
+			if (!info.isNull("creator")) {
+				JSONObject creatorObj = new JSONObject(info.getString("creator"));
+				data. creator = creatorObj.getString("nickname");
+			}
+			data.phoneSectionType = sectionType;
 		} catch (JSONException e) {
 			throw AppException.json(e);
 		}

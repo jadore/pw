@@ -4,24 +4,36 @@ package ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import tools.AppException;
 import tools.AppManager;
+import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
 
+import bean.ActivityIntroEntity;
+import bean.ActivityViewEntity;
 import bean.CardIntroEntity;
+import bean.Entity;
+import bean.PhoneIntroEntity;
 import bean.PhoneViewEntity;
+import bean.Result;
 import bean.SMSPersonList;
 
 import com.vikaa.mycontact.R;
 
+import config.AppClient;
 import config.CommonValue;
+import config.AppClient.ClientCallback;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
@@ -32,7 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class PhonebookSMS extends AppActivity implements OnItemClickListener{
-	
+	private ProgressDialog loadingPd;
 	private ListView mListView;
 	private List<CardIntroEntity> members;
 	private ArrayList<String> smsMember;
@@ -61,9 +73,127 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 	
 	private void initData() {
 		smsMember = new ArrayList<String>();
-		SMSPersonList phonebook = (SMSPersonList) getIntent().getSerializableExtra(CommonValue.PhonebookViewIntentKeyValue.SMS);
-		if (phonebook.members.size() > 0) {
-			members.addAll(phonebook.members);
+//		SMSPersonList phonebook = (SMSPersonList) getIntent().getSerializableExtra(CommonValue.PhonebookViewIntentKeyValue.SMS);
+//		if (phonebook.members.size() > 0) {
+//			members.addAll(phonebook.members);
+//			mAdapter.notifyDataSetChanged();
+//		}
+		String code  = getIntent().getStringExtra(CommonValue.PhonebookViewIntentKeyValue.SMS);
+		int type = getIntent().getIntExtra("type", 1);
+		if (type == 1) {
+			getPhoneViewFromCache(code);
+		}
+		else {
+			getActivityViewFromCache(code);
+		}
+	}
+	
+	private void getPhoneViewFromCache(String code) {
+		String key = String.format("%s-%s-%s", CommonValue.CacheKey.PhoneView, code, appContext.getLoginUid());
+		PhoneViewEntity phonebook = (PhoneViewEntity) appContext.readObject(key);
+		if(phonebook == null){
+			getPhoneView(code);
+			return;
+		}
+		if (phonebook.members.size()>0) {
+			handleRight(phonebook);
+		}
+		getPhoneView(code);
+	}
+	
+	private void getPhoneView(String code) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		AppClient.getPhoneView(appContext, code, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				PhoneViewEntity entity = (PhoneViewEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					handleRight(entity);
+					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				UIHelper.dismissProgress(loadingPd);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				UIHelper.dismissProgress(loadingPd);
+				((AppException)e).makeToast(getApplicationContext());
+			}
+		});
+	}
+	
+	private void handleRight(PhoneViewEntity entity) {
+		if (entity.members.size() > 0) {
+			members.clear();
+			members.addAll(entity.members);
+			mAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	private void getActivityViewFromCache(String code) {
+		String key = String.format("%s-%s-%s", CommonValue.CacheKey.ActivityView, code, appContext.getLoginUid());
+		ActivityViewEntity entity = (ActivityViewEntity) appContext.readObject(key);
+		if(entity == null){
+			getActivityView(code);
+			return;
+		}
+		if (entity.members.size()>0) {
+			handleA(entity);
+		}
+		getActivityView(code);
+	}
+	
+	private void getActivityView(String code) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		AppClient.getActivityView(appContext, code, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				ActivityViewEntity entity = (ActivityViewEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					handleA(entity);
+					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				UIHelper.dismissProgress(loadingPd);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				UIHelper.dismissProgress(loadingPd);
+				((AppException)e).makeToast(getApplicationContext());
+			}
+		});
+	}
+	
+	private void handleA(ActivityViewEntity entity) {
+		if (entity.members.size() > 0) {
+			members.clear();
+			members.addAll(entity.members);
 			mAdapter.notifyDataSetChanged();
 		}
 	}

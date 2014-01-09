@@ -209,27 +209,33 @@ public class PhonebookSMSBody extends AppActivity{
 	
 	
 	private void sendSMS() {
-		imm.hideSoftInputFromWindow(mContent.getWindowToken(), 0);
-		allNum = 0;
-		failureNum = 0;
-		successNum = 0;
-		String content = mContent.getText().toString();
-		Logger.i(content);
-		if (StringUtils.isEmpty(content)) {
-			UIHelper.ToastMessage(getApplicationContext(), "请输入内容", Toast.LENGTH_SHORT);
-			return;
+		try {
+			imm.hideSoftInputFromWindow(mContent.getWindowToken(), 0);
+			allNum = 0;
+			failureNum = 0;
+			successNum = 0;
+			String content = mContent.getText().toString();
+			Logger.i(content);
+			if (StringUtils.isEmpty(content)) {
+				UIHelper.ToastMessage(getApplicationContext(), "请输入内容", Toast.LENGTH_SHORT);
+				return;
+			}
+			loadingPd = UIHelper.showProgress(this, null, null, true);
+			for (int i = 0; i < smsMember.size(); i++) {  
+	            String number = smsMember.get(i);  
+	            Logger.i(number);
+	            Intent sentIntent = new Intent(SENT_SMS_ACTION); 
+//	            saveSMS(number, content);
+	        	PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, sentIntent,  0); 
+	            sManage.sendTextMessage(number, null, content, sentPI, null);  
+	        }  
+			
+			UIHelper.dismissProgress(loadingPd);
+			UIHelper.ToastMessage(getApplicationContext(), "发送完成", Toast.LENGTH_SHORT);
+			setResult(RESULT_OK);
+		} catch (Exception e ) {
+			Logger.i(e);
 		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
-		for (int i = 0; i < smsMember.size(); i++) {  
-            String number = smsMember.get(i);  
-            Logger.i(number);
-            Intent sentIntent = new Intent(SENT_SMS_ACTION); 
-            saveSMS(number, content);
-        	PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, sentIntent,  0); 
-            sManage.sendTextMessage(number, null, content, sentPI, null);  
-        }  
-		UIHelper.dismissProgress(loadingPd);
-		setResult(RESULT_OK);
 	}
 	
 	String[] oprators = new String[] { "前往查看信息","不去了,回到通讯录" };

@@ -13,8 +13,8 @@ import tools.Logger;
 import config.CommonValue;
 
 public class ActivityListEntity extends Entity {
-	public List<ActivityIntroEntity> owned = new ArrayList<ActivityIntroEntity>();
-	public List<ActivityIntroEntity> joined = new ArrayList<ActivityIntroEntity>();
+	public List<PhoneIntroEntity> owned = new ArrayList<PhoneIntroEntity>();
+	public List<PhoneIntroEntity> joined = new ArrayList<PhoneIntroEntity>();
 	
 	public static ActivityListEntity parse(String res) throws IOException, AppException {
 		ActivityListEntity data = new ActivityListEntity();
@@ -25,12 +25,12 @@ public class ActivityListEntity extends Entity {
 				JSONObject info = js.getJSONObject("info");
 				JSONArray ownedArr = info.getJSONArray("owned");
 				for (int i=0;i<ownedArr.length();i++) {
-					ActivityIntroEntity phone = ActivityIntroEntity.parse(ownedArr.getJSONObject(i), CommonValue.ActivitySectionType.OwnedSectionType);
+					PhoneIntroEntity phone = PhoneIntroEntity.parsePhonebookAndActivity(ownedArr.getJSONObject(i), CommonValue.ActivitySectionType.OwnedSectionType);
 					data.owned.add(phone);
 				}
 				JSONArray joinedArr = info.getJSONArray("joined");
 				for (int i=0;i<joinedArr.length();i++) {
-					ActivityIntroEntity phone = ActivityIntroEntity.parse(joinedArr.getJSONObject(i), CommonValue.ActivitySectionType.JoinedSectionType);
+					PhoneIntroEntity phone = PhoneIntroEntity.parsePhonebookAndActivity(joinedArr.getJSONObject(i), CommonValue.ActivitySectionType.JoinedSectionType);
 					data.joined.add(phone);
 				}
 			}

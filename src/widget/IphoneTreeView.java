@@ -1,5 +1,6 @@
 package widget;
 
+import tools.Logger;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
@@ -251,6 +252,7 @@ public class IphoneTreeView extends ExpandableListView implements
 		}
 
 		case IphoneTreeHeaderAdapter.PINNED_HEADER_VISIBLE: {
+			Logger.i("m v");
 			mAdapter.configureTreeHeader(mHeaderView, groupPosition,
 					childPosition, MAX_ALPHA);
 

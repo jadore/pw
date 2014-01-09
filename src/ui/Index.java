@@ -57,25 +57,24 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
+import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ExpandableListView.OnChildClickListener;
 import tools.AppException;
 import tools.Logger;
 import tools.UIHelper;
-import ui.CreateView.MyAsyncQueryHandler;
-import ui.CreateView.pbwc;
-import ui.adapter.IndexActivityAdapter;
 import ui.adapter.IndexCardAdapter;
 import ui.adapter.IndexPagerAdapter;
-import ui.adapter.IndexPhoneAdapter;
-import widget.IphoneTreeView;
+import ui.adapter.IphoneTreeViewAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
-import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView.OnItemClickListener;
 
-public class Index extends AppActivity {
+public class Index extends AppActivity implements OnChildClickListener, OnItemLongClickListener {
 	private ImageView avatarImageView;
 	private TextView messageView;
 	private Button phoneButton;
@@ -93,11 +92,14 @@ public class Index extends AppActivity {
 //	private int offset = 0;// 动画图片偏移量
 //	private int bmpW;// 动画图片宽度
 	
-	private IphoneTreeView iphoneTreeView;
-	
+	private FrameLayout indicatorGroup;
+	private int indicatorGroupId = -1;
+	private int indicatorGroupHeight;
+	private ExpandableListView iphoneTreeView;
+	private IphoneTreeViewAdapter mPhoneAdapter;
 	private List<List<PhoneIntroEntity>> phones;
-	private PinnedHeaderListView mPinedListView1;
-	private IndexPhoneAdapter mPhoneAdapter;
+//	private PinnedHeaderListView mPinedListView1;
+//	private IndexPhoneAdapter mPhoneAdapter;
 	
 	private List<List<ActivityIntroEntity>> activities;
 //	private PinnedHeaderListView mPinedListView2;
@@ -164,7 +166,7 @@ public class Index extends AppActivity {
 		mListViews = new ArrayList<View>();
 		LayoutInflater inflater = LayoutInflater.from(this);
 		
-		View lay1 = inflater.inflate(R.layout.tab1, null);
+		View lay1 = inflater.inflate(R.layout.index_tab0, null);
 		View lay2 = inflater.inflate(R.layout.tab2, null);
 		View lay0 = inflater.inflate(R.layout.tab0, null);
 //		View lay3 = inflater.inflate(R.layout.tab3, null);
@@ -177,28 +179,50 @@ public class Index extends AppActivity {
 		mPager.setCurrentItem(PAGE1);
 		mPager.setOnPageChangeListener(new MyOnPageChangeListener());
 		
-		mPinedListView1 = (PinnedHeaderListView) lay1.findViewById(R.id.tab1_listView);
-		mPinedListView1.setDividerHeight(0);
-		phones = new ArrayList<List<PhoneIntroEntity>>();
-		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-		PhoneIntroEntity mobile = new PhoneIntroEntity();
-		mobile.title = "手机通讯录";
-		mobile.content = CommonValue.subTitle.subtitle1;
-		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile);
-		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-		mobile0.title = "家庭族谱通讯录";
-		mobile0.content = CommonValue.subTitle.subtitle2;
-		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile0);
-		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-		mobile1.title = "个人微友通讯录";
-		mobile1.content = CommonValue.subTitle.subtitle2;
-		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile1);
-		phones.add(mobilesInPhone);
-		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
-		mPinedListView1.setAdapter(mPhoneAdapter);
+		indicatorGroup = (FrameLayout) lay1.findViewById(R.id.topGroup);
+		View header = inflater.inflate(R.layout.index_tab0_header, null);
+		iphoneTreeView = (ExpandableListView) lay1.findViewById(R.id.iphone_tree_view);
+		iphoneTreeView.setGroupIndicator(null);
+		iphoneTreeView.addHeaderView(header);
+		iphoneTreeView.setOnChildClickListener(this);
+		iphoneTreeView.setOnItemLongClickListener(this);
+		phones = new ArrayList<List<PhoneIntroEntity>>(4);
+		
+//		mPinedListView1 = (PinnedHeaderListView) lay1.findViewById(R.id.tab1_listView);
+//		mPinedListView1.setDividerHeight(0);
+//		phones = new ArrayList<List<PhoneIntroEntity>>();
+//		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
+//		PhoneIntroEntity mobile = new PhoneIntroEntity();
+//		mobile.title = "手机通讯录";
+//		mobile.content = CommonValue.subTitle.subtitle1;
+//		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile);
+//		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+//		mobile0.title = "家庭族谱通讯录";
+//		mobile0.content = CommonValue.subTitle.subtitle2;
+//		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile0);
+//		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
+//		mobile1.title = "个人微友通讯录";
+//		mobile1.content = CommonValue.subTitle.subtitle2;
+//		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile1);
+//		phones.add(mobilesInPhone);
+		
+		List<PhoneIntroEntity> phone1 = new ArrayList<PhoneIntroEntity>();
+		List<PhoneIntroEntity> phone2 = new ArrayList<PhoneIntroEntity>();
+		List<PhoneIntroEntity> phone3 = new ArrayList<PhoneIntroEntity>();
+		List<PhoneIntroEntity> phone4 = new ArrayList<PhoneIntroEntity>();
+		phones.add(phone1);
+		phones.add(phone2);
+		phones.add(phone3);
+		phones.add(phone4);
+		mPhoneAdapter = new IphoneTreeViewAdapter(this, phones);
+		iphoneTreeView.setAdapter(mPhoneAdapter);
+//		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
+//		mPinedListView1.setAdapter(mPhoneAdapter);
+		
+		
 		
 //		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
 //		mPinedListView2.setDividerHeight(0);
@@ -278,10 +302,10 @@ public class Index extends AppActivity {
 //		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
 //	}
 	
-	private void showActivityViewWeb(ActivityIntroEntity entity, int RequestCode) {
+	private void showActivityViewWeb(PhoneIntroEntity entity) {
 		Intent intent = new Intent(this, CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
-	    startActivityForResult(intent, RequestCode);
+	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
 	}
 	
 	public void showCardViewWeb(CardIntroEntity entity) {
@@ -337,13 +361,19 @@ public class Index extends AppActivity {
 		case R.id.cardButton:
 			mPager.setCurrentItem(PAGE3);
 			break;
+		case R.id.navmobile:
+			showMobileView();
+			break;
+		case R.id.friendmobile:
+			showFriendCardView();
+			break;
 		}
 	}
 	
 	private void getCache() {
 		getCacheUser();
 		getPhoneListFromCache();
-//		getActivityListFromCache();
+		getActivityListFromCache();
 		getCardListFromCache();
 	}
 	
@@ -358,29 +388,29 @@ public class Index extends AppActivity {
 		if(entity == null){
 			return;
 		}
-		phones.clear();
-		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-		PhoneIntroEntity mobile = new PhoneIntroEntity();
-		mobile.title = "手机通讯录";
-		mobile.content = CommonValue.subTitle.subtitle1;
-		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile);
-		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-		mobile0.title = "家庭族谱通讯录";
-		mobile0.content = CommonValue.subTitle.subtitle2;
-		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile0);
-		mobile1.title = "个人微友通讯录";
-		mobile1.content = CommonValue.subTitle.subtitle2;
-		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-		mobilesInPhone.add(mobile1);
-		phones.add(mobilesInPhone);
+//		phones.clear();
+//		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
+//		PhoneIntroEntity mobile = new PhoneIntroEntity();
+//		mobile.title = "手机通讯录";
+//		mobile.content = CommonValue.subTitle.subtitle1;
+//		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile);
+//		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
+//		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+//		mobile0.title = "家庭族谱通讯录";
+//		mobile0.content = CommonValue.subTitle.subtitle2;
+//		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile0);
+//		mobile1.title = "个人微友通讯录";
+//		mobile1.content = CommonValue.subTitle.subtitle2;
+//		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//		mobilesInPhone.add(mobile1);
+//		phones.add(mobilesInPhone);
 		if (entity.owned.size()>0) {
-			phones.add(entity.owned);
+			phones.set(0, entity.owned);
 		}
 		if (entity.joined.size()>0) {
-			phones.add(entity.joined);
+			phones.set(1, entity.joined);
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -391,14 +421,14 @@ public class Index extends AppActivity {
 		if(entity == null){
 			return;
 		}
-		activities.clear();
+//		activities.clear();
 		if (entity.owned.size()>0) {
-			activities.add(entity.owned);
+			phones.set(2, entity.owned);
 		}
 		if (entity.joined.size()>0) {
-			activities.add(entity.joined);
+			phones.set(3, entity.joined);
 		}
-//		mActivityAdapter.notifyDataSetChanged();
+		mPhoneAdapter.notifyDataSetChanged();
 	}
 	
 	private void getCardListFromCache() {
@@ -427,7 +457,7 @@ public class Index extends AppActivity {
 					appContext.saveLoginInfo(user);
 					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
-//					getActivityList();
+					getActivityList();
 					initWebData();
 					
 					getCardList();
@@ -499,73 +529,73 @@ public class Index extends AppActivity {
 				PhoneListEntity entity = (PhoneListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (phones.size() == 3) {
-						if (entity.owned.size()>0) {
-							for (PhoneIntroEntity entity1 : phones.get(1)) {
-								for (PhoneIntroEntity entity2 : entity.owned) {
-									if (entity2.code.equals(entity1.code)) {
-										entity2.willRefresh = !entity2.member.equals(entity1.member);
-									}
-								}
-							}
-						}
-						if (entity.joined.size()>0) {
-							for (PhoneIntroEntity entity1 : phones.get(2)) {
-								for (PhoneIntroEntity entity2 : entity.owned) {
-									if (entity2.code.equals(entity1.code)) {
-										entity2.willRefresh = !entity2.member.equals(entity1.member);
-									}
-								}
-							}
-						}
-					}
-					else if (phones.size() == 2) {
-						if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType)) {
-							if (entity.owned.size()>0) {
-								for (PhoneIntroEntity entity1 : phones.get(0)) {
-									for (PhoneIntroEntity entity2 : entity.owned) {
-										if (entity2.code.equals(entity1.code)) {
-											entity2.willRefresh = !entity2.member.equals(entity1.member);
-										}
-									}
-								}
-							}
-						}
-						else if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
-							if (entity.joined.size()>0) {
-								for (PhoneIntroEntity entity1 : phones.get(0)) {
-									for (PhoneIntroEntity entity2 : entity.owned) {
-										if (entity2.code.equals(entity1.code)) {
-											entity2.willRefresh = !entity2.member.equals(entity1.member);
-										}
-									}
-								}
-							}
-						}
-					}
-					phones.clear();
-					List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-					PhoneIntroEntity mobile = new PhoneIntroEntity();
-					mobile.title = "手机通讯录";
-					mobile.content = CommonValue.subTitle.subtitle1;
-					mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-					mobilesInPhone.add(mobile);
-					PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-					mobile0.title = "家庭族谱通讯录";
-					mobile0.content = CommonValue.subTitle.subtitle2;
-					mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-					mobilesInPhone.add(mobile0);
-					PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-					mobile1.title = "个人微友通讯录";
-					mobile1.content = CommonValue.subTitle.subtitle2;
-					mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-					mobilesInPhone.add(mobile1);
-					phones.add(mobilesInPhone);
+//					if (phones.size() == 3) {
+//						if (entity.owned.size()>0) {
+//							for (PhoneIntroEntity entity1 : phones.get(1)) {
+//								for (PhoneIntroEntity entity2 : entity.owned) {
+//									if (entity2.code.equals(entity1.code)) {
+//										entity2.willRefresh = !entity2.member.equals(entity1.member);
+//									}
+//								}
+//							}
+//						}
+//						if (entity.joined.size()>0) {
+//							for (PhoneIntroEntity entity1 : phones.get(2)) {
+//								for (PhoneIntroEntity entity2 : entity.owned) {
+//									if (entity2.code.equals(entity1.code)) {
+//										entity2.willRefresh = !entity2.member.equals(entity1.member);
+//									}
+//								}
+//							}
+//						}
+//					}
+//					else if (phones.size() == 2) {
+//						if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType)) {
+//							if (entity.owned.size()>0) {
+//								for (PhoneIntroEntity entity1 : phones.get(0)) {
+//									for (PhoneIntroEntity entity2 : entity.owned) {
+//										if (entity2.code.equals(entity1.code)) {
+//											entity2.willRefresh = !entity2.member.equals(entity1.member);
+//										}
+//									}
+//								}
+//							}
+//						}
+//						else if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
+//							if (entity.joined.size()>0) {
+//								for (PhoneIntroEntity entity1 : phones.get(0)) {
+//									for (PhoneIntroEntity entity2 : entity.owned) {
+//										if (entity2.code.equals(entity1.code)) {
+//											entity2.willRefresh = !entity2.member.equals(entity1.member);
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//					phones.clear();
+//					List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
+//					PhoneIntroEntity mobile = new PhoneIntroEntity();
+//					mobile.title = "手机通讯录";
+//					mobile.content = CommonValue.subTitle.subtitle1;
+//					mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//					mobilesInPhone.add(mobile);
+//					PhoneIntroEntity mobile0 = new PhoneIntroEntity();
+//					mobile0.title = "家庭族谱通讯录";
+//					mobile0.content = CommonValue.subTitle.subtitle2;
+//					mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//					mobilesInPhone.add(mobile0);
+//					PhoneIntroEntity mobile1 = new PhoneIntroEntity();
+//					mobile1.title = "个人微友通讯录";
+//					mobile1.content = CommonValue.subTitle.subtitle2;
+//					mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
+//					mobilesInPhone.add(mobile1);
+//					phones.add(mobilesInPhone);
 					if (entity.owned.size() > 0) {
-						phones.add(entity.owned);
+						phones.set(0, entity.owned);
 					}
 					if (entity.joined.size() > 0) {
-						phones.add(entity.joined);
+						phones.set(1, entity.joined);
 					}
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
@@ -597,58 +627,58 @@ public class Index extends AppActivity {
 				ActivityListEntity entity = (ActivityListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (activities.size() == 2) {
-						if (entity.owned.size()>0) {
-							for (ActivityIntroEntity entity1 : activities.get(0)) {
-								for (ActivityIntroEntity entity2 : entity.owned) {
-									if (entity2.code.equals(entity1.code)) {
-										entity2.willRefresh = !entity2.member.equals(entity1.member);
-									}
-								}
-							}
-						}
-						if (entity.joined.size()>0) {
-							for (ActivityIntroEntity entity1 : activities.get(0)) {
-								for (ActivityIntroEntity entity2 : entity.owned) {
-									if (entity2.code.equals(entity1.code)) {
-										entity2.willRefresh = !entity2.member.equals(entity1.member);
-									}
-								}
-							}
-						}
-					}
-					else if (activities.size() == 1) {
-						if (activities.get(0).get(0).activitySectionType.equals(CommonValue.ActivitySectionType.OwnedSectionType)) {
-							if (entity.owned.size()>0) {
-								for (ActivityIntroEntity entity1 : activities.get(0)) {
-									for (ActivityIntroEntity entity2 : entity.owned) {
-										if (entity2.code.equals(entity1.code)) {
-											entity2.willRefresh = !entity2.member.equals(entity1.member);
-										}
-									}
-								}
-							}
-						}
-						else {
-							if (entity.joined.size()>0) {
-								for (ActivityIntroEntity entity1 : activities.get(0)) {
-									for (ActivityIntroEntity entity2 : entity.owned) {
-										if (entity2.code.equals(entity1.code)) {
-											entity2.willRefresh = !entity2.member.equals(entity1.member);
-										}
-									}
-								}
-							}
-						}
-					}
-					activities.clear();
+//					if (activities.size() == 2) {
+//						if (entity.owned.size()>0) {
+//							for (ActivityIntroEntity entity1 : activities.get(0)) {
+//								for (ActivityIntroEntity entity2 : entity.owned) {
+//									if (entity2.code.equals(entity1.code)) {
+//										entity2.willRefresh = !entity2.member.equals(entity1.member);
+//									}
+//								}
+//							}
+//						}
+//						if (entity.joined.size()>0) {
+//							for (ActivityIntroEntity entity1 : activities.get(0)) {
+//								for (ActivityIntroEntity entity2 : entity.owned) {
+//									if (entity2.code.equals(entity1.code)) {
+//										entity2.willRefresh = !entity2.member.equals(entity1.member);
+//									}
+//								}
+//							}
+//						}
+//					}
+//					else if (activities.size() == 1) {
+//						if (activities.get(0).get(0).activitySectionType.equals(CommonValue.ActivitySectionType.OwnedSectionType)) {
+//							if (entity.owned.size()>0) {
+//								for (ActivityIntroEntity entity1 : activities.get(0)) {
+//									for (ActivityIntroEntity entity2 : entity.owned) {
+//										if (entity2.code.equals(entity1.code)) {
+//											entity2.willRefresh = !entity2.member.equals(entity1.member);
+//										}
+//									}
+//								}
+//							}
+//						}
+//						else {
+//							if (entity.joined.size()>0) {
+//								for (ActivityIntroEntity entity1 : activities.get(0)) {
+//									for (ActivityIntroEntity entity2 : entity.owned) {
+//										if (entity2.code.equals(entity1.code)) {
+//											entity2.willRefresh = !entity2.member.equals(entity1.member);
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//					activities.clear();
 					if (entity.owned.size()>0) {
-						activities.add(entity.owned);
+						phones.set(2, entity.owned);
 					}
 					if (entity.joined.size()>0) {
-						activities.add(entity.joined);
+						phones.set(3, entity.joined);
 					}
-//					mActivityAdapter.notifyDataSetChanged();
+					mPhoneAdapter.notifyDataSetChanged();
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
@@ -848,7 +878,41 @@ public class Index extends AppActivity {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
+			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/"+phoneIntro.code));
+			oks.setImagePath("file:///android_asset/ic_launcher.png");
+			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+			oks.setSilent(silent);
+			if (platform != null) {
+				oks.setPlatform(platform);
+			}
+			oks.show(this);
+		} catch (Exception e) {
+			Logger.i(e);
+		}
+	}
+	
+	public void showShareDialog2(final PhoneIntroEntity phoneIntro){
+		new AlertDialog.Builder(this).setTitle("").setItems(ot,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					showShare2(false, Wechat.NAME, phoneIntro);
+					break;
+				case 1:
+					showShare2(false, WechatMoments.NAME, phoneIntro);
+					break;
+				}
+			}
+		}).show();
+	}
+	
+	private void showShare2(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+		try {
+			final OnekeyShare oks = new OnekeyShare();
+			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+			oks.setTitle("群友通讯录");
+			oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/"+phoneIntro.code));
 			oks.setImagePath("file:///android_asset/ic_launcher.png");
 			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
 			oks.setSilent(silent);
@@ -917,10 +981,10 @@ public class Index extends AppActivity {
 			getActivityList();
 			int result1 = data.getIntExtra("resultcode", 0);
 			if (result1 == CommonValue.CreateViewJSType.goPhonebookView) {
-				ActivityIntroEntity entity = new ActivityIntroEntity();
+				PhoneIntroEntity entity = new PhoneIntroEntity();
 				entity.code = data.getStringExtra("resultdata");
 				entity.content = " ";
-				showActivityViewWeb(entity, 46);
+				showActivityViewWeb(entity);
 			}
 			mPager.setCurrentItem(PAGE2);
 			break;
@@ -938,6 +1002,13 @@ public class Index extends AppActivity {
 			getCardList();
 			break;
 		}
+	}
+	
+	private void showFinder(String url) {
+		Logger.i(url);
+		Intent intent = new Intent(this, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
+		startActivity(intent);
 	}
 	
 	private void initWebData() {
@@ -963,13 +1034,7 @@ public class Index extends AppActivity {
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
-	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
-	                startActivity(intent); 
-	            }
-				else {
-					view.loadUrl(url);
-				}
+				showFinder(url);
 				return true;
 			}
 			public void onReceivedSslError(WebView view,
@@ -1010,5 +1075,32 @@ public class Index extends AppActivity {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
+	}
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> arg0, View view, int arg2,
+			long arg3) {
+		int groupPos = (Integer) view.getTag(R.id.title); // 参数值是在setTag时使用的对应资源id号
+		int childPos = (Integer) view.getTag(R.id.des);
+		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
+		if (groupPos == 0 || groupPos == 1 ) {
+			showShareDialog(model);
+		}
+		else {
+			showShareDialog2(model);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean onChildClick(ExpandableListView arg0, View arg1, int groupPosition, int childPosition, long arg4) {
+		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPosition, childPosition);
+		if (groupPosition == 0 || groupPosition == 1 ) {
+			showPhoneViewWeb(model);
+		}
+		else {
+			showActivityViewWeb(model);
+		}
+		return false;
 	}
 }
