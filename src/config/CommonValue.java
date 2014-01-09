@@ -15,14 +15,19 @@ import com.vikaa.baseapp.R;
 public class CommonValue {
 	public static final String PackageName = "com.vikaa.mycontact";
 	
-	public static final String BASE_API = "http://pb.wc.m0.hk/api/";
-	public static final String BASE_URL = "http://pb.wc.m0.hk";
+	public static final String BASE_API = "http://pb.wcl.m0.hk/api/";
+	public static final String BASE_URL = "http://pb.wcl.m0.hk";
 	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
 	public interface subTitle {
 		String subtitle1 = "查看手机通讯录";
 		String subtitle2 = "查看交换名片的朋友";
+		String subtitle3 = "查看手机通讯录";
+		
+		String subtitle4 = "对方扫描将录入到自己通讯录里面,并交换名片";
+		String subtitle5 = "扫描别人的二维码,加入到TA的通讯录里面";
+		String subtitle6 = "如有问题或者合作欢迎随时留言联系我们";
 	}
 	
 	public interface CacheKey {
@@ -73,8 +78,8 @@ public class CommonValue {
 	
 	public interface PhoneSectionType {
 		String MobileSectionType = "我的通讯录";
-		String OwnedSectionType = "我发起的通讯录";
-		String JoinedSectionType = "我参与的通讯录";
+		String OwnedSectionType = "我发起的通讯录(长按可分享)";
+		String JoinedSectionType = "我参与的通讯录(长按可分享)";
 	}
 	
 	public interface IndexIntentKeyValue {
@@ -84,8 +89,8 @@ public class CommonValue {
 	}
 	
 	public interface ActivitySectionType {
-		String OwnedSectionType = "我发起的聚会";
-		String JoinedSectionType = "我参与的聚会";
+		String OwnedSectionType = "我发起的聚会(长按可分享)";
+		String JoinedSectionType = "我参与的聚会(长按可分享)";
 	}
 	
 	public interface CardSectionType {
@@ -114,6 +119,10 @@ public class CommonValue {
 		int	goActivityView = 3;
 		int	goActivityList = 4;
 		int goCardView = 5;
+		int share = 6;
+		int savePhoneBook = 7;
+		int showPhonebookSmsButton = 8;
+		int showActivitySmsButton = 9;
 	}
 	
 	public interface PhonebookViewIntentKeyValue {

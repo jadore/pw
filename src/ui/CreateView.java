@@ -6,10 +6,17 @@ import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.util.EncodingUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import tools.AppException;
 import tools.AppManager;
 import tools.Logger;
+import tools.StringUtils;
 import tools.UIHelper;
+
+import bean.CardIntroEntity;
+import cn.sharesdk.onekeyshare.OnekeyShare;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
@@ -21,12 +28,28 @@ import config.CommonValue;
 import config.QYRestClient;
 
 import android.app.ProgressDialog;
+import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.location.Address;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Contacts;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Organization;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -35,11 +58,14 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Toast;
 
 public class CreateView extends AppActivity {
 	private WebView webView;
 	private ProgressDialog loadingPd;
+	
+	private MyAsyncQueryHandler asyncQuery;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,19 +79,37 @@ public class CreateView extends AppActivity {
 	}
 	
 	private void initData() {
+		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		pbwc mJS = new pbwc();  
 		String url = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
-		webView.getSettings().setLightTouchEnabled(true);
-		webView.getSettings().setJavaScriptEnabled(true);
-		webView.clearCache(true);
-		webView.clearHistory();
-		webView.clearFormData();
-		webView.addJavascriptInterface(mJS, "pbwc");
+		
+		WebSettings webseting = webView.getSettings();  
+		webseting.setJavaScriptEnabled(true);
+		webseting.setLightTouchEnabled(true);
+	    webseting.setDomStorageEnabled(true);             
+	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
+	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
+        webseting.setAppCachePath(appCacheDir);  
+        webseting.setAllowFileAccess(true);  
+        webseting.setAppCacheEnabled(true); 
+        webView.addJavascriptInterface(mJS, "pbwc");
+        
+        if (appContext.isNetworkConnected()) {
+        	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+		}
+        else {
+        	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
+        }
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				Logger.i(url);
-				view.loadUrl(url);
+				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
+	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
+	                startActivity(intent); 
+	            }
+				else {
+					view.loadUrl(url);
+				}
 				return true;
 			}
 			public void onReceivedSslError(WebView view,
@@ -80,6 +124,12 @@ public class CreateView extends AppActivity {
 		        if (progress == 100) {
 		        	UIHelper.dismissProgress(loadingPd);
 		        }
+		    }
+		    
+		    @Override
+		    public void onReachedMaxAppCacheSize(long spaceNeeded,
+		    		long quota, QuotaUpdater quotaUpdater) {
+		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
 		    }
 		});
 		CookieStore cookieStore = new PersistentCookieStore(this);  
@@ -105,11 +155,38 @@ public class CreateView extends AppActivity {
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			AppManager.getAppManager().finishActivity(this);
+			if (webView.canGoBack()) {
+				webView.goBack();// 返回前一个页面
+			}
+			else {
+				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			}
+			
 			break;
 		default:
 			break;
 		}
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			if (webView.canGoBack()) {
+				webView.goBack();// 返回前一个页面
+				return true;
+			}
+			else {
+				AppManager.getAppManager().finishActivity(this);
+				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			}
+			break;
+
+		default:
+			break;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 	
 	public class pbwc {
@@ -143,6 +220,30 @@ public class CreateView extends AppActivity {
 	    	Logger.i(code+"");
 	    	Message msg = new Message();
 	    	msg.what = CommonValue.CreateViewJSType.goCardView;
+	    	mJSHandler.sendMessage(msg);
+	    }
+	    public void share(String code) {
+	    	Message msg = new Message();
+	    	msg.what = CommonValue.CreateViewJSType.share;
+	    	msg.obj = code;
+	    	mJSHandler.sendMessage(msg);
+	    }
+	    public void savePhoneBook(String code) {
+	    	Message msg = new Message();
+	    	msg.what = CommonValue.CreateViewJSType.savePhoneBook;
+	    	msg.obj = code;
+	    	mJSHandler.sendMessage(msg);
+	    }
+	    public void phonebookShowSmsBtn(String code) {
+	    	Message msg = new Message();
+	    	msg.what = CommonValue.CreateViewJSType.showPhonebookSmsButton;
+	    	msg.obj = code;
+	    	mJSHandler.sendMessage(msg);
+	    }
+	    public void activityShowSmsBtn(String code) {
+	    	Message msg = new Message();
+	    	msg.what = CommonValue.CreateViewJSType.showActivitySmsButton;
+	    	msg.obj = code;
 	    	mJSHandler.sendMessage(msg);
 	    }
     }
@@ -183,7 +284,196 @@ public class CreateView extends AppActivity {
 				setResult(RESULT_OK, intent);
 				AppManager.getAppManager().finishActivity(CreateView.this);
 				break;
+			case CommonValue.CreateViewJSType.share:
+				code = (String) msg.obj;
+				Logger.i(code);
+				parseShare(code);
+				break;
+			case CommonValue.CreateViewJSType.savePhoneBook:
+				code = (String) msg.obj;
+				Logger.i(code);
+				parsePhonebook(code);
+				break;
+			case CommonValue.CreateViewJSType.showPhonebookSmsButton:
+				code = (String) msg.obj;
+				Logger.i(code);
+				break;
+			case CommonValue.CreateViewJSType.showActivitySmsButton:
+				code = (String) msg.obj;
+				Logger.i(code);
+				break;
 			}
 		};
 	};
+	
+	private void parseShare(String res) {
+		try {
+			JSONObject js = new JSONObject(res);
+			String MsgImg = js.getString("MsgImg");
+			String TLImg = js.getString("TLImg");
+			String link = js.getString("link");
+			String title = js.getString("title");
+			String desc = js.getString("desc");
+			showShare(false, null, desc, title, link, TLImg, MsgImg);
+		} catch (JSONException e) {
+			Logger.i(e);
+		}
+	}
+	
+	private void showShare(boolean silent, String platform, String desc, String title, String link, String TLImg, String MsgImg) {
+		try {
+			final OnekeyShare oks = new OnekeyShare();
+			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+			oks.setTitle("群友通讯录");
+			oks.setText(String.format("%s。%s", desc, link));
+			oks.setImageUrl(MsgImg);
+			oks.setUrl(link);
+			oks.setSilent(silent);
+			if (platform != null) {
+				oks.setPlatform(platform);
+			}
+			oks.show(this);
+		} catch (Exception e) {
+			Logger.i(e);
+		}
+	}
+	
+	private void parsePhonebook(String res) {
+		try {
+			JSONObject js = new JSONObject(res);
+			CardIntroEntity entity = new CardIntroEntity();
+			entity. headimgurl = js.getString("avatar");
+			entity. realname = js.getString("realname");
+			entity. phone = js.getString("phone");
+			entity. email = js.getString("email");
+			entity. department = js.getString("department");
+			entity. position = js.getString("position");
+			entity. address = js.getString("address");
+			addContact(entity);
+		} catch (JSONException e) {
+			Logger.i(e);
+		}
+	}
+	
+	public void addContact(CardIntroEntity entity){
+		asyncQuery.setCard(entity);
+		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
+		String[] projection = { 
+				ContactsContract.CommonDataKinds.Phone._ID,
+				ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+				ContactsContract.CommonDataKinds.Phone.DATA1,
+				"sort_key",
+				ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+				ContactsContract.CommonDataKinds.Phone.PHOTO_ID,
+				ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
+		}; 
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		asyncQuery.startQuery(0, null, uri, projection, null, null,
+				"sort_key COLLATE LOCALIZED asc");
+    }
+	
+	class MyAsyncQueryHandler extends AsyncQueryHandler {
+		
+		private CardIntroEntity card;
+		
+		public MyAsyncQueryHandler(ContentResolver cr) {
+			super(cr);
+		}
+		
+		@Override
+		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			UIHelper.dismissProgress(loadingPd);
+			try {
+				if (isPhoneExit(cursor, card)) {
+					UIHelper.ToastMessage(getApplicationContext(), "名片已存在", Toast.LENGTH_SHORT);
+				}
+				else {//insert
+					insert(card);
+					UIHelper.ToastMessage(getApplicationContext(), "名片保存成功", Toast.LENGTH_SHORT);
+				}
+			} catch (Exception e) {
+				Logger.i(e);
+			}
+			
+		}
+
+		public CardIntroEntity getCard() {
+			return card;
+		}
+
+		public void setCard(CardIntroEntity card) {
+			this.card = card;
+		}
+	}
+	
+	private boolean isPhoneExit(Cursor cursor, CardIntroEntity card) {
+		if (cursor != null && cursor.getCount() > 0) {
+			cursor.moveToFirst();
+			for (int i = 0; i < cursor.getCount(); i++) {
+				cursor.moveToPosition(i);
+				String number = cursor.getString(2);
+				number = number.replace("-", "");
+				number = number.replace("+86", "");
+				if (number.indexOf(card.phone) != -1) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private void insert(CardIntroEntity card) {
+		ContentValues values = new ContentValues();
+        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
+        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
+        long rawContactId = ContentUris.parseId(rawContactUri);
+        
+        values.clear();
+        values.put(Data.RAW_CONTACT_ID, rawContactId);
+        values.put(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+        values.put(StructuredName.GIVEN_NAME, card.realname);
+        this.getContentResolver().insert(
+                android.provider.ContactsContract.Data.CONTENT_URI, values);
+        
+        values.clear();
+        values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+        values.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
+        values.put(Phone.NUMBER, card.phone);
+        values.put(Phone.TYPE, Phone.TYPE_MOBILE);
+        this.getContentResolver().insert(
+                android.provider.ContactsContract.Data.CONTENT_URI, values);
+
+        if (!StringUtils.isEmpty(card.email)) {
+            values.clear();
+            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+            values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
+            values.put(Email.DATA, card.email);
+            values.put(Email.TYPE, Email.TYPE_WORK);
+            this.getContentResolver().insert(
+                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+		}
+        
+            values.clear();
+            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
+            if (!StringUtils.isEmpty( card.department)) {
+            	values.put(Organization.COMPANY, card.department);
+			}
+            else {
+            	values.put(Organization.COMPANY, card.position);
+            }
+            values.put(Organization.TITLE, card.position);  
+            values.put(Organization.TYPE, Organization.TYPE_WORK);  
+            this.getContentResolver().insert(
+                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+
+            values.clear();
+            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
+            values.put(Contacts.ContactMethods.KIND, Contacts.KIND_POSTAL);
+            values.put(Contacts.ContactMethods.TYPE, Contacts.ContactMethods.TYPE_WORK);
+            values.put(Contacts.ContactMethods.DATA, card.address);
+            this.getContentResolver().insert(
+                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+	}
 }

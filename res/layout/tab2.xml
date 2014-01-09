@@ -4,7 +4,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <za.co.immedia.pinnedheaderlistview.PinnedHeaderListView
+    <!-- <za.co.immedia.pinnedheaderlistview.PinnedHeaderListView
         android:id="@+id/tab2_listView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -12,6 +12,12 @@
          android:fadingEdge="none"
         android:background="@color/transparent" >
 
-    </za.co.immedia.pinnedheaderlistview.PinnedHeaderListView>
+    </za.co.immedia.pinnedheaderlistview.PinnedHeaderListView> -->
+    
+    <WebView 
+       	android:id="@+id/webview"
+       	android:layout_width="match_parent"
+      	android:layout_height="match_parent"
+      	/>
 
 </LinearLayout>

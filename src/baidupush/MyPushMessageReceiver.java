@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tools.Logger;
+import ui.CreateView;
 import ui.MessageView;
 
 import android.app.Notification;
@@ -18,6 +19,7 @@ import com.baidu.frontia.api.FrontiaPushMessageReceiver;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.CommonValue;
 import config.MyApplication;
 
 /**
@@ -266,7 +268,8 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		notification.defaults |= Notification.DEFAULT_VIBRATE;
 		notification.contentView = null;
 
-		Intent intent = new Intent(application, MessageView.class);
+		Intent intent = new Intent(application, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		PendingIntent contentIntent = PendingIntent.getActivity(application, 0,
 				intent, 0);
 		notification.setLatestEventInfo(application, title, message, contentIntent);

@@ -2,6 +2,7 @@ package ui;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.http.client.CookieStore;
 
 import baidupush.Utils;
@@ -37,14 +38,24 @@ import config.CommonValue;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -54,10 +65,13 @@ import android.widget.Toast;
 import tools.AppException;
 import tools.Logger;
 import tools.UIHelper;
+import ui.CreateView.MyAsyncQueryHandler;
+import ui.CreateView.pbwc;
 import ui.adapter.IndexActivityAdapter;
 import ui.adapter.IndexCardAdapter;
 import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IndexPhoneAdapter;
+import widget.IphoneTreeView;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView.OnItemClickListener;
 
@@ -79,13 +93,16 @@ public class Index extends AppActivity {
 //	private int offset = 0;// 动画图片偏移量
 //	private int bmpW;// 动画图片宽度
 	
+	private IphoneTreeView iphoneTreeView;
+	
 	private List<List<PhoneIntroEntity>> phones;
 	private PinnedHeaderListView mPinedListView1;
 	private IndexPhoneAdapter mPhoneAdapter;
 	
 	private List<List<ActivityIntroEntity>> activities;
-	private PinnedHeaderListView mPinedListView2;
-	private IndexActivityAdapter mActivityAdapter;
+//	private PinnedHeaderListView mPinedListView2;
+//	private IndexActivityAdapter mActivityAdapter;
+	private WebView webView;
 	
 	private List<List<CardIntroEntity>> cards;
 	private PinnedHeaderListView mPinedListView0;
@@ -146,9 +163,10 @@ public class Index extends AppActivity {
 		mPager = (ViewPager) findViewById(R.id.viewPager);
 		mListViews = new ArrayList<View>();
 		LayoutInflater inflater = LayoutInflater.from(this);
-		View lay0 = inflater.inflate(R.layout.tab0, null);
+		
 		View lay1 = inflater.inflate(R.layout.tab1, null);
 		View lay2 = inflater.inflate(R.layout.tab2, null);
+		View lay0 = inflater.inflate(R.layout.tab0, null);
 //		View lay3 = inflater.inflate(R.layout.tab3, null);
 		
 		mListViews.add(lay1);
@@ -181,26 +199,46 @@ public class Index extends AppActivity {
 		phones.add(mobilesInPhone);
 		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
 		mPinedListView1.setAdapter(mPhoneAdapter);
-		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
-		mPinedListView2.setDividerHeight(0);
-		activities = new ArrayList<List<ActivityIntroEntity>>();
-		mActivityAdapter = new IndexActivityAdapter(this, activities);
-		mPinedListView2.setAdapter(mActivityAdapter);
-		mPinedListView2.setOnItemClickListener(new OnItemClickListener() {
-			
-			@Override
-			public void onSectionClick(AdapterView<?> adapterView, View view,
-					int section, long id) {
-				
-			}
-			
-			@Override
-			public void onItemClick(AdapterView<?> adapterView, View view, int section,
-					int position, long id) {
-				ActivityIntroEntity entity = activities.get(section).get(position);
-				showActivityViewWeb(entity, 46);
-			}
-		});
+		
+//		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
+//		mPinedListView2.setDividerHeight(0);
+//		activities = new ArrayList<List<ActivityIntroEntity>>();
+//		mActivityAdapter = new IndexActivityAdapter(this, activities);
+//		mPinedListView2.setAdapter(mActivityAdapter);
+//		mPinedListView2.setOnItemClickListener(new OnItemClickListener() {
+//			
+//			@Override
+//			public void onSectionClick(AdapterView<?> adapterView, View view,
+//					int section, long id) {
+//				
+//			}
+//			
+//			@Override
+//			public void onItemClick(AdapterView<?> adapterView, View view, int section,
+//					int position, long id) {
+//				ActivityIntroEntity entity = activities.get(section).get(position);
+//				showActivityViewWeb(entity, 46);
+//			}
+//		});
+		webView = (WebView) lay2.findViewById(R.id.webview);
+//		String url = "http://pb.wc.m0.hk/home/app";
+//		CookieStore cookieStore = new PersistentCookieStore(this);  
+//		QYRestClient.getIntance().setCookieStore(cookieStore);
+//		String cookieString2 = "";
+//		String cookieString3 = "";
+//		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
+//		cookieString3 = String.format("isapp=%s;", "1");
+//		Logger.i(cookieString2);
+//		Logger.i(cookieString3);
+//		CookieManager cookieManager = CookieManager.getInstance();
+//		cookieManager.removeAllCookie();
+//		cookieManager.setCookie(url, cookieString2);
+//		cookieManager.setCookie(url, cookieString3);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		webView.loadUrl(url);
+//		if (!appContext.isNetworkConnected()) {
+//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+//    	}
 		
 		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
 		mPinedListView0.setDividerHeight(0);
@@ -229,8 +267,8 @@ public class Index extends AppActivity {
 	}
 	
 	public void showPhoneViewWeb(PhoneIntroEntity entity) {
-		Intent intent = new Intent(this, PhonebookViewWeb.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity);
+		Intent intent = new Intent(this, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
@@ -241,20 +279,29 @@ public class Index extends AppActivity {
 //	}
 	
 	private void showActivityViewWeb(ActivityIntroEntity entity, int RequestCode) {
-		Intent intent = new Intent(this, ActivityViewWeb.class);
+		Intent intent = new Intent(this, CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
 	    startActivityForResult(intent, RequestCode);
 	}
 	
 	public void showCardViewWeb(CardIntroEntity entity) {
-		Intent intent = new Intent(this, CardViewWeb.class);
+		Intent intent = new Intent(this, CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMessage() {
 		messageView.setVisibility(View.INVISIBLE);
-		Intent intent = new Intent(this, MessageView.class);
+//		Intent intent = new Intent(this, MessageView.class);
+//		startActivity(intent);
+		Intent intent = new Intent(this, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
+		startActivity(intent);
+	}
+	
+	public void showMyBarcode() {
+		Intent intent = new Intent(this, CreateView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/mybarcode", CommonValue.BASE_URL));
 		startActivity(intent);
 	}
 	
@@ -296,7 +343,7 @@ public class Index extends AppActivity {
 	private void getCache() {
 		getCacheUser();
 		getPhoneListFromCache();
-		getActivityListFromCache();
+//		getActivityListFromCache();
 		getCardListFromCache();
 	}
 	
@@ -351,7 +398,7 @@ public class Index extends AppActivity {
 		if (entity.joined.size()>0) {
 			activities.add(entity.joined);
 		}
-		mActivityAdapter.notifyDataSetChanged();
+//		mActivityAdapter.notifyDataSetChanged();
 	}
 	
 	private void getCardListFromCache() {
@@ -380,7 +427,9 @@ public class Index extends AppActivity {
 					appContext.saveLoginInfo(user);
 					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
-					getActivityList();
+//					getActivityList();
+					initWebData();
+					
 					getCardList();
 					getUnReadMessage();
 					if (!Utils.hasBind(getApplicationContext())) {
@@ -599,7 +648,7 @@ public class Index extends AppActivity {
 					if (entity.joined.size()>0) {
 						activities.add(entity.joined);
 					}
-					mActivityAdapter.notifyDataSetChanged();
+//					mActivityAdapter.notifyDataSetChanged();
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
@@ -816,13 +865,15 @@ public class Index extends AppActivity {
 		List<CardIntroEntity> ops = new ArrayList<CardIntroEntity>();
 		CardIntroEntity op1 = new CardIntroEntity();
 		op1.realname = "我微友通讯录二维码";
-		op1.department = CommonValue.subTitle.subtitle1;
+		op1.department = CommonValue.subTitle.subtitle4;
 		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		op1.position = "";
 		ops.add(op1);
 		CardIntroEntity op2 = new CardIntroEntity();
 		op2.realname = "扫一扫";
-		op2.department = CommonValue.subTitle.subtitle1;
+		op2.department = CommonValue.subTitle.subtitle5;
 		op2.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		op2.position = "";
 		ops.add(op2);
 		cards.add(ops);
 		
@@ -837,7 +888,8 @@ public class Index extends AppActivity {
 		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
 		CardIntroEntity op21 = new CardIntroEntity();
 		op21.realname = "客服反馈";
-		op21.department = CommonValue.subTitle.subtitle1;
+		op21.department = CommonValue.subTitle.subtitle6;
+		op21.position = "";
 		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
 		ops2.add(op21);
 		cards.add(ops2);
@@ -888,4 +940,75 @@ public class Index extends AppActivity {
 		}
 	}
 	
+	private void initWebData() {
+		String url = CommonValue.BASE_URL + "/home/app";
+		
+		WebSettings webseting = webView.getSettings();  
+		webseting.setJavaScriptEnabled(true);
+		webseting.setLightTouchEnabled(true);
+	    webseting.setDomStorageEnabled(true);             
+	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
+	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
+        webseting.setAppCachePath(appCacheDir);  
+        webseting.setAllowFileAccess(true);  
+        webseting.setAppCacheEnabled(true); 
+//        webView.addJavascriptInterface(mJS, "pbwc");
+        
+        if (appContext.isNetworkConnected()) {
+        	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+		}
+        else {
+        	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
+        }
+		
+		webView.setWebViewClient(new WebViewClient() {
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
+	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
+	                startActivity(intent); 
+	            }
+				else {
+					view.loadUrl(url);
+				}
+				return true;
+			}
+			public void onReceivedSslError(WebView view,
+					SslErrorHandler handler, SslError error) {
+				handler.proceed();
+			}
+		});
+		webView.setWebChromeClient(new WebChromeClient() {
+		    public void onProgressChanged(WebView view, int progress) {
+		        setTitle("页面加载中，请稍候..." + progress + "%");
+		        setProgress(progress * 100);
+		        if (progress == 100) {
+		        	UIHelper.dismissProgress(loadingPd);
+		        }
+		    }
+		    
+		    @Override
+		    public void onReachedMaxAppCacheSize(long spaceNeeded,
+		    		long quota, QuotaUpdater quotaUpdater) {
+		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
+		    }
+		});
+		CookieStore cookieStore = new PersistentCookieStore(this);  
+		QYRestClient.getIntance().setCookieStore(cookieStore);
+		String cookieString2 = "";
+		String cookieString3 = "";
+		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
+		cookieString3 = String.format("isapp=%s;", "1");
+		Logger.i(cookieString2);
+		Logger.i(cookieString3);
+		CookieManager cookieManager = CookieManager.getInstance();
+		cookieManager.removeAllCookie();
+		cookieManager.setCookie(url, cookieString2);
+		cookieManager.setCookie(url, cookieString3);
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		webView.loadUrl(url);
+		if (!appContext.isNetworkConnected()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
+	}
 }
