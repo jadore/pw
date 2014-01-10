@@ -263,6 +263,10 @@
         <service
             android:name="service.T9Service" />
         
+        <service android:name="service.SendSmsService" ></service>
+        <service android:name="service.MobileSynService" ></service>
+        
+        
         <!-- push应用定义消息receiver声明 -->
         <receiver android:name="baidupush.MyPushMessageReceiver">
             <intent-filter>

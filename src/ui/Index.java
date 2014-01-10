@@ -1084,10 +1084,12 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		int childPos = (Integer) view.getTag(R.id.des);
 		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
 		if (groupPos == 0 || groupPos == 1 ) {
-			showShareDialog(model);
+//			showShareDialog(model);
+			showShare(false, null, model);
 		}
 		else {
-			showShareDialog2(model);
+//			showShareDialog2(model);
+			showShare2(false, null, model);
 		}
 		return false;
 	}

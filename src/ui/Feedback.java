@@ -44,6 +44,7 @@ public class Feedback extends AppActivity{
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
 		initUI();
 		initData();
+//		init();
 	}
 	
 	@Override
@@ -112,4 +113,27 @@ public class Feedback extends AppActivity{
 		}
 	}
 	
+//	private static void init()
+//	{
+//		HashMap<String, String> a = new HashMap<String, String>();
+//		HashMap<String, String> b = new HashMap<String, String>();
+//		for (int key = 1; key <= 1000; key++)
+//		{
+//			a.put(String.valueOf(key), String.valueOf(key));
+//			b.put(String.valueOf(key), String.valueOf(key+1));
+//		}
+//		long start = System.currentTimeMillis();
+//		for(int i = 1;i<=1000;i++)
+//		{
+//			Logger.i("号码"+i);
+//			if(!a.get(String.valueOf(i)).equals(b.get(String.valueOf(i))))
+//			{
+//				Logger.i("数据不同");
+//			}
+//			Logger.i("-----------");
+//		}
+//		long end = System.currentTimeMillis();
+//		long sum = end - start;
+//		Logger.i("总共耗时"+sum);
+//	}
 }

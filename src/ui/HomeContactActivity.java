@@ -10,6 +10,7 @@ import java.util.Set;
 import bean.ContactBean;
 import com.vikaa.mycontact.R;
 
+import service.MobileSynService;
 import sms.MessageBoxList;
 import tools.AppManager;
 import tools.BaseIntentUtil;
@@ -74,11 +75,11 @@ public class HomeContactActivity extends AppActivity {
 //		menuBtn = (Button)this.acbuwaPage.findViewById(R.id.menuBtn);
 
 		personList = (ListView)this.findViewById(R.id.acbuwa_list);
-
 		alpha = (QuickAlphabeticBar)this.findViewById(R.id.fast_scroller);
 		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
 		init();
 		setAdapter();
+		
 //		menuBtn.setOnClickListener(new OnClickListener() {
 //			public void onClick(View v) {
 //				scrollView.clickMenuBtn(HomeContactActivity.this);
@@ -101,6 +102,7 @@ public class HomeContactActivity extends AppActivity {
 //		});
 
 //		startReceiver1();
+		MobileSynService.actionStartPAY(this);
 	}
 	
 	public void ButtonClick(View v) {

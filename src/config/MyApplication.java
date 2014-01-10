@@ -127,6 +127,10 @@ public class MyApplication extends AppContext {
 		return lu;
 	}
 	
+	public String getNickname() {		
+		return (getProperty("user.name"));
+	}
+	
 	/**
 	 * 退出登录
 	 */

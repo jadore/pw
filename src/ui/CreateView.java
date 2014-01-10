@@ -117,6 +117,7 @@ public class CreateView extends AppActivity {
 		    		return true;
 		    	}
 				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
+					Logger.i(url);
 	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
 	                startActivity(intent); 
 	            }
@@ -329,14 +330,29 @@ public class CreateView extends AppActivity {
 	};
 	
 	private void parseShare(String res) {
+		String MsgImg = "";
+		String TLImg = "";
+		String link = "";
+		String title = "";
+		String desc = "";
 		try {
 			JSONObject js = new JSONObject(res);
-			String MsgImg = js.getString("MsgImg");
-			String TLImg = js.getString("TLImg");
-			String link = js.getString("link");
-			String title = js.getString("title");
-			String desc = js.getString("desc");
-			showShare(false, null, desc, title, link, TLImg, MsgImg);
+			if (!js.isNull("MsgImg")) {
+				MsgImg = js.getString("MsgImg");
+			}
+			if (!js.isNull("TLImg")) {
+				TLImg = js.getString("TLImg");
+			}
+			if (!js.isNull("link")) {
+				link = js.getString("link");
+			}
+			if (!js.isNull("title")) {
+				title = js.getString("title");
+			}
+			if (!js.isNull("desc")) {
+				desc = js.getString("desc");
+			}
+			showShare(false, null, desc, title, link, TLImg, MsgImg);	
 		} catch (JSONException e) {
 			Logger.i(e);
 		}
