@@ -474,6 +474,13 @@ public class AppClient {
 	
 	public static void sendFeedback(final MyApplication appContext, String data, final ClientCallback callback) {
 		RequestParams param = new RequestParams();
+		data += " | client_browser : android |";
+		try {
+			data += " | client_version :" + AppManager.getAppManager().currentActivity().getPackageManager().getPackageInfo(AppManager.getAppManager().currentActivity().getPackageName(), 0).versionCode+" |";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		data += " |client_push : android |";
 		param.add("message", data);
 		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
 			@Override
