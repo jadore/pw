@@ -1,13 +1,24 @@
 package ui;
 
+import service.SendSmsService;
 import tools.AppManager;
+import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
 
+import bean.Entity;
+
 import com.vikaa.mycontact.R;
 
+import config.AppClient;
+import config.AppClient.ClientCallback;
+
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -18,6 +29,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Feedback extends AppActivity{
 	private ProgressDialog loadingPd;
@@ -43,8 +55,6 @@ public class Feedback extends AppActivity{
 		//软键盘管理类
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
 		initUI();
-		initData();
-//		init();
 	}
 	
 	@Override
@@ -84,11 +94,6 @@ public class Feedback extends AppActivity{
     	mContent.setFilters(filters);
     }
     
-    private void initData() {
-    	
-    }
-    
-    
     private void showIMM() {
     	imm.showSoftInput(mContent, 0);
     }
@@ -109,31 +114,58 @@ public class Feedback extends AppActivity{
 			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 		case R.id.rightBarButton:
+			sendFeedback();
 			break;
 		}
 	}
 	
-//	private static void init()
-//	{
-//		HashMap<String, String> a = new HashMap<String, String>();
-//		HashMap<String, String> b = new HashMap<String, String>();
-//		for (int key = 1; key <= 1000; key++)
-//		{
-//			a.put(String.valueOf(key), String.valueOf(key));
-//			b.put(String.valueOf(key), String.valueOf(key+1));
-//		}
-//		long start = System.currentTimeMillis();
-//		for(int i = 1;i<=1000;i++)
-//		{
-//			Logger.i("号码"+i);
-//			if(!a.get(String.valueOf(i)).equals(b.get(String.valueOf(i))))
-//			{
-//				Logger.i("数据不同");
-//			}
-//			Logger.i("-----------");
-//		}
-//		long end = System.currentTimeMillis();
-//		long sum = end - start;
-//		Logger.i("总共耗时"+sum);
-//	}
+	private void sendFeedback() {
+		
+		try {
+			imm.hideSoftInputFromWindow(mContent.getWindowToken(), 0);
+			String content = mContent.getText().toString();
+			Logger.i(content);
+			if (StringUtils.isEmpty(content)) {
+				UIHelper.ToastMessage(getApplicationContext(), "请输入内容", Toast.LENGTH_SHORT);
+				return;
+			}
+			loadingPd = UIHelper.showProgress(this, null, null, true);
+			AppClient.sendFeedback(appContext, content, new ClientCallback() {
+				@Override
+				public void onSuccess(Entity data) {
+					UIHelper.dismissProgress(loadingPd);
+					show1OptionsDialog(oprators);
+				}
+				
+				@Override
+				public void onFailure(String message) {
+					UIHelper.dismissProgress(loadingPd);
+					UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+				}
+				
+				@Override
+				public void onError(Exception e) {
+					UIHelper.dismissProgress(loadingPd);
+					Logger.i(e);
+					UIHelper.ToastMessage(getApplicationContext(), "网络不给力", Toast.LENGTH_SHORT);
+				}
+			});
+		} catch (Exception e ) {
+			Logger.i(e);
+		}
+	}
+	
+	String[] oprators = new String[] { "返回"};
+	private void show1OptionsDialog(final String[] arg){
+		new AlertDialog.Builder(this).setTitle("反馈发送成功,谢谢您的支持").setItems(arg,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0:
+					AppManager.getAppManager().finishActivity(Feedback.this);
+					break;
+				}
+			}
+		}).show();
+	}
 }

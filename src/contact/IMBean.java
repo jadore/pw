@@ -1,6 +1,8 @@
 package contact;
 
-public class IMBean {
+import java.io.Serializable;
+
+public class IMBean implements Serializable{
 	public String label;
 	public String im;
 	public String username;

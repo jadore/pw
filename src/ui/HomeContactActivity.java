@@ -8,100 +8,69 @@ import java.util.Map;
 import java.util.Set;
 
 import bean.ContactBean;
+import bean.Entity;
+
+import com.google.gson.Gson;
 import com.vikaa.mycontact.R;
+
+import config.AppClient;
+import config.AppClient.ClientCallback;
+import contact.MobileSynListBean;
 
 import service.MobileSynService;
 import sms.MessageBoxList;
+import tools.AppException;
 import tools.AppManager;
 import tools.BaseIntentUtil;
+import tools.DecodeUtil;
 import tools.ImageUtils;
 import tools.Logger;
 import tools.StringUtils;
 import ui.adapter.ContactHomeAdapter;
-import ui.adapter.MenuListAdapter;
-import widget.MenuHorizontalScrollView;
 import widget.QuickAlphabeticBar;
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.view.LayoutInflater;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 public class HomeContactActivity extends AppActivity {
-
-	private MenuHorizontalScrollView scrollView;
-	private ListView menuList;
-	private View acbuwaPage;
-	private Button menuBtn;
-	private MenuListAdapter menuListAdapter;
-	private View[] children;
-	private LayoutInflater inflater;
-
 
 	private ContactHomeAdapter adapter;
 	private ListView personList;
 	private List<ContactBean> list;
 	private AsyncQueryHandler asyncQuery;
 	private QuickAlphabeticBar alpha;
-	private Button addContactBtn;
 
 	private Map<Integer, ContactBean> contactIdMap = null;
 	
+	private GetMobileReceiver getMobileReceiver;
 
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-//		inflater = LayoutInflater.from(this);
 		setContentView(R.layout.home_contact_page);
-
-//		scrollView = (MenuHorizontalScrollView)findViewById(R.id.mScrollView);
-//		menuListAdapter = new MenuListAdapter(this, queryGroup());
-//		menuList = (ListView)findViewById(R.id.menuList);
-//		menuList.setAdapter(menuListAdapter);
-
-
-//		menuBtn = (Button)this.acbuwaPage.findViewById(R.id.menuBtn);
 
 		personList = (ListView)this.findViewById(R.id.acbuwa_list);
 		alpha = (QuickAlphabeticBar)this.findViewById(R.id.fast_scroller);
 		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
 		init();
 		setAdapter();
-		
-//		menuBtn.setOnClickListener(new OnClickListener() {
-//			public void onClick(View v) {
-//				scrollView.clickMenuBtn(HomeContactActivity.this);
-//			}
-//		});
-
-//		View leftView = new View(this);
-//		leftView.setBackgroundColor(Color.TRANSPARENT);
-//		children = new View[]{leftView, acbuwaPage};
-//		scrollView.initViews(children, new SizeCallBackForMenu(this.menuBtn), this.menuList);
-//		scrollView.setMenuBtn(this.menuBtn);
-//
-//		addContactBtn = (Button) findViewById(R.id.addContactBtn);
-//		addContactBtn.setOnClickListener(new OnClickListener() {
-//			public void onClick(View v) {
-//				Uri insertUri = android.provider.ContactsContract.Contacts.CONTENT_URI;
-//				Intent intent = new Intent(Intent.ACTION_INSERT, insertUri);
-//				startActivityForResult(intent, 1008);
-//			}
-//		});
-
-//		startReceiver1();
+		registerGetReceiver();
 		MobileSynService.actionStartPAY(this);
 	}
 	
@@ -109,6 +78,7 @@ public class HomeContactActivity extends AppActivity {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
 			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 
 		default:
@@ -131,17 +101,13 @@ public class HomeContactActivity extends AppActivity {
 				"sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
 	}
 
-//	public boolean onKeyDown(int keyCode, KeyEvent event) {
-//		// TODO Auto-generated method stub
-//		if(keyCode == KeyEvent.KEYCODE_BACK){
-//			if(MenuHorizontalScrollView.menuOut == true)
-//				this.scrollView.clickMenuBtn(HomeContactActivity.this);
-//			else
-//				this.finish();
-//			return true;
-//		}
-//		return super.onKeyDown(keyCode, event);
-//	}	
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+		}
+		return super.onKeyDown(keyCode, event);
+	}	
 	/**
 	 * 数据库异步查询类AsyncQueryHandler
 	 * 
@@ -308,120 +274,10 @@ public class HomeContactActivity extends AppActivity {
 		}).show();
 	}
 
-
-
-
-	/**
-	 * 
-	 *查询所有群组
-	 *返回值List<ContactGroup>
-	 */
-//	public List<GroupBean> queryGroup(){
-//
-//		List<GroupBean> list=new ArrayList<GroupBean>();
-//
-//		GroupBean cg_all=new GroupBean();
-//		cg_all.setId(0);
-//		cg_all.setName("全部");
-//		list.add(cg_all);
-//
-//		Cursor cur = getContentResolver().query(Groups.CONTENT_URI, null, null, null, null); 
-//		for (cur.moveToFirst();!(cur.isAfterLast());cur.moveToNext()) {
-//			if(null!=cur.getString(cur.getColumnIndex(Groups.TITLE))&&(!"".equals(cur.getString(cur.getColumnIndex(Groups.TITLE))))){
-//				GroupBean cg=new GroupBean();
-//				cg.setId(cur.getInt(cur.getColumnIndex(Groups._ID)));
-//				cg.setName(cur.getString(cur.getColumnIndex(Groups.TITLE)));
-//				list.add(cg);
-//			}
-//		}   
-//		cur.close();
-//		return list;
-//	}
-
-//	private void queryGroupMember(GroupBean gb){
-//
-//		String[] RAW_PROJECTION = new String[]{ContactsContract.Data.RAW_CONTACT_ID};  
-//
-//		Cursor cur = getContentResolver().query(ContactsContract.Data.CONTENT_URI,RAW_PROJECTION,  
-//				ContactsContract.Data.MIMETYPE+" = '"+GroupMembership.CONTENT_ITEM_TYPE  
-//				+"' AND "+ContactsContract.Data.DATA1+"="+ gb.getId(),     
-//				null,  
-//				"data1 asc"); 
-//
-//		StringBuilder inSelectionBff = new StringBuilder().append(ContactsContract.RawContacts._ID + " IN ( 0");
-//		while(cur.moveToNext()){
-//			inSelectionBff.append(',').append(cur.getLong(0));
-//		}
-//		cur.close();	
-//		inSelectionBff.append(')');
-//
-//		Cursor contactIdCursor =  getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI,  
-//				new String[] { ContactsContract.RawContacts.CONTACT_ID }, inSelectionBff.toString(), null, ContactsContract.Contacts.DISPLAY_NAME+"  COLLATE LOCALIZED asc "); 
-//		Map<Integer,Integer> map=new HashMap<Integer,Integer>();  
-//		while (contactIdCursor.moveToNext()) {  
-//			map.put(contactIdCursor.getInt(0), 1);  
-//		}  
-//		contactIdCursor.close(); 
-//
-//		Set<Integer> set = map.keySet();
-//		Iterator<Integer> iter = set.iterator();
-//		List<ContactBean> list=new ArrayList<ContactBean>();
-//		while(iter.hasNext()){
-//			Integer key = iter.next();
-//			list.add(queryMemberOfGroup(key));
-//		}
-//		setAdapter(list);
-//	}
-
-//	private ContactBean queryMemberOfGroup(int id){
-//
-//		ContactBean cb = null;
-//
-//		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
-//		String[] projection = { 
-//				ContactsContract.CommonDataKinds.Phone._ID,
-//				ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-//				ContactsContract.CommonDataKinds.Phone.DATA1,
-//				"sort_key",
-//				ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-//				ContactsContract.CommonDataKinds.Phone.PHOTO_ID,
-//				ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
-//		}; // 查询的列
-//		Cursor cursor = getContentResolver().query(uri, projection, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id, null, null);
-//		if (cursor != null && cursor.getCount() > 0) {
-//			list = new ArrayList<ContactBean>();
-//			cursor.moveToFirst();
-//			for (int i = 0; i < cursor.getCount(); i++) {
-//				cursor.moveToPosition(i);
-//				String name = cursor.getString(1);
-//				String number = cursor.getString(2);
-//				String sortKey = cursor.getString(3);
-//				int contactId = cursor.getInt(4);
-//				Long photoId = cursor.getLong(5);
-//				String lookUpKey = cursor.getString(6);
-//
-//				cb = new ContactBean();
-//				cb.setDisplayName(name);
-////				if (number.startsWith("+86")) {// 去除多余的中国地区号码标志，对这个程序没有影响。
-////					cb.setPhoneNum(number.substring(3));
-////				} else {
-//					cb.setPhoneNum(number);
-////				}
-//				cb.setSortKey(sortKey);
-//				cb.setContactId(contactId);
-//				cb.setPhotoId(photoId);
-//				cb.setLookUpKey(lookUpKey);
-//			}
-//		}
-//		cursor.close();
-//		return cb;
-//	}
-
-
-
 	public static String[] SMS_COLUMNS = new String[]{  
 		"thread_id"
 	};
+	
 	private String getSMSThreadId(String adddress){
 		Cursor cursor = null;  
 		ContentResolver contentResolver = getContentResolver();  
@@ -437,54 +293,56 @@ public class HomeContactActivity extends AppActivity {
 			return threadId;
 		}
 	}
-
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(1008 == requestCode){
-			init();
+	
+	class GetMobileReceiver extends BroadcastReceiver {
+		public void onReceive(Context context, Intent intent) {
+			MobileSynListBean mobiles = (MobileSynListBean) intent.getSerializableExtra("mobile");
+			Logger.i(mobiles.data.size()+"");
+			Gson gson = new Gson();
+			String json = gson.toJson(mobiles.data);
+			try {
+				String encodeJson = DecodeUtil.encodeContact(json);
+				syncMobile(encodeJson);
+			} catch (AppException e) {
+				Logger.i(e);
+			}
 		}
-		super.onActivityResult(requestCode, resultCode, data);
 	}
-
-//	protected void onDestroy() {
-//		super.onDestroy();
-//		stopReceiver1();
-//	}
-//
-//	private String ACTION1 = "SET_DEFAULT_SIG";
-//	private HomeContactActivity.BaseReceiver1 receiver1 = null;
-//	/**
-//	 * 打开接收器
-//	 */
-//	private void startReceiver1() {
-//		if(null==receiver1){
-//			IntentFilter localIntentFilter = new IntentFilter(ACTION1);
-//			receiver1 = new HomeContactActivity.BaseReceiver1();
-//			this.registerReceiver(receiver1, localIntentFilter);
-//		}
-//	}
-	/**
-	 * 关闭接收器
-	 */
-//	private void stopReceiver1() {
-//		if (null != receiver1)
-//			unregisterReceiver(receiver1);
-//	}
-//	public class BaseReceiver1 extends BroadcastReceiver {
-//		public void onReceive(Context context, Intent intent) {
-//			if (intent.getAction().equals(ACTION1)) {
-//
-//				String str_bean = intent.getStringExtra("groupbean");
-//				Gson gson = new Gson();
-//				GroupBean gb = gson.fromJson(str_bean, GroupBean.class);
-//				if(gb.getId() == 0){
-//
-//					init();
-//				}else{
-//
-//					queryGroupMember(gb);
-//				}
-//			}
-//		}
-//	}
+	
+	private void registerGetReceiver() {
+		getMobileReceiver =  new  GetMobileReceiver();
+        IntentFilter postFilter = new IntentFilter();
+        postFilter.addAction("update");
+        registerReceiver(getMobileReceiver, postFilter);
+	}
+	
+	private void unregisterGetReceiver() {
+		unregisterReceiver(getMobileReceiver);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		unregisterGetReceiver();
+		super.onDestroy();
+	}
+	
+	private void syncMobile(String encodeJson) {
+		AppClient.syncContact(appContext, encodeJson, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				Logger.i(e.toString());
+			}
+	  });
+	}
 
 }

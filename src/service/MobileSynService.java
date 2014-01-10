@@ -25,7 +25,6 @@ import tools.AppException;
 import tools.DecodeUtil;
 import tools.Logger;
 import android.app.IntentService;
-import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -87,7 +86,7 @@ public class MobileSynService extends IntentService{
 	private MobileSynBean person;
 	public void getContactInfo() throws JSONException, AppException {
 		// 获得通讯录信息 ，URI是ContactsContract.Contacts.CONTENT_URI
-//		MobileSynListBean persons = new MobileSynListBean();
+		MobileSynListBean allPerson = new MobileSynListBean();
 		List<MobileSynBean> persons = new ArrayList<MobileSynBean>();
 		String mimetype = "";
 		int oldrid = -1;
@@ -98,6 +97,7 @@ public class MobileSynService extends IntentService{
 			if (oldrid != contactId) {
 				person = new MobileSynBean();
 			   	persons.add(person);
+			   	allPerson.data.add(person);
 			    oldrid = contactId;
 			}
 			// 取得mimetype类型
@@ -360,26 +360,13 @@ public class MobileSynService extends IntentService{
 		   }   
 	   }
 	  cursor.close();
-	  Gson gson = new Gson();
-	  String json = gson.toJson(persons);
-	  Logger.i(json);
-	  String encodeJson = DecodeUtil.encodeContact(json);
-	  AppClient.syncContact(appContext, encodeJson, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				
-			}
-	  });
+	  updateMobiles(allPerson);
 	}
 	
+	private void updateMobiles(MobileSynListBean model) {
+		Intent intent = new Intent();
+		intent.putExtra("mobile", model);
+		intent.setAction("update");
+		sendBroadcast(intent);
+	}
 }

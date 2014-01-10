@@ -1,9 +1,10 @@
 package contact;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MobileSynBean {
+public class MobileSynBean implements Serializable{
 	public String prefix;
 	public String suffix;
 	public String firstname;

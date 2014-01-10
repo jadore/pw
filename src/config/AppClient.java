@@ -471,4 +471,27 @@ public class AppClient {
 			}
 		});
 	}
+	
+	public static void sendFeedback(final MyApplication appContext, String data, final ClientCallback callback) {
+		RequestParams param = new RequestParams();
+		param.add("message", data);
+		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					Logger.i(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(new Entity() {
+					});
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
 }

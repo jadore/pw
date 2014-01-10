@@ -98,9 +98,9 @@ public class ContactHomeAdapter extends BaseAdapter{
 		
 		ContactBean cb = list.get(position);
 		String name = cb.getDisplayName();
-		String number = cb.getPhoneNum();
+//		String number = cb.getPhoneNum();
 		holder.name.setText(name);
-		holder.number.setText(number);
+//		holder.number.setText(number);
 //		holder.qcb.assignContactUri(Contacts.getLookupUri(cb.getContactId(), cb.getLookUpKey()));
 		if(0 == cb.getPhotoId()){
 			holder.qcb.setImageResource(R.drawable.ic_launcher);
