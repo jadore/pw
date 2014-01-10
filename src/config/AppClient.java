@@ -450,4 +450,25 @@ public class AppClient {
 			}
 		});
 	}
+	
+	public static void syncContact(final MyApplication appContext, String data, final ClientCallback callback) {
+		RequestParams param = new RequestParams();
+		param.add("data", data);
+		QYRestClient.post("contact/sync", param, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					Logger.i(DecodeUtil.decode(new String(content)));
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
 }
