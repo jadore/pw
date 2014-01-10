@@ -1,5 +1,6 @@
 package ui;
 
+import com.crashlytics.android.Crashlytics;
 import tools.AppManager;
 
 import com.vikaa.mycontact.R;
@@ -21,6 +22,7 @@ public class Welcome extends AppActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Crashlytics.start(this);
 		final View view = View.inflate(this, R.layout.welcome, null);
 		setContentView(view);
 		AlphaAnimation aa = new AlphaAnimation(0.3f,1.0f);

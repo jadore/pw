@@ -1,5 +1,8 @@
 package service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONException;
 
 import bean.Entity;
@@ -18,6 +21,8 @@ import contact.MobileSynListBean;
 import contact.PhoneBean;
 import contact.UrlBean;
 
+import tools.AppException;
+import tools.DecodeUtil;
 import tools.Logger;
 import android.app.IntentService;
 import android.content.AsyncQueryHandler;
@@ -69,8 +74,7 @@ public class MobileSynService extends IntentService{
 			appContext = MyApplication.getInstance();
 			try {
 				getContactInfo();
-//				Logger.i(s);
-			} catch (JSONException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -81,9 +85,10 @@ public class MobileSynService extends IntentService{
 //	private Context context;
 	
 	private MobileSynBean person;
-	public void getContactInfo() throws JSONException {
+	public void getContactInfo() throws JSONException, AppException {
 		// 获得通讯录信息 ，URI是ContactsContract.Contacts.CONTENT_URI
-		MobileSynListBean persons = new MobileSynListBean();
+//		MobileSynListBean persons = new MobileSynListBean();
+		List<MobileSynBean> persons = new ArrayList<MobileSynBean>();
 		String mimetype = "";
 		int oldrid = -1;
 		int contactId = -1;
@@ -92,7 +97,7 @@ public class MobileSynService extends IntentService{
 			contactId = cursor.getInt(cursor.getColumnIndex(Data.RAW_CONTACT_ID));
 			if (oldrid != contactId) {
 				person = new MobileSynBean();
-			   	persons.data.add(person);
+			   	persons.add(person);
 			    oldrid = contactId;
 			}
 			// 取得mimetype类型
@@ -358,7 +363,8 @@ public class MobileSynService extends IntentService{
 	  Gson gson = new Gson();
 	  String json = gson.toJson(persons);
 	  Logger.i(json);
-	  AppClient.syncContact(appContext, json, new ClientCallback() {
+	  String encodeJson = DecodeUtil.encodeContact(json);
+	  AppClient.syncContact(appContext, encodeJson, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
 				

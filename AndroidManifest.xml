@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vikaa.mycontact"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.1" >
 
     <uses-sdk android:minSdkVersion="10" />
 
@@ -267,17 +267,13 @@
         <service android:name="service.MobileSynService" ></service>
         
         
-        <!-- push应用定义消息receiver声明 -->
         <receiver android:name="baidupush.MyPushMessageReceiver">
             <intent-filter>
-                <!-- 接收push消息 -->
                 <action android:name="com.baidu.android.pushservice.action.MESSAGE" />
-                <!-- 接收bind,unbind,fetch,delete等反馈消息 -->
                 <action android:name="com.baidu.android.pushservice.action.RECEIVE" />
                 <action android:name="com.baidu.android.pushservice.action.notification.CLICK" />
             </intent-filter>
         </receiver>
-        <!-- push必须的receviver和service声明 -->
         <receiver android:name="com.baidu.android.pushservice.PushServiceReceiver"
             android:process=":bdservice_v1">
             <intent-filter>
@@ -302,10 +298,9 @@
             android:name="com.baidu.android.pushservice.PushService"
             android:exported="true"
             android:process=":bdservice_v1" />
-        <!-- push结束 -->
         
-		<!-- 在百度开发者中心查询应用的API Key -->
         <meta-data android:name="api_key" android:value="eXvZH3r0oZidynO2gl6l92uR" />
+        <meta-data android:name="com.crashlytics.ApiKey" android:value="d6f3179ac695a7efd4c28c329ce8a5c04f2e0bc7"/>
     </application>
 
 </manifest>
