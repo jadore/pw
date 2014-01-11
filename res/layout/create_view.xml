@@ -32,6 +32,19 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             />
+        
+        <Button
+            android:id="@+id/closeBarButton"
+            android:layout_width="95dp"
+            android:layout_height="44dp"
+            android:background="@null"
+            android:layout_centerVertical="true"
+            android:text="关闭"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+           	android:layout_alignParentRight="true"
+			android:onClick="ButtonClick"
+            />
         <Button
             android:id="@+id/rightBarButton"
             android:layout_width="95dp"
@@ -50,10 +63,27 @@
             />
     </RelativeLayout>
     
-    <WebView 
-       	android:id="@+id/webview"
-       	android:layout_width="match_parent"
-      	android:layout_height="match_parent"
-      	/>
+    <RelativeLayout 
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+     	>
+	    <WebView 
+	       	android:id="@+id/webview"
+	       	android:layout_width="match_parent"
+	      	android:layout_height="match_parent"
+	      	/>
+	
+	    <Button 
+	        android:id="@+id/loadAgain"
+	        android:layout_width="66dp"
+	        android:layout_height="35dp"
+	        android:layout_centerInParent="true"
+	        android:text="再次访问"
+	        android:textColor="@color/white"
+	        android:background="@drawable/card_view_btn"
+	        android:visibility="invisible"
+	        android:onClick="ButtonClick"
+	        />
+</RelativeLayout>
 
 </LinearLayout>

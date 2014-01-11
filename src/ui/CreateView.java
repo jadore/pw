@@ -1,15 +1,9 @@
 package ui;
 
-import java.util.List;
-
-import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.util.EncodingUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tools.AppException;
 import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
@@ -18,12 +12,9 @@ import tools.UIHelper;
 import bean.CardIntroEntity;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 
-import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
-import com.loopj.android.http.RequestParams;
 import com.vikaa.mycontact.R;
 
-import config.AppClient;
 import config.CommonValue;
 import config.QYRestClient;
 
@@ -39,7 +30,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
-import android.location.Address;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -56,7 +46,6 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -68,8 +57,10 @@ import android.widget.Toast;
 
 public class CreateView extends AppActivity {
 	private WebView webView;
+	private Button loadAgainButton;
 	private ProgressDialog loadingPd;
 	private Button rightBarButton;
+	private Button closeBarButton;
 	private MyAsyncQueryHandler asyncQuery;
 	private String keyCode;
 	private int keyType;
@@ -83,7 +74,21 @@ public class CreateView extends AppActivity {
 	
 	private void initUI() {
 		rightBarButton = (Button) findViewById(R.id.rightBarButton);
+		closeBarButton = (Button) findViewById(R.id.closeBarButton);
 		webView = (WebView) findViewById(R.id.webview);
+		loadAgainButton = (Button) findViewById(R.id.loadAgain);
+	}
+	
+	private void loadAgain() {
+		loadAgainButton.setVisibility(View.INVISIBLE);
+		webView.setVisibility(View.VISIBLE);
+		String url = CommonValue.BASE_URL + "/home/app";
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		webView.loadUrl(url);
+		if (!appContext.isNetworkConnected()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
 	}
 	
 	private void initData() {
@@ -111,16 +116,39 @@ public class CreateView extends AppActivity {
 		
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				rightBarButton.setVisibility(View.INVISIBLE);
+				rightBarButton.setVisibility(View.GONE);
 				if (!appContext.isNetworkConnected()) {
 		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 		    		return true;
 		    	}
-				if (url.startsWith("mailto:") || url.startsWith("tel:")) { 
+				else if (url.startsWith("tel:")) { 
 					Logger.i(url);
-	                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
+					Intent intent;
+					try {
+						intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+					} catch (Exception e) {
+						intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
+					}
 	                startActivity(intent); 
 	            }
+				else if (url.startsWith("mailto:")) {
+					try {
+						Logger.i(url);
+		                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url)); 
+		                startActivity(intent); 
+					}catch (Exception e) {
+						
+					}
+				}
+				else if (url.startsWith("sms:")) {
+					try {
+						Logger.i(url);
+		                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url)); 
+		                startActivity(intent); 
+					}catch (Exception e) {
+						
+					}
+				}
 				else {
 					loadingPd = UIHelper.showProgress(CreateView.this, null, null, true);
 					view.loadUrl(url);
@@ -130,6 +158,19 @@ public class CreateView extends AppActivity {
 			public void onReceivedSslError(WebView view,
 					SslErrorHandler handler, SslError error) {
 				handler.proceed();
+			}
+			
+			@Override
+			public void onReceivedError(WebView view, int errorCode,
+					String description, String failingUrl) {
+				Logger.i(errorCode+"");
+				switch (errorCode) {
+				case -2:
+					webView.setVisibility(View.INVISIBLE);
+					break;
+				}
+				loadAgainButton.setVisibility(View.VISIBLE);
+				super.onReceivedError(view, errorCode, description, failingUrl);
 			}
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
@@ -172,16 +213,22 @@ public class CreateView extends AppActivity {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
 			if (webView.canGoBack()) {
-				webView.goBack();// 返回前一个页面
+				webView.goBack();
 			}
 			else {
 				AppManager.getAppManager().finishActivity(this);
 				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			}
-			
 			break;
 		case R.id.rightBarButton:
 			SMSDialog(keyType);
+			break;
+		case R.id.loadAgain:
+			loadAgain();
+			break;
+		case R.id.closeBarButton:
+			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 		}
 	}
@@ -517,7 +564,7 @@ public class CreateView extends AppActivity {
 	
 	protected void SMSDialog(final int type) {
 		AlertDialog.Builder builder = new Builder(this);
-		builder.setMessage("允许群友通讯录发送短信?");
+		builder.setMessage("允许群友通讯录发送短信?\n建议一次发送不超过50条短信");
 		builder.setTitle("提示");
 		builder.setPositiveButton("确认", new OnClickListener() {
 			@Override

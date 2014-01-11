@@ -1,6 +1,8 @@
 package ui.adapter;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 import tools.StringUtils;
 import ui.CardView;
 import ui.CreateView;
@@ -14,11 +16,13 @@ import config.CommonValue;
 import bean.CardIntroEntity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,6 +36,7 @@ public class FriendCardAdapter extends BaseAdapter {
 		ImageView avatarImageView;
 		TextView titleView;
 		TextView desView;
+		Button callButton;
 	}
 	
 	public FriendCardAdapter(Context context, List<CardIntroEntity> cards) {
@@ -65,6 +70,7 @@ public class FriendCardAdapter extends BaseAdapter {
 			cell.avatarImageView = (ImageView) convertView.findViewById(R.id.avatarImageView);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
 			cell.desView = (TextView) convertView.findViewById(R.id.des);
+			cell.callButton = (Button) convertView.findViewById(R.id.call);
 			convertView.setTag(cell);
 		}
 		else {
@@ -82,6 +88,25 @@ public class FriendCardAdapter extends BaseAdapter {
 		} else {
 			cell.alpha.setVisibility(View.GONE);
 		}
+		if (model.phone_display.indexOf("*") != -1 || StringUtils.isEmpty(model.phone_display)) {
+			cell.callButton.setVisibility(View.INVISIBLE);
+		}
+		else {
+			cell.callButton.setVisibility(View.VISIBLE);
+		}
+		cell.callButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Uri uri = Uri.parse("tel:" + model.phone);
+				Intent it;
+				try {
+					it = new Intent(Intent.ACTION_VIEW, uri);
+				} catch (Exception e) {
+					it = new Intent(Intent.ACTION_DIAL, uri);
+				}
+				context.startActivity(it);
+			}
+		});
 		convertView.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {

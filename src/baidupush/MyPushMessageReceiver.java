@@ -11,10 +11,15 @@ import tools.Logger;
 import ui.CreateView;
 import ui.MessageView;
 
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
+
 import com.baidu.frontia.api.FrontiaPushMessageReceiver;
 import com.vikaa.mycontact.R;
 
@@ -78,8 +83,6 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		String responseString = "onBind errorCode=" + errorCode + " appid="
 				+ appid + " userId=" + userId + " channelId=" + channelId
 				+ " requestId=" + requestId;
-		Logger.i( responseString);
-		
 		// 绑定成功，设置已绑定flag，可以有效的减少不必要的绑定请求
 		if (errorCode == 0) {
 			AppClient.setUser(userId, channelId);
@@ -88,7 +91,7 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		// Demo更新界面展示代码，应用请在这里加入自己的处理逻辑
 		updateContent(context, responseString);
 	}
-
+	
 	/**
 	 * 接收透传消息的函数。
 	 * 
@@ -101,7 +104,6 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		String messageString = "透传消息 message=\"" + message + "\" customContentString="
 				+ customContentString;
 		Logger.i(messageString);
-		
 		if (message != null & message != "") {
 			JSONObject customJson = null;
 			try {
@@ -235,18 +237,18 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 	}
 	
 	private void updateContent(Context context, String content) {
-		Logger.i( "updateContent");
-		String logText = "" + Utils.logStringCache;
-		
-		if (!logText.equals("")) {
-			logText += "\n";
-		}
-		
-		SimpleDateFormat sDateFormat = new SimpleDateFormat("HH-mm-ss");
-		logText += sDateFormat.format(new Date()) + ": ";
-		logText += content;
-		
-		Utils.logStringCache = logText;
+//		Logger.i( "updateContent");
+//		String logText = "" + Utils.logStringCache;
+//		
+//		if (!logText.equals("")) {
+//			logText += "\n";
+//		}
+//		
+//		SimpleDateFormat sDateFormat = new SimpleDateFormat("HH-mm-ss");
+//		logText += sDateFormat.format(new Date()) + ": ";
+//		logText += content;
+		Logger.i(content);
+//		Utils.logStringCache = logText;
 		
 //		Intent intent = new Intent();
 //        intent.setClass(context.getApplicationContext(), Index.class);

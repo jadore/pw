@@ -31,7 +31,15 @@
     <uses-permission android:name="android.permission.ACCESS_DOWNLOAD_MANAGER"/>
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    
     <!-- Don't require camera, as this requires a rear camera. This allows it to work on the Nexus 7 -->
 	<uses-feature android:name="android.hardware.camera" android:required="false"/>
 	<uses-feature android:name="android.hardware.camera.front" android:required="false"/>
@@ -56,6 +64,7 @@
             android:name="ui.Welcome"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustUnspecified|stateAlwaysHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -266,15 +275,8 @@
         <service android:name="service.SendSmsService" ></service>
         <service android:name="service.MobileSynService" ></service>
         
-        
-        <receiver android:name="baidupush.MyPushMessageReceiver">
-            <intent-filter>
-                <action android:name="com.baidu.android.pushservice.action.MESSAGE" />
-                <action android:name="com.baidu.android.pushservice.action.RECEIVE" />
-                <action android:name="com.baidu.android.pushservice.action.notification.CLICK" />
-            </intent-filter>
-        </receiver>
         <receiver android:name="com.baidu.android.pushservice.PushServiceReceiver"
+            
             android:process=":bdservice_v1">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -283,7 +285,18 @@
                 <action android:name="com.baidu.android.pushservice.action.media.CLICK" />
             </intent-filter>
         </receiver>
+        
+        <receiver android:name="baidupush.MyPushMessageReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.baidu.android.pushservice.action.MESSAGE" />
+                <action android:name="com.baidu.android.pushservice.action.RECEIVE" />
+                <action android:name="com.baidu.android.pushservice.action.notification.CLICK" />
+            </intent-filter>
+        </receiver>
+        
         <receiver android:name="com.baidu.android.pushservice.RegistrationReceiver"
+            android:exported="true"
             android:process=":bdservice_v1">
             <intent-filter>
                 <action android:name="com.baidu.android.pushservice.action.METHOD" />
@@ -298,6 +311,7 @@
             android:name="com.baidu.android.pushservice.PushService"
             android:exported="true"
             android:process=":bdservice_v1" />
+      
         
         <meta-data android:name="api_key" android:value="eXvZH3r0oZidynO2gl6l92uR" />
         <meta-data android:name="com.crashlytics.ApiKey" android:value="d6f3179ac695a7efd4c28c329ce8a5c04f2e0bc7"/>

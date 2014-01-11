@@ -26,6 +26,7 @@ import cn.sharesdk.wechat.moments.WechatMoments;
 import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
+import com.baidu.android.pushservice.PushSettings;
 import com.google.zxing.client.android.CaptureActivity;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
@@ -42,6 +43,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -81,6 +83,8 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 	private Button activityButton;
 	private Button cardButton;
 	
+	private boolean isFirst = true;
+	private boolean isCFirst = true;
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
 	private static final int PAGE3 = 2;// 页面3
@@ -105,6 +109,7 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 //	private PinnedHeaderListView mPinedListView2;
 //	private IndexActivityAdapter mActivityAdapter;
 	private WebView webView;
+	private Button loadAgainButton;
 	
 	private List<List<CardIntroEntity>> cards;
 	private PinnedHeaderListView mPinedListView0;
@@ -128,30 +133,27 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 	}
 	
 	private void blindBaidu() {
-		Resources resource = this.getResources();
-		String pkgName = this.getPackageName();
-		if (!Utils.hasBind(getApplicationContext())) {
-			PushManager.startWork(getApplicationContext(),
-					PushConstants.LOGIN_TYPE_API_KEY, 
-					Utils.getMetaValue(this, "api_key"));
-			PushManager.enableLbs(getApplicationContext());
-		}
-		
-        CustomPushNotificationBuilder cBuilder = new CustomPushNotificationBuilder(
-        		getApplicationContext(),
-        		resource.getIdentifier("notification_custom_builder", "layout", pkgName), 
-        		resource.getIdentifier("notification_icon", "id", pkgName), 
-        		resource.getIdentifier("notification_title", "id", pkgName), 
-        		resource.getIdentifier("notification_text", "id", pkgName));
-        cBuilder.setNotificationFlags(Notification.FLAG_AUTO_CANCEL);
-        cBuilder.setNotificationDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
-        cBuilder.setStatusbarIcon(this.getApplicationInfo().icon);
-        cBuilder.setLayoutDrawable(resource.getIdentifier("simple_notification_icon", "drawable", pkgName));
-		PushManager.setNotificationBuilder(this, 1, cBuilder);
-		
+		Logger.i("b");
+//		PushSettings.enableDebugMode(this, true);
+//		Resources resource = this.getResources();
+//		String pkgName = this.getPackageName();
 		PushManager.startWork(getApplicationContext(),
 				PushConstants.LOGIN_TYPE_API_KEY, 
 				Utils.getMetaValue(this, "api_key"));
+//			PushManager.enableLbs(getApplicationContext());
+		
+//        CustomPushNotificationBuilder cBuilder = new CustomPushNotificationBuilder(
+//        		getApplicationContext(),
+//        		resource.getIdentifier("notification_custom_builder", "layout", pkgName), 
+//        		resource.getIdentifier("notification_icon", "id", pkgName), 
+//        		resource.getIdentifier("notification_title", "id", pkgName), 
+//        		resource.getIdentifier("notification_text", "id", pkgName));
+//        cBuilder.setNotificationFlags(Notification.FLAG_AUTO_CANCEL);
+//        cBuilder.setNotificationDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+//        cBuilder.setStatusbarIcon(this.getApplicationInfo().icon);
+//        cBuilder.setLayoutDrawable(resource.getIdentifier("simple_notification_icon", "drawable", pkgName));
+//		PushManager.setNotificationBuilder(this, 1, cBuilder);
+		
 	}
 	
 	private void initUI() {
@@ -179,11 +181,14 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		mPager.setCurrentItem(PAGE1);
 		mPager.setOnPageChangeListener(new MyOnPageChangeListener());
 		
+		View footer = inflater.inflate(R.layout.index_footer, null);
+		
 		indicatorGroup = (FrameLayout) lay1.findViewById(R.id.topGroup);
 		View header = inflater.inflate(R.layout.index_tab0_header, null);
 		iphoneTreeView = (ExpandableListView) lay1.findViewById(R.id.iphone_tree_view);
 		iphoneTreeView.setGroupIndicator(null);
 		iphoneTreeView.addHeaderView(header);
+		iphoneTreeView.addFooterView(footer);
 		iphoneTreeView.setOnChildClickListener(this);
 		iphoneTreeView.setOnItemLongClickListener(this);
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
@@ -245,6 +250,7 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 //			}
 //		});
 		webView = (WebView) lay2.findViewById(R.id.webview);
+		loadAgainButton = (Button) lay2.findViewById(R.id.loadAgain);
 //		String url = "http://pb.wc.m0.hk/home/app";
 //		CookieStore cookieStore = new PersistentCookieStore(this);  
 //		QYRestClient.getIntance().setCookieStore(cookieStore);
@@ -266,6 +272,8 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		
 		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
 		mPinedListView0.setDividerHeight(0);
+		View footer1 = inflater.inflate(R.layout.index_footer, null);
+		mPinedListView0.addFooterView(footer1);
 		cards = new ArrayList<List<CardIntroEntity>>();
 		mCardAdapter = new IndexCardAdapter(this, cards);
 		mPinedListView0.setAdapter(mCardAdapter);
@@ -367,6 +375,9 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		case R.id.friendmobile:
 			showFriendCardView();
 			break;
+		case R.id.loadAgain:
+			loadAgain();
+			break;
 		}
 	}
 	
@@ -435,6 +446,8 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		String key = String.format("%s-%s", CommonValue.CacheKey.CardList, appContext.getLoginUid());
 		CardListEntity entity = (CardListEntity) appContext.readObject(key);
 		if(entity == null){
+			addCardOp();
+			mCardAdapter.notifyDataSetChanged();
 			return;
 		}
 		cards.clear();
@@ -454,17 +467,15 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 				UserEntity user = (UserEntity)data;
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
+					if (!Utils.hasBind(getApplicationContext())) {
+						blindBaidu();
+					}
 					appContext.saveLoginInfo(user);
 					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
 					getActivityList();
-					initWebData();
-					
-					getCardList();
 					getUnReadMessage();
-					if (!Utils.hasBind(getApplicationContext())) {
-						blindBaidu();
-					}
+//					
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
@@ -796,52 +807,33 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 	
 	// ViewPager页面切换监听
 	public class MyOnPageChangeListener implements OnPageChangeListener {
-
-//		int one = offset * 2 + bmpW;// 页卡1 -> 页卡2 偏移量
-
 		public void onPageSelected(int arg0) {
-//			Animation animation = null;
 			switch (arg0) {
 			case PAGE1:// 切换到页卡1
-//				if (currentIndex == PAGE1) {// 如果之前显示的是页卡2
-//					animation = new TranslateAnimation(0, -one, 0, 0);
-//				} else if (currentIndex == PAGE2) {// 如果之前显示的是页卡3
-//					animation = new TranslateAnimation(one, -one, 0, 0);
-//				}
 				phoneButton.setSelected(true);
 				activityButton.setSelected(false);
 				cardButton.setSelected(false);
 				break;
 			case PAGE2:// 切换到页卡2
-//				if (currentIndex == PAGE1) {// 如果之前显示的是页卡1
-//					animation = new TranslateAnimation(-one, 0, 0, 0);
-//				} else if (currentIndex == PAGE3) {// 如果之前显示的是页卡3
-//					animation = new TranslateAnimation(one, 0, 0, 0);
-//				}
+				if (isFirst) {
+					initWebData();
+					isFirst = false;
+				}
 				phoneButton.setSelected(false);
 				activityButton.setSelected(true);
 				cardButton.setSelected(false);
 				break;
 			case PAGE3:// 切换到页卡3
-//				if (currentIndex == PAGE1) {// 如果之前显示的是页卡1
-//					animation = new TranslateAnimation(-one, one, 0, 0);
-//				} else if (currentIndex == PAGE2) {// 如果之前显示的是页卡2
-//					animation = new TranslateAnimation(0, one, 0, 0);
-//				}
+				if (isCFirst) {
+					getCardList();
+					Logger.i("ddd");
+					isCFirst = false;
+				}
 				phoneButton.setSelected(false);
 				activityButton.setSelected(false);
 				cardButton.setSelected(true);
 				break;
-//			case PAGE1:
-//				phoneButton.setSelected(false);
-//				activityButton.setSelected(false);
-//				cardButton.setSelected(false);
-//				break;
 			}
-//			currentIndex = arg0;// 动画结束后，改变当前图片位置
-//				animation.setFillAfter(true);// True:图片停在动画结束位置
-//				animation.setDuration(300);
-//				cursor.startAnimation(animation);
 		}
 
 		public void onPageScrolled(int arg0, float arg1, int arg2) {
@@ -986,7 +978,7 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 				entity.content = " ";
 				showActivityViewWeb(entity);
 			}
-			mPager.setCurrentItem(PAGE2);
+			mPager.setCurrentItem(PAGE1);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.CardCreat:
 			getCardList();
@@ -1013,7 +1005,6 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 	
 	private void initWebData() {
 		String url = CommonValue.BASE_URL + "/home/app";
-		
 		WebSettings webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
@@ -1041,6 +1032,19 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 					SslErrorHandler handler, SslError error) {
 				handler.proceed();
 			}
+			
+			@Override
+			public void onReceivedError(WebView view, int errorCode,
+					String description, String failingUrl) {
+				Logger.i(errorCode+"");
+				switch (errorCode) {
+				case -2:
+					webView.setVisibility(View.INVISIBLE);
+					break;
+				}
+				loadAgainButton.setVisibility(View.VISIBLE);
+				super.onReceivedError(view, errorCode, description, failingUrl);
+			}
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
 		    public void onProgressChanged(WebView view, int progress) {
@@ -1056,6 +1060,8 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		    		long quota, QuotaUpdater quotaUpdater) {
 		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
 		    }
+		    
+		    
 		});
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);
@@ -1076,6 +1082,18 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
     		return;
     	}
 	}
+	
+	private void loadAgain() {
+		loadAgainButton.setVisibility(View.INVISIBLE);
+		webView.setVisibility(View.VISIBLE);
+		String url = CommonValue.BASE_URL + "/home/app";
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		webView.loadUrl(url);
+		if (!appContext.isNetworkConnected()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
+	}
 
 	@Override
 	public boolean onItemLongClick(AdapterView<?> arg0, View view, int arg2,
@@ -1084,11 +1102,9 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		int childPos = (Integer) view.getTag(R.id.des);
 		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
 		if (groupPos == 0 || groupPos == 1 ) {
-//			showShareDialog(model);
 			showShare(false, null, model);
 		}
 		else {
-//			showShareDialog2(model);
 			showShare2(false, null, model);
 		}
 		return false;

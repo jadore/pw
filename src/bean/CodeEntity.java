@@ -13,7 +13,6 @@ public class CodeEntity extends Entity{
 	
 	public static CodeEntity parse(String res) throws IOException, AppException {
 		CodeEntity data = new CodeEntity();
-		Logger.i(res);
 		try {
 			JSONObject js = new JSONObject(res);
 			if (js.getInt("status") == 1) {

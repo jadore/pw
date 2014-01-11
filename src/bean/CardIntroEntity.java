@@ -72,6 +72,8 @@ public class CardIntroEntity extends Entity {
 	public String diandian;
 	public String twitter;
 	
+	public String phone_display;
+	
 	//card list
 	public static CardIntroEntity parse(JSONObject info, String sectionType) throws IOException, AppException {
 		CardIntroEntity data = new CardIntroEntity();
@@ -98,11 +100,13 @@ public class CardIntroEntity extends Entity {
 			if (!info.isNull("headimgurl")) {
 				data.headimgurl = info.getString("headimgurl");
 			}
+			if (!info.isNull("phone_display")) {
+				data.phone_display = info.getString("phone_display");
+			}
 			data.cardSectionType = sectionType;
 			data.willRefresh = false;
 			data.pinyin = info.getString("pinyin");
 			data.isfriend = info.getString("isfriend");
-			Logger.i(data.isfriend);
 		} catch (JSONException e) {
 			throw AppException.json(e);
 		}

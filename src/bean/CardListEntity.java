@@ -17,7 +17,6 @@ public class CardListEntity extends Entity {
 	public List<CardIntroEntity> owned = new ArrayList<CardIntroEntity>();
 	
 	public static CardListEntity parse(String res) throws IOException, AppException {
-		Logger.i(res);
 		CardListEntity data = new CardListEntity();
 		try {
 			JSONObject js = new JSONObject(res);

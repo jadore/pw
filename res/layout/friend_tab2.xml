@@ -26,7 +26,7 @@
 	<widget.QuickAlphabeticBar
         android:visibility="invisible"
         android:id="@+id/fast_scroller"
-        android:layout_width="22dp"
+        android:layout_width="20dp"
         android:layout_height="fill_parent"
         android:layout_alignParentRight="true"
         android:layout_gravity="top|right|center"

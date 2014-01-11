@@ -219,7 +219,7 @@ public class HomeContactActivity extends AppActivity {
 				case 0://打电话
 					String toPhone = cb.getPhoneNum();
 					uri = Uri.parse("tel:" + toPhone);
-					Intent it = new Intent(Intent.ACTION_CALL, uri);
+					Intent it = new Intent(Intent.ACTION_VIEW, uri);
 					startActivity(it);
 					break;
 

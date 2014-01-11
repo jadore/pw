@@ -57,18 +57,32 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 
 	@Override
 	public int getChildrenCount(int groupPosition) {
-		if (groupPosition>0) {
+		if (groupPosition>=0 && groupPosition <= 3) {
 			return phones.get(groupPosition).size();
 		}
-		return phones.get(0).size();
+		else if (groupPosition<0) {
+			return phones.get(0).size();
+		} 
+		else {
+			return phones.get(3).size();
+		}
 	}
 
 	@Override
 	public Object getGroup(int groupPosition) {
-		if (groupPosition>0) {
+//		if (groupPosition>0) {
+//			return groups[groupPosition];
+//		}
+//		return  groups[0];
+		if (groupPosition>=0 && groupPosition <= 3) {
 			return groups[groupPosition];
 		}
-		return  groups[0];
+		else if (groupPosition<0) {
+			return  groups[0];
+		} 
+		else {
+			return  groups[3];
+		}
 	}
 
 	@Override

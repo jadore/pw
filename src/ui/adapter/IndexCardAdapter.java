@@ -9,11 +9,15 @@ import com.vikaa.mycontact.R;
 
 import config.CommonValue;
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import ui.CardView;
@@ -130,7 +134,47 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 			sect = (SectionView) convertView.getTag();
 		}
 		sect.titleView.setText(cards.get(section).get(0).cardSectionType);
+//		if (cards.get(section).get(0).cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
+//			convertView.setOnLongClickListener(new OnLongClickListener() {
+//				@Override
+//				public boolean onLongClick(View v) {
+//					SMSDialog();
+//					return false;
+//				}
+//			});
+//		}
+//		else {
+//			convertView.setOnLongClickListener(new OnLongClickListener() {
+//				@Override
+//				public boolean onLongClick(View v) {
+//					return false;
+//				}
+//			});
+//		}
 		return convertView;
 	}
 	
+	protected void SMSDialog() {
+		AlertDialog.Builder builder = new Builder(context);
+		builder.setMessage("模式");
+		builder.setTitle("提示");
+		builder.setPositiveButton("正常", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				CommonValue.BASE_API = "http://pb.wc.m0.hk/api/";
+				CommonValue.BASE_URL = "http://pb.wc.m0.hk";
+				dialog.dismiss();
+			}
+		});
+
+	   builder.setNegativeButton("调试", new DialogInterface.OnClickListener() {
+		   @Override
+		   public void onClick(DialogInterface dialog, int which) {
+			   CommonValue.BASE_API = "http://pb.wcl.m0.hk/api/";
+			   CommonValue.BASE_URL = "http://pb.wcl.m0.hk";
+			   dialog.dismiss();
+		   }
+	   });
+	   builder.create().show();
+	}
 }

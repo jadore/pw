@@ -19,6 +19,8 @@ import bean.PhoneViewEntity;
 import bean.Result;
 import bean.SMSPersonList;
 
+import cn.sharesdk.framework.TitleLayout;
+
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -52,6 +54,7 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 	private boolean allChosen;
 	private Button rightBarButton;
 	private Button nextButton;
+	private TextView titleBarView;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -61,6 +64,7 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 	}
 	
 	private void initUI() {
+		titleBarView = (TextView)findViewById(R.id.titleBarView);
 		nextButton = (Button) findViewById(R.id.nextButton);
 		rightBarButton = (Button)findViewById(R.id.rightBarButton);
 		mListView = (ListView) findViewById(R.id.listView);
@@ -139,6 +143,7 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 		if (entity.members.size() > 0) {
 			members.clear();
 			members.addAll(entity.members);
+			titleBarView.setText(String.format("群发短信(%d/%d)", smsMember.size(), members.size()));
 			mAdapter.notifyDataSetChanged();
 		}
 	}
@@ -285,6 +290,7 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 			smsMember.add(model.phone);
 		}
 		model.isChosen = !model.isChosen;
+		titleBarView.setText(String.format("群发短信(%d/%d)", smsMember.size(), members.size()));
 		mAdapter.notifyDataSetChanged();
 	}
 	
@@ -298,6 +304,7 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 				smsMember.clear();
 			}
 		}
+		titleBarView.setText(String.format("群发短信(%d/%d)", smsMember.size(), members.size()));
 		mAdapter.notifyDataSetChanged();
 		allChosen = !allChosen;
 		rightBarButton.setText(allChosen?"取消全选":"全选");
