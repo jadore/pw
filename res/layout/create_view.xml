@@ -50,7 +50,6 @@
             android:layout_width="95dp"
             android:layout_height="44dp"
             android:drawableRight="@drawable/btn_next_normal"
-            android:background="@null"
             android:layout_centerVertical="true"
             android:text="群发短信"
             android:textColor="@color/white"
@@ -59,6 +58,7 @@
 			android:paddingRight="12dp"
 			android:drawablePadding="2dp"
 			android:onClick="ButtonClick"
+			android:background="@drawable/card_view_btn"
 			android:visibility="gone"
             />
     </RelativeLayout>

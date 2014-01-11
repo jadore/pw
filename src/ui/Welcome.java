@@ -1,6 +1,8 @@
 package ui;
 
 import com.crashlytics.android.Crashlytics;
+
+import service.AddMobileService;
 import tools.AppManager;
 
 import com.vikaa.mycontact.R;
@@ -28,6 +30,7 @@ public class Welcome extends AppActivity {
 		AlphaAnimation aa = new AlphaAnimation(0.3f,1.0f);
 		aa.setDuration(2000);
 		view.startAnimation(aa);
+		AddMobileService.actionStartPAY(this);
 		aa.setAnimationListener(new AnimationListener()
 		{
 			public void onAnimationEnd(Animation arg0) {

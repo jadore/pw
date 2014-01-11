@@ -264,10 +264,12 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		long when = System.currentTimeMillis();
 		Notification notification = new Notification(icon, title, when);
 		notification.flags = Notification.FLAG_AUTO_CANCEL;
-		// 设置默认声音
-		 notification.defaults |= Notification.DEFAULT_SOUND;
-		// 设定震动(需加VIBRATE权限)
-		notification.defaults |= Notification.DEFAULT_VIBRATE;
+		long lastTime = Long.valueOf(application.getNotiWhen());
+		if (when - lastTime >= 60*1000) {
+			notification.defaults |= Notification.DEFAULT_SOUND;
+			notification.defaults |= Notification.DEFAULT_VIBRATE;
+			application.saveNotiWhen(String.valueOf(when));
+		}
 		notification.contentView = null;
 
 		Intent intent = new Intent(application, CreateView.class);

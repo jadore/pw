@@ -165,4 +165,28 @@ public class MyApplication extends AppContext {
 			}
 		});
 	}
+	
+	public void saveNotiWhen(final String when) {
+		setProperties(new Properties(){
+			{
+				setProperty("noti.when",when);
+			}
+		});
+	}
+	
+	public String getNotiWhen() {
+		try {
+			String loginStr = getProperty("noti.when");
+			if (StringUtils.isEmpty(loginStr)) {
+				return "0";
+			}
+			else {
+				return loginStr;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "0";
+	}
+	
 }
