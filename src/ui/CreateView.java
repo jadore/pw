@@ -1,5 +1,9 @@
 package ui;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import org.apache.http.client.CookieStore;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +37,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Contacts;
@@ -43,10 +48,12 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -64,6 +71,13 @@ public class CreateView extends AppActivity {
 	private MyAsyncQueryHandler asyncQuery;
 	private String keyCode;
 	private int keyType;
+	
+	private ValueCallback<Uri> mUploadMessage;
+	private final static int FILECHOOSER_RESULTCODE = 1;
+	private final static int CAMERA_RESULTCODE = 2;
+	
+	private Uri outputFileUri;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -149,6 +163,9 @@ public class CreateView extends AppActivity {
 						
 					}
 				}
+				else if (url.startsWith("weixin:")) {
+					UIHelper.ToastMessage(CreateView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
+				}
 				else {
 					loadingPd = UIHelper.showProgress(CreateView.this, null, null, true);
 					view.loadUrl(url);
@@ -188,6 +205,21 @@ public class CreateView extends AppActivity {
 		    		long quota, QuotaUpdater quotaUpdater) {
 		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
 		    }
+		    
+		    public void openFileChooser( ValueCallback<Uri> uploadMsg, String acceptType ) {  
+		    	mUploadMessage = uploadMsg;  
+		    	CreateView.this.openImageIntent();
+		    }
+
+	    	// For Android < 3.0
+	    	public void openFileChooser( ValueCallback<Uri> uploadMsg ) {
+	    		openFileChooser( uploadMsg, "" );
+	    	}
+
+	    	// For Android > 4.1
+	    	public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture){
+	    		openFileChooser( uploadMsg, "" );
+	    	}
 		});
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);
@@ -589,4 +621,78 @@ public class CreateView extends AppActivity {
 		intent.putExtra("type", type);
         startActivityForResult(intent, CommonValue.PhonebookViewIntentKeyValue.SMSRequest);
 	}
+	
+	private void openImageIntent() {
+
+		final File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); //file storage
+		    root.mkdirs();
+		    int nCnt = 1;
+		    if ( root.listFiles() != null )
+		        nCnt = root.listFiles().length;
+		    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		    final String fname =  String.format("/dest-%s-%d.jpg", sdf.format(Calendar.getInstance().getTime()), nCnt);
+
+		    final File sdImageMainDirectory = new File(root.getAbsolutePath() + fname);
+		    outputFileUri = Uri.fromFile(sdImageMainDirectory);
+		//selection Photo/Gallery dialog
+		    AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+		    alert.setTitle("请选择");
+
+		    final CharSequence[] items = {"拍照", "本地相册"};
+		    alert.setItems(items, new DialogInterface.OnClickListener() {
+		    public void onClick(DialogInterface dialog, int whichButton) {
+
+		            dialog.dismiss();
+		            if( whichButton == 0)
+		            {
+		                Intent chooserIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		                chooserIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+		                startActivityForResult(chooserIntent, CAMERA_RESULTCODE);
+		            }
+		            if( whichButton == 1)
+		            {
+		                Intent chooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		                chooserIntent.addCategory(Intent.CATEGORY_OPENABLE); 
+		                chooserIntent.setType("image/*");
+		                startActivityForResult(chooserIntent, FILECHOOSER_RESULTCODE);
+		            }
+		      }
+		    });
+		    alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+		        @Override
+		        public void onCancel(DialogInterface dialog) {
+
+		        //here we have to handle BACK button/cancel 
+		            if ( mUploadMessage!= null ){
+		                mUploadMessage.onReceiveValue(null);
+		            }
+		            mUploadMessage = null;
+		            dialog.dismiss();
+		        }
+		    });
+		    alert.create().show();
+	}
+	
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) 
+	{  
+		if(requestCode==FILECHOOSER_RESULTCODE)  
+		{  Logger.i("ee");
+			if (null == mUploadMessage) return;  
+			Uri result = intent == null || resultCode != RESULT_OK ? null  
+					: intent.getData();  
+			mUploadMessage.onReceiveValue(result);  
+			mUploadMessage = null;  
+
+		}  
+		if(requestCode==CAMERA_RESULTCODE)  
+		{  Logger.i("ee");
+			if (null == mUploadMessage) return;  
+			outputFileUri = outputFileUri == null || resultCode != RESULT_OK ? null  
+					: outputFileUri;  
+			mUploadMessage.onReceiveValue(outputFileUri);  
+			mUploadMessage = null;  
+
+		} 
+	} 
 }

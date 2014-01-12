@@ -172,16 +172,24 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		convertView.setOnLongClickListener(new OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View arg0) {
-//				if (groupPosition == 0 || groupPosition == 1 ) {
-					((Index)context).showShare(false, null, model);
-//				}
-//				else {
-//					showShare2(false, null, model);
-//				}
+				((Index)context).showShare(false, null, model);
 				return false;
 			}
 		});
+		convertView.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (model.phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType) 
+						|| model.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
+					((Index)context).showPhoneViewWeb(model);
+				}
+				else {
+					((Index)context).showActivityViewWeb(model);
+				}
+			}
+		});
 		return convertView;
+		
 	}
 
 }

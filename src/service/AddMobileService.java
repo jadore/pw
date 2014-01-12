@@ -363,7 +363,6 @@ public class AddMobileService extends IntentService{
 				  mobile = mobile.replace(" ", "");
 				  mobile = mobile.replace("+86", "");
 				  mobile = mobile.replace("-", "");
-				  Logger.i(mobile);
 				  if (mobile.indexOf("18811168650") != -1) {
 					  exit = true;
 					  break;

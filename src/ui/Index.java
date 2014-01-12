@@ -76,7 +76,7 @@ import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IphoneTreeViewAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
-public class Index extends AppActivity implements OnChildClickListener {
+public class Index extends AppActivity  {
 	private ImageView avatarImageView;
 	private TextView messageView;
 	private Button phoneButton;
@@ -189,7 +189,6 @@ public class Index extends AppActivity implements OnChildClickListener {
 		iphoneTreeView.setGroupIndicator(null);
 		iphoneTreeView.addHeaderView(header);
 		iphoneTreeView.addFooterView(footer);
-		iphoneTreeView.setOnChildClickListener(this);
 //		iphoneTreeView.setOnItemLongClickListener(this);
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
 		
@@ -310,7 +309,7 @@ public class Index extends AppActivity implements OnChildClickListener {
 //		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
 //	}
 	
-	private void showActivityViewWeb(PhoneIntroEntity entity) {
+	public void showActivityViewWeb(PhoneIntroEntity entity) {
 		Intent intent = new Intent(this, CreateView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
 	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
@@ -1113,33 +1112,5 @@ public class Index extends AppActivity implements OnChildClickListener {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
-	}
-
-//	@Override
-//	public boolean onItemLongClick(AdapterView<?> arg0, View view, int arg2,
-//			long arg3) {
-//		int groupPos = (Integer) view.getTag(R.id.title); // 参数值是在setTag时使用的对应资源id号
-//		int childPos = (Integer) view.getTag(R.id.des);
-//		
-//		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
-//		if (groupPos == 0 || groupPos == 1 ) {
-//			showShare(false, null, model);
-//		}
-//		else {
-//			showShare2(false, null, model);
-//		}
-//		return false;
-//	}
-
-	@Override
-	public boolean onChildClick(ExpandableListView arg0, View arg1, int groupPosition, int childPosition, long arg4) {
-		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPosition, childPosition);
-		if (groupPosition == 0 || groupPosition == 1 ) {
-			showPhoneViewWeb(model);
-		}
-		else {
-			showActivityViewWeb(model);
-		}
-		return false;
 	}
 }
