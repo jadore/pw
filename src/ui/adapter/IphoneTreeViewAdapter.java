@@ -169,6 +169,18 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		cell.titleView.setText(model.title);
 		convertView.setTag(R.id.title, groupPosition);
 		convertView.setTag(R.id.des, childPosition);
+		convertView.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View arg0) {
+//				if (groupPosition == 0 || groupPosition == 1 ) {
+					((Index)context).showShare(false, null, model);
+//				}
+//				else {
+//					showShare2(false, null, model);
+//				}
+				return false;
+			}
+		});
 		return convertView;
 	}
 

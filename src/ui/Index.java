@@ -76,7 +76,7 @@ import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IphoneTreeViewAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
-public class Index extends AppActivity implements OnChildClickListener, OnItemLongClickListener {
+public class Index extends AppActivity implements OnChildClickListener {
 	private ImageView avatarImageView;
 	private TextView messageView;
 	private Button phoneButton;
@@ -190,7 +190,7 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		iphoneTreeView.addHeaderView(header);
 		iphoneTreeView.addFooterView(footer);
 		iphoneTreeView.setOnChildClickListener(this);
-		iphoneTreeView.setOnItemLongClickListener(this);
+//		iphoneTreeView.setOnItemLongClickListener(this);
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
 		
 //		mPinedListView1 = (PinnedHeaderListView) lay1.findViewById(R.id.tab1_listView);
@@ -865,21 +865,41 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
 		}).show();
 	}
 	
-	private void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
-		try {
-			final OnekeyShare oks = new OnekeyShare();
-			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/"+phoneIntro.code));
-			oks.setImagePath("file:///android_asset/ic_launcher.png");
-			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
-			oks.setSilent(silent);
-			if (platform != null) {
-				oks.setPlatform(platform);
+	public void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+		if (phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType) 
+				|| phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
+			try {
+				final OnekeyShare oks = new OnekeyShare();
+				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+				oks.setTitle("群友通讯录");
+				oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/"+phoneIntro.code));
+				oks.setImagePath("file:///android_asset/ic_launcher.png");
+				oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+				oks.setSilent(silent);
+				if (platform != null) {
+					oks.setPlatform(platform);
+				}
+				oks.show(this);
+			} catch (Exception e) {
+				Logger.i(e);
 			}
-			oks.show(this);
-		} catch (Exception e) {
-			Logger.i(e);
+		}
+		else {
+			try {
+				final OnekeyShare oks = new OnekeyShare();
+				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+				oks.setTitle("群友通讯录");
+				oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/"+phoneIntro.code));
+				oks.setImagePath("file:///android_asset/ic_launcher.png");
+				oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+				oks.setSilent(silent);
+				if (platform != null) {
+					oks.setPlatform(platform);
+				}
+				oks.show(this);
+			} catch (Exception e) {
+				Logger.i(e);
+			}
 		}
 	}
 	
@@ -1095,20 +1115,21 @@ public class Index extends AppActivity implements OnChildClickListener, OnItemLo
     	}
 	}
 
-	@Override
-	public boolean onItemLongClick(AdapterView<?> arg0, View view, int arg2,
-			long arg3) {
-		int groupPos = (Integer) view.getTag(R.id.title); // 参数值是在setTag时使用的对应资源id号
-		int childPos = (Integer) view.getTag(R.id.des);
-		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
-		if (groupPos == 0 || groupPos == 1 ) {
-			showShare(false, null, model);
-		}
-		else {
-			showShare2(false, null, model);
-		}
-		return false;
-	}
+//	@Override
+//	public boolean onItemLongClick(AdapterView<?> arg0, View view, int arg2,
+//			long arg3) {
+//		int groupPos = (Integer) view.getTag(R.id.title); // 参数值是在setTag时使用的对应资源id号
+//		int childPos = (Integer) view.getTag(R.id.des);
+//		
+//		PhoneIntroEntity model = (PhoneIntroEntity) mPhoneAdapter.getChild(groupPos, childPos);
+//		if (groupPos == 0 || groupPos == 1 ) {
+//			showShare(false, null, model);
+//		}
+//		else {
+//			showShare2(false, null, model);
+//		}
+//		return false;
+//	}
 
 	@Override
 	public boolean onChildClick(ExpandableListView arg0, View arg1, int groupPosition, int childPosition, long arg4) {
