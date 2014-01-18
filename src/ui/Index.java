@@ -133,7 +133,6 @@ public class Index extends AppActivity  {
 	}
 	
 	private void blindBaidu() {
-		Logger.i("b");
 //		PushSettings.enableDebugMode(this, true);
 //		Resources resource = this.getResources();
 //		String pkgName = this.getPackageName();
@@ -466,9 +465,9 @@ public class Index extends AppActivity  {
 				UserEntity user = (UserEntity)data;
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
-					if (!Utils.hasBind(getApplicationContext())) {
+//					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
-					}
+//					}
 					appContext.saveLoginInfo(user);
 					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
@@ -871,9 +870,9 @@ public class Index extends AppActivity  {
 				final OnekeyShare oks = new OnekeyShare();
 				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 				oks.setTitle("群友通讯录");
-				oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/"+phoneIntro.code));
+				oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/book/"+phoneIntro.code));
 				oks.setImagePath("file:///android_asset/ic_launcher.png");
-				oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+				oks.setUrl(CommonValue.BASE_URL+"/book/"+phoneIntro.code);
 				oks.setSilent(silent);
 				if (platform != null) {
 					oks.setPlatform(platform);
@@ -888,9 +887,9 @@ public class Index extends AppActivity  {
 				final OnekeyShare oks = new OnekeyShare();
 				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 				oks.setTitle("群友通讯录");
-				oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/"+phoneIntro.code));
+				oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/event/"+phoneIntro.code));
 				oks.setImagePath("file:///android_asset/ic_launcher.png");
-				oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+				oks.setUrl(CommonValue.BASE_URL+"/event/"+phoneIntro.code);
 				oks.setSilent(silent);
 				if (platform != null) {
 					oks.setPlatform(platform);
@@ -902,30 +901,30 @@ public class Index extends AppActivity  {
 		}
 	}
 	
-	public void showShareDialog2(final PhoneIntroEntity phoneIntro){
-		new AlertDialog.Builder(this).setTitle("").setItems(ot,
-				new DialogInterface.OnClickListener(){
-			public void onClick(DialogInterface dialog, int which){
-				switch(which){
-				case 0:
-					showShare2(false, Wechat.NAME, phoneIntro);
-					break;
-				case 1:
-					showShare2(false, WechatMoments.NAME, phoneIntro);
-					break;
-				}
-			}
-		}).show();
-	}
+//	public void showShareDialog2(final PhoneIntroEntity phoneIntro){
+//		new AlertDialog.Builder(this).setTitle("").setItems(ot,
+//				new DialogInterface.OnClickListener(){
+//			public void onClick(DialogInterface dialog, int which){
+//				switch(which){
+//				case 0:
+//					showShare2(false, Wechat.NAME, phoneIntro);
+//					break;
+//				case 1:
+//					showShare2(false, WechatMoments.NAME, phoneIntro);
+//					break;
+//				}
+//			}
+//		}).show();
+//	}
 	
-	private void showShare2(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+	public void cardShare(boolean silent, String platform, CardIntroEntity card) {
 		try {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/"+phoneIntro.code));
+			oks.setText(String.format("您好，我叫%s，这是我的名片，请多多指教.%s",card.realname, CommonValue.BASE_URL+"/card/"+card.code));
 			oks.setImagePath("file:///android_asset/ic_launcher.png");
-			oks.setUrl(CommonValue.BASE_URL+"/"+phoneIntro.code);
+			oks.setUrl(CommonValue.BASE_URL+"/card/"+card.code);
 			oks.setSilent(silent);
 			if (platform != null) {
 				oks.setPlatform(platform);

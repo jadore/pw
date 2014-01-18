@@ -52,6 +52,7 @@ import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -221,18 +222,28 @@ public class CreateView extends AppActivity {
 	    		openFileChooser( uploadMsg, "" );
 	    	}
 		});
-		CookieStore cookieStore = new PersistentCookieStore(this);  
-		QYRestClient.getIntance().setCookieStore(cookieStore);
-		String cookieString2 = "";
-		String cookieString3 = "";
-		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
-		cookieString3 = String.format("isapp=%s;", "1");
-		Logger.i(cookieString2);
-		Logger.i(cookieString3);
+//		CookieStore cookieStore = new PersistentCookieStore(this);  
+//		QYRestClient.getIntance().setCookieStore(cookieStore);
+//		String cookieString2 = "";
+//		String cookieString3 = "";
+//		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
+//		cookieString3 = String.format("isapp=%s;", "1");
+//		Logger.i(cookieString2);
+//		Logger.i(cookieString3);
+//		CookieManager cookieManager = CookieManager.getInstance();
+//		cookieManager.removeAllCookie();
+//		cookieManager.setCookie(url, cookieString2);
+//		cookieManager.setCookie(url, cookieString3);
 		CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.removeAllCookie();
-		cookieManager.setCookie(url, cookieString2);
-		cookieManager.setCookie(url, cookieString3);
+		cookieManager.setAcceptCookie(true);
+		cookieManager.removeSessionCookie();
+		CookieStore cookieStore = new PersistentCookieStore(this);  
+		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
+			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
+			Logger.i(cookieString);
+		    cookieManager.setCookie(url, cookieString); 
+		    CookieSyncManager.getInstance().sync(); 
+		}
 		loadingPd = UIHelper.showProgress(this, null, null, true);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {

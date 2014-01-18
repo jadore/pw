@@ -71,7 +71,7 @@ public class AppClient {
 	public static void vertifiedCode(final MyApplication appContext, String code, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		params.add("code", code);
-		QYRestClient.post("user/login", params, new AsyncHttpResponseHandler() {
+		QYRestClient.post("user/wechatlogin", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -482,6 +482,36 @@ public class AppClient {
 		}
 		data += " |client_push : android |";
 		param.add("message", data);
+		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					Logger.i(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(new Entity() {
+					});
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
+	
+	public static void update(final MyApplication appContext, String data, final ClientCallback callback) {
+		RequestParams param = new RequestParams();
+//		data += " | client_browser : android |";
+//		try {
+//			data += " | client_version :" + AppManager.getAppManager().currentActivity().getPackageManager().getPackageInfo(AppManager.getAppManager().currentActivity().getPackageName(), 0).versionCode+" |";
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		data += " |client_push : android |";
+//		param.add("message", data);
 		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {

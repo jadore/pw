@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.json.JSONException;
 
+import baidupush.Utils;
+
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
+
 import tools.AppException;
 import tools.Logger;
 import config.MyApplication;
@@ -70,6 +75,15 @@ public class AddMobileService extends IntentService{
 			appContext = MyApplication.getInstance();
 			try {
 				getContactInfo();
+				try {
+					if (appContext.isLogin()) {
+						PushManager.startWork(getApplicationContext(),
+								PushConstants.LOGIN_TYPE_API_KEY, 
+								Utils.getMetaValue(this, "api_key"));
+					}
+				} catch (Exception e) {
+					Logger.i(e);
+				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

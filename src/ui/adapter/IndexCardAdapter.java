@@ -90,6 +90,13 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 					((Index)context).showCardViewWeb(model);
 				}
 			});
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					((Index)context).cardShare(false, null, model);
+					return false;
+				}
+			});
 		}
 		else if (model.cardSectionType.equals(CommonValue.CardSectionType.BarcodeSectionType)) {
 			if (position == 0) {
@@ -108,12 +115,24 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 					}
 				});
 			}
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					return false;
+				}
+			});
 		}
 		else if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
 			convertView.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View arg0) {
 					((Index)context).showFeedback();
+				}
+			});
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					return false;
 				}
 			});
 		}
@@ -134,47 +153,30 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 			sect = (SectionView) convertView.getTag();
 		}
 		sect.titleView.setText(cards.get(section).get(0).cardSectionType);
-//		if (cards.get(section).get(0).cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
-//			convertView.setOnLongClickListener(new OnLongClickListener() {
-//				@Override
-//				public boolean onLongClick(View v) {
-//					SMSDialog();
-//					return false;
-//				}
-//			});
-//		}
-//		else {
-//			convertView.setOnLongClickListener(new OnLongClickListener() {
-//				@Override
-//				public boolean onLongClick(View v) {
-//					return false;
-//				}
-//			});
-//		}
 		return convertView;
 	}
 	
-	protected void SMSDialog() {
-		AlertDialog.Builder builder = new Builder(context);
-		builder.setMessage("模式");
-		builder.setTitle("提示");
-		builder.setPositiveButton("正常", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				CommonValue.BASE_API = "http://pb.wc.m0.hk/api/";
-				CommonValue.BASE_URL = "http://pb.wc.m0.hk";
-				dialog.dismiss();
-			}
-		});
-
-	   builder.setNegativeButton("调试", new DialogInterface.OnClickListener() {
-		   @Override
-		   public void onClick(DialogInterface dialog, int which) {
-			   CommonValue.BASE_API = "http://pb.wcl.m0.hk/api/";
-			   CommonValue.BASE_URL = "http://pb.wcl.m0.hk";
-			   dialog.dismiss();
-		   }
-	   });
-	   builder.create().show();
-	}
+//	protected void SMSDialog() {
+//		AlertDialog.Builder builder = new Builder(context);
+//		builder.setMessage("模式");
+//		builder.setTitle("提示");
+//		builder.setPositiveButton("正常", new DialogInterface.OnClickListener() {
+//			@Override
+//			public void onClick(DialogInterface dialog, int which) {
+//				CommonValue.BASE_API = "http://pb.wc.m0.hk/api/";
+//				CommonValue.BASE_URL = "http://pb.wc.m0.hk";
+//				dialog.dismiss();
+//			}
+//		});
+//
+//	   builder.setNegativeButton("调试", new DialogInterface.OnClickListener() {
+//		   @Override
+//		   public void onClick(DialogInterface dialog, int which) {
+//			   CommonValue.BASE_API = "http://pb.wcl.m0.hk/api/";
+//			   CommonValue.BASE_URL = "http://pb.wcl.m0.hk";
+//			   dialog.dismiss();
+//		   }
+//	   });
+//	   builder.create().show();
+//	}
 }

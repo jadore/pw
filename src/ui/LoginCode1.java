@@ -42,6 +42,9 @@ public class LoginCode1 extends AppActivity{
 		case CommonValue.LoginRequest.LoginMobile:
 			AppManager.getAppManager().finishActivity(this);
 			break;
+		case CommonValue.LoginRequest.LoginWechat:
+			AppManager.getAppManager().finishActivity(this);
+			break;
 		}
 	}
 	

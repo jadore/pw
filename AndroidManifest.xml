@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vikaa.mycontact"
-    android:versionCode="1"
-    android:versionName="1.1" >
+    android:versionCode="2"
+    android:versionName="1.2" >
 
-    <uses-sdk android:minSdkVersion="10" />
+    <uses-sdk android:minSdkVersion="8" />
 
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -275,6 +275,13 @@
         <service android:name="service.SendSmsService" ></service>
         <service android:name="service.MobileSynService" ></service>
         <service android:name="service.AddMobileService" ></service>
+        <receiver android:name="service.BootBroadcastReceiver">  
+                <intent-filter>  
+                    <action android:name="android.intent.action.BOOT_COMPLETED"></action>  
+                    <category android:name="android.intent.category.LAUNCHER" />  
+                </intent-filter>  
+        </receiver> 
+        
         
         <receiver android:name="com.baidu.android.pushservice.PushServiceReceiver"
             
