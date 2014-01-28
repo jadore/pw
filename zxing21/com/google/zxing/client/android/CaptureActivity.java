@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import tools.AppManager;
 import tools.Logger;
 import ui.AppActivity;
-import ui.CreateView;
+import ui.QYWebView;
 import ui.FriendCards;
 
 import android.app.AlertDialog;
@@ -493,7 +493,7 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
   }
   
   	private void showCardView(String url) {
-		Intent intent = new Intent(this, CreateView.class);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
 		startActivity(intent);
 	}

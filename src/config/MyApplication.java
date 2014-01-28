@@ -26,7 +26,6 @@ public class MyApplication extends AppContext {
 	private static MyApplication mApplication;
 	
 	private NotificationManager mNotificationManager;
-	private Notification mNotification;
 	
 	private boolean login = false;	//登录状态
 	private String loginUid = "0";	//登录用户的id

@@ -122,7 +122,7 @@ public class LoginCode2 extends AppActivity{
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -165,7 +165,7 @@ public class LoginCode2 extends AppActivity{
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}

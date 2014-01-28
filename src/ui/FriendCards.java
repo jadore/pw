@@ -24,6 +24,7 @@ import bean.FriendCardListEntity;
 import bean.PhoneListEntity;
 import bean.Result;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -74,6 +75,18 @@ public class FriendCards extends AppActivity {
 	
 	private ProgressDialog loadingPd;
 	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
+	}
+
+	  @Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	}
+	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -209,7 +222,7 @@ public class FriendCards extends AppActivity {
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}

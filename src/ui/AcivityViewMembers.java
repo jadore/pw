@@ -267,7 +267,7 @@ public class AcivityViewMembers extends AppActivity{
 	}
 	
 	private void showCreate(String url, int RequestCode) {
-		Intent intent = new Intent(this,CreateView.class);
+		Intent intent = new Intent(this,QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
         startActivityForResult(intent, RequestCode);
 	}

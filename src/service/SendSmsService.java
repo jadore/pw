@@ -11,7 +11,7 @@ import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
-import ui.CreateView;
+import ui.QYWebView;
 
 import android.app.IntentService;
 import android.app.Notification;

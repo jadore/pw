@@ -10,6 +10,7 @@ import tools.UIHelper;
 
 import bean.CardIntroEntity;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import com.tencent.tauth.UiError;
 import com.vikaa.mycontact.R;
 
@@ -63,6 +64,18 @@ public class PhonebookSMSBody extends AppActivity{
 	private int successNum = 0;
 	private int failureNum = 0;
 	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
+	}
+
+	  @Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	}
+	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

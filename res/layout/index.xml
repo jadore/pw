@@ -63,107 +63,39 @@
             />
     </RelativeLayout>
 	
-    <RelativeLayout 
-        android:layout_width="match_parent"
-        android:layout_height="87dp"
-        >
-        
-        <ImageView 
-            android:id="@+id/avatarImageView"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginLeft="28dp"
-            android:layout_marginTop="21dp"
-            android:scaleType="centerCrop"
-            android:onClick="ButtonClick"
-            />
-        
-        <LinearLayout 
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginLeft="105dp"
-            android:layout_marginTop="22dp"
-            android:orientation="vertical"
-            android:id="@+id/phoneLayout"
-            android:onClick="ButtonClick"
-            android:clickable="true"
+    <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
             >
-            <Button 
-                android:id="@+id/phoneButton"
-                android:layout_gravity="center_horizontal"
-            	android:layout_width="43dp"
-            	android:layout_height="43dp"
-            	android:background="@drawable/btn_phone"
-            	android:onClick="ButtonClick"
-            	
-            />
-            <TextView 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="通讯录"
-                android:textSize="12sp"
-                android:layout_marginTop="2dp"
-                />
-        </LinearLayout>
-        
-        <LinearLayout 
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginLeft="170dp"
-            android:layout_marginTop="22dp"
-            android:orientation="vertical"
-            android:id="@+id/activityLayout"
-            android:onClick="ButtonClick"
-            android:clickable="true"
-            >
-            <Button 
-                android:id="@+id/activityButton"
-                android:layout_gravity="center_horizontal"
-            	android:layout_width="43dp"
-            	android:layout_height="43dp"
-            	android:background="@drawable/btn_activity"
-            	android:onClick="ButtonClick"
-            />
-            <TextView 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="发现"
-                android:textSize="12sp"
-                android:layout_marginTop="2dp"
-                />
-        </LinearLayout>
-        
-        <LinearLayout 
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginLeft="235dp"
-            android:layout_marginTop="22dp"
-            android:orientation="vertical"
-            android:id="@+id/cardLayout"
-            android:onClick="ButtonClick"
-            android:clickable="true"
-            >
-            <Button 
-                android:id="@+id/cardButton"
-                android:layout_gravity="center_horizontal"
-            	android:layout_width="43dp"
-            	android:layout_height="43dp"
-            	android:background="@drawable/btn_card"
-            	android:onClick="ButtonClick"
-            />
-            <TextView 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="名片"
-                android:textSize="12sp"
-                android:layout_marginTop="2dp"
-                />
-        </LinearLayout>
-        
-    </RelativeLayout>
+        	<Button 
+        	    android:id="@+id/phoneButton"
+        	    android:layout_width="wrap_content"
+				android:layout_height="44dp"
+				android:text="通讯录"
+				android:background="@drawable/friendcard_button"
+				android:textColor="@color/friendcard_button_textcolor"
+				android:onClick="ButtonClick"
+        	    />
+        	<Button 
+        	    android:id="@+id/activityButton"
+        	    android:layout_width="wrap_content"
+				android:layout_height="44dp"
+				android:text="发现"
+				android:background="@drawable/friendcard_button"
+				android:textColor="@color/friendcard_button_textcolor"
+				android:onClick="ButtonClick"
+        	    />
+        	<Button 
+        	    android:id="@+id/cardButton"
+        	    android:layout_width="wrap_content"
+				android:layout_height="44dp"
+				android:text="名片"
+				android:background="@drawable/friendcard_button"
+				android:textColor="@color/friendcard_button_textcolor"
+				android:onClick="ButtonClick"
+        	    />
+    </LinearLayout>
     
     <android.support.v4.view.ViewPager
         android:id="@+id/viewPager"

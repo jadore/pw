@@ -27,6 +27,8 @@ import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.baidu.android.pushservice.PushSettings;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
@@ -64,11 +66,14 @@ import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.LinearLayout.LayoutParams;
 import tools.AppException;
+import tools.ImageUtils;
 import tools.Logger;
 import tools.UIHelper;
 import ui.adapter.IndexCardAdapter;
@@ -77,7 +82,7 @@ import ui.adapter.IphoneTreeViewAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
 public class Index extends AppActivity  {
-	private ImageView avatarImageView;
+//	private ImageView avatarImageView;
 	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
@@ -118,6 +123,18 @@ public class Index extends AppActivity  {
 	private ListView mListView3;
 	private ProgressDialog loadingPd;
 	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  
+	}
+
+	  @Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  
+	}
+	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -162,7 +179,19 @@ public class Index extends AppActivity  {
 		phoneButton = (Button) findViewById(R.id.phoneButton);
 		phoneButton.setSelected(true);
 		
-		avatarImageView = (ImageView ) findViewById(R.id.avatarImageView);
+		int w = ImageUtils.getDisplayWidth(this);
+		LinearLayout.LayoutParams p1 = (LayoutParams) phoneButton.getLayoutParams();
+		p1.width = w/3;
+		phoneButton.setLayoutParams(p1);
+		LinearLayout.LayoutParams p2 = (LayoutParams) activityButton.getLayoutParams();
+		p2.width = w/3;
+		activityButton.setLayoutParams(p2);
+		LinearLayout.LayoutParams p3 = (LayoutParams) cardButton.getLayoutParams();
+		p3.width = w/3;
+		cardButton.setLayoutParams(p3);
+		
+		
+//		avatarImageView = (ImageView ) findViewById(R.id.avatarImageView);
 		mPager = (ViewPager) findViewById(R.id.viewPager);
 		mListViews = new ArrayList<View>();
 		LayoutInflater inflater = LayoutInflater.from(this);
@@ -281,23 +310,47 @@ public class Index extends AppActivity  {
 	}
 	
 	public void showMobileView() {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看手机通讯录",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Intent intent = new Intent(this, HomeContactActivity.class);
 		startActivity(intent);
 	}
 	
 	public void showFriendCardView() {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看微友通讯录",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Intent intent = new Intent(this, FriendCards.class);
 		startActivity(intent);
 	}
 	
-	public void showPhoneView(PhoneIntroEntity entity) {
-		Intent intent = new Intent(this, PhonebookViewMembers.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
-	}
+//	public void showPhoneView(PhoneIntroEntity entity) {
+//		Intent intent = new Intent(this, PhonebookViewMembers.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+//		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+//	}
 	
 	public void showPhoneViewWeb(PhoneIntroEntity entity) {
-		Intent intent = new Intent(this, CreateView.class);
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看群友通讯录："+String.format("%s/book/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
@@ -309,28 +362,60 @@ public class Index extends AppActivity  {
 //	}
 	
 	public void showActivityViewWeb(PhoneIntroEntity entity) {
-		Intent intent = new Intent(this, CreateView.class);
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看聚会："+String.format("%s/event/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
 	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
 	}
 	
 	public void showCardViewWeb(CardIntroEntity entity) {
-		Intent intent = new Intent(this, CreateView.class);
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看名片："+String.format("%s/card/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMessage() {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看消息："+String.format("%s/message/index", CommonValue.BASE_URL),   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		messageView.setVisibility(View.INVISIBLE);
 //		Intent intent = new Intent(this, MessageView.class);
 //		startActivity(intent);
-		Intent intent = new Intent(this, CreateView.class);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		startActivity(intent);
 	}
 	
 	public void showMyBarcode() {
-		Intent intent = new Intent(this, CreateView.class);
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看名片二维码："+String.format("%s/card/mybarcode", CommonValue.BASE_URL),   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/mybarcode", CommonValue.BASE_URL));
 		startActivity(intent);
 	}
@@ -355,15 +440,12 @@ public class Index extends AppActivity  {
 			break;
 		case R.id.avatarImageView:
 			break;
-		case R.id.phoneLayout:
 		case R.id.phoneButton:
 			mPager.setCurrentItem(PAGE1);
 			break;
-		case R.id.activityLayout:
 		case R.id.activityButton:
 			mPager.setCurrentItem(PAGE2);
 			break;
-		case R.id.cardLayout:
 		case R.id.cardButton:
 			mPager.setCurrentItem(PAGE3);
 			break;
@@ -380,16 +462,16 @@ public class Index extends AppActivity  {
 	}
 	
 	private void getCache() {
-		getCacheUser();
+//		getCacheUser();
 		getPhoneListFromCache();
 		getActivityListFromCache();
 		getCardListFromCache();
 	}
 	
-	private void getCacheUser() {
-		UserEntity user = appContext.getLoginInfo();
-		imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
-	}
+//	private void getCacheUser() {
+//		UserEntity user = appContext.getLoginInfo();
+//		imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
+//	}
 	
 	private void getPhoneListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.PhoneList, appContext.getLoginUid());
@@ -469,7 +551,7 @@ public class Index extends AppActivity  {
 						blindBaidu();
 //					}
 					appContext.saveLoginInfo(user);
-					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
+//					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
 					getActivityList();
 					getUnReadMessage();
@@ -489,7 +571,7 @@ public class Index extends AppActivity  {
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -505,17 +587,39 @@ public class Index extends AppActivity  {
 	private String[] lianxiren1 = new String[] { "创建通讯录", "创建活动", "创建我的名片"};
 	
 	private void showContactDialog(){
+		final EasyTracker easyTracker = EasyTracker.getInstance(Index.this);
 		new AlertDialog.Builder(this).setTitle("").setItems(lianxiren1,
 				new DialogInterface.OnClickListener(){
 			public void onClick(DialogInterface dialog, int which){
 				switch(which){
 				case 0:
+					easyTracker.send(MapBuilder
+				      .createEvent("ui_action",     // Event category (required)
+				                   "button_press",  // Event action (required)
+				                   "创建通讯录",   // Event label
+				                   null)            // Event value
+				      .build()
+					);
 					showCreate(CommonValue.CreateViewUrlAndRequest.ContactCreateUrl, CommonValue.CreateViewUrlAndRequest.ContactCreat);
 					break;
 				case 1:
+					easyTracker.send(MapBuilder
+				      .createEvent("ui_action",     // Event category (required)
+				                   "button_press",  // Event action (required)
+				                   "创建聚会",   // Event label
+				                   null)            // Event value
+				      .build()
+					);
 					showCreate(CommonValue.CreateViewUrlAndRequest.ActivityCreateUrl, CommonValue.CreateViewUrlAndRequest.ActivityCreateCreat);
 					break;
 				case 2:
+					easyTracker.send(MapBuilder
+						      .createEvent("ui_action",     // Event category (required)
+						                   "button_press",  // Event action (required)
+						                   "创建名片",   // Event label
+						                   null)            // Event value
+						      .build()
+							);
 					showCreate(CommonValue.CreateViewUrlAndRequest.CardCreateUrl, CommonValue.CreateViewUrlAndRequest.CardCreat);
 					break;
 				}
@@ -524,7 +628,7 @@ public class Index extends AppActivity  {
 	}
 	
 	private void showCreate(String url, int RequestCode) {
-		Intent intent = new Intent(this,CreateView.class);
+		Intent intent = new Intent(this,QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
         startActivityForResult(intent, RequestCode);
 	}
@@ -623,7 +727,7 @@ public class Index extends AppActivity  {
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -702,7 +806,7 @@ public class Index extends AppActivity  {
 			}
 			@Override
 			public void onError(Exception e) {
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -736,7 +840,7 @@ public class Index extends AppActivity  {
 			@Override
 			public void onError(Exception e) {
 				e.printStackTrace();
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -764,7 +868,7 @@ public class Index extends AppActivity  {
 			@Override
 			public void onError(Exception e) {
 				e.printStackTrace();
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -798,7 +902,7 @@ public class Index extends AppActivity  {
 			@Override
 			public void onError(Exception e) {
 				e.printStackTrace();
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
@@ -978,13 +1082,13 @@ public class Index extends AppActivity  {
 		switch (requestCode) {
 		case CommonValue.CreateViewUrlAndRequest.ContactCreat:
 			getPhoneList();
-			int result = data.getIntExtra("resultcode", 0);
-			if (result == CommonValue.CreateViewJSType.goPhonebookView) {
-				PhoneIntroEntity entity = new PhoneIntroEntity();
-				entity.code = data.getStringExtra("resultdata");
-				entity.content = " ";
-				showPhoneView(entity);
-			}
+//			int result = data.getIntExtra("resultcode", 0);
+//			if (result == CommonValue.CreateViewJSType.goPhonebookView) {
+//				PhoneIntroEntity entity = new PhoneIntroEntity();
+//				entity.code = data.getStringExtra("resultdata");
+//				entity.content = " ";
+//				showPhoneView(entity);
+//			}
 			mPager.setCurrentItem(PAGE1);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.ActivityCreateCreat:
@@ -1016,7 +1120,7 @@ public class Index extends AppActivity  {
 	
 	private void showFinder(String url) {
 		Logger.i(url);
-		Intent intent = new Intent(this, CreateView.class);
+		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
 		startActivity(intent);
 	}

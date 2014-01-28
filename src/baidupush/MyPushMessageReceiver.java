@@ -8,7 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tools.Logger;
-import ui.CreateView;
+import ui.QYWebView;
 import ui.MessageView;
 
 import android.app.AlertDialog;
@@ -272,7 +272,7 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 		}
 		notification.contentView = null;
 
-		Intent intent = new Intent(application, CreateView.class);
+		Intent intent = new Intent(application, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		PendingIntent contentIntent = PendingIntent.getActivity(application, 0,
 				intent, 0);

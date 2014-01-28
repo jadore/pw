@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutionException;
 
 import tools.StringUtils;
 import ui.CardView;
-import ui.CreateView;
+import ui.QYWebView;
 import ui.FriendCards;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -120,7 +120,7 @@ public class FriendCardAdapter extends BaseAdapter {
 //		Intent intent = new Intent(context, CardView.class);
 //		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
 //		context.startActivity(intent);
-		Intent intent = new Intent(context, CreateView.class);
+		Intent intent = new Intent(context, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
 		((FriendCards)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}

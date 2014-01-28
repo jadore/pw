@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import tools.Logger;
 import ui.AcivityViewMembers;
 import ui.CardView;
-import ui.CreateView;
+import ui.QYWebView;
 import ui.PhonebookViewMembers;
 import ui.adapter.CardViewAdapter.CellHolder;
 import bean.ActivityIntroEntity;
@@ -189,7 +189,7 @@ public class MessageViewAdapter extends BaseAdapter {
 	
 	private void showCreate(String url) {
 		Logger.i(url);
-		Intent intent = new Intent(context, CreateView.class);
+		Intent intent = new Intent(context, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
 		context.startActivity(intent);
 	}

@@ -135,7 +135,7 @@ public class LoginWechat extends AppActivity{
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}

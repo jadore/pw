@@ -16,6 +16,7 @@ import tools.UIHelper;
 import bean.CardIntroEntity;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
@@ -63,7 +64,7 @@ import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class CreateView extends AppActivity {
+public class QYWebView extends AppActivity {
 	private WebView webView;
 	private Button loadAgainButton;
 	private ProgressDialog loadingPd;
@@ -79,6 +80,18 @@ public class CreateView extends AppActivity {
 	
 	private Uri outputFileUri;
 	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
+	}
+	
+	@Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	}
+	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -110,7 +123,6 @@ public class CreateView extends AppActivity {
 		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		pbwc mJS = new pbwc();  
 		String url = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
-		
 		WebSettings webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
@@ -165,10 +177,20 @@ public class CreateView extends AppActivity {
 					}
 				}
 				else if (url.startsWith("weixin:")) {
-					UIHelper.ToastMessage(CreateView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
+					UIHelper.ToastMessage(QYWebView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
 				}
 				else {
-					loadingPd = UIHelper.showProgress(CreateView.this, null, null, true);
+					CookieManager cookieManager = CookieManager.getInstance();
+					cookieManager.setAcceptCookie(true);
+					cookieManager.removeSessionCookie();
+					CookieStore cookieStore = new PersistentCookieStore(QYWebView.this);  
+					for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
+						String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
+						Logger.i(cookieString);
+					    cookieManager.setCookie(url, cookieString); 
+					    CookieSyncManager.getInstance().sync(); 
+					}
+					QYWebView.this.loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
 					view.loadUrl(url);
 				}
 				return true;
@@ -209,7 +231,7 @@ public class CreateView extends AppActivity {
 		    
 		    public void openFileChooser( ValueCallback<Uri> uploadMsg, String acceptType ) {  
 		    	mUploadMessage = uploadMsg;  
-		    	CreateView.this.openImageIntent();
+		    	QYWebView.this.openImageIntent();
 		    }
 
 	    	// For Android < 3.0
@@ -365,31 +387,31 @@ public class CreateView extends AppActivity {
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.goPhonebookList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityView:
 				code = (String) msg.obj;
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.goActivityList:
 				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookList);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.goCardView:
 //				code = (String) msg.obj;
 //				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
 //				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
-				AppManager.getAppManager().finishActivity(CreateView.this);
+				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.share:
 				code = (String) msg.obj;

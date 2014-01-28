@@ -115,7 +115,7 @@ public class LoginCode1 extends AppActivity{
 //				cd.cancel();
 				canVertify = true;
 				UIHelper.dismissProgress(loadingPd);
-				((AppException)e).makeToast(getApplicationContext());
+				Logger.i(e);
 			}
 		});
 	}
