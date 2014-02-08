@@ -4,24 +4,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import tools.AppException;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
-import ui.Index.MyOnPageChangeListener;
 import ui.adapter.FriendCardAdapter;
 import ui.adapter.IndexPagerAdapter;
 import widget.QuickAlphabeticBar;
 import bean.CardIntroEntity;
-import bean.ContactBean;
 import bean.Entity;
 import bean.FriendCardListEntity;
-import bean.PhoneListEntity;
 import bean.Result;
 
 import com.google.analytics.tracking.android.EasyTracker;
@@ -31,13 +26,17 @@ import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
@@ -73,7 +72,10 @@ public class FriendCards extends AppActivity {
 	private Button friendsButton;
 	private Button followersButton;
 	
-	private ProgressDialog loadingPd;
+//	private ProgressDialog loadingPd;
+	
+	private ImageView indicatorImageView;
+	private Animation indicatorAnimation;
 	
 	@Override
 	public void onStart() {
@@ -92,10 +94,27 @@ public class FriendCards extends AppActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.friend_card);
 		initUI();
-		getFriendCardFromCache();
+		Handler jumpHandler = new Handler();
+        jumpHandler.postDelayed(new Runnable() {
+			public void run() {
+				getFriendCardFromCache();
+			}
+		}, 300);
+		
 	}
 	
 	private void initUI() {
+		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
+		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
+		indicatorAnimation.setDuration(500);
+		indicatorAnimation.setInterpolator(new Interpolator() {
+		    private final int frameCount = 10;
+		    @Override
+		    public float getInterpolation(float input) {
+		        return (float)Math.floor(input*frameCount)/frameCount;
+		    }
+		});
+		
 		bilateralsButton = (Button) findViewById(R.id.bilateralsButton);
 		bilateralsButton.setSelected(true);
 		friendsButton = (Button) findViewById(R.id.friendsButton);
@@ -157,12 +176,12 @@ public class FriendCards extends AppActivity {
 		alpha3.setListView(mFollowerListView);
 		alpha3.setHight(ImageUtils.getDisplayHeighth(getApplicationContext()) - ImageUtils.dip2px(getApplicationContext(), 100));
 		
-		int[] x = { 6, 2, 4, 1, 5, 9 };
-        int[] sorted = new int[x.length];
-        merge_sort(x, 0, x.length, sorted);
-        for (int i : sorted) {
-			Logger.i(i+"");
-		}
+//		int[] x = { 6, 2, 4, 1, 5, 9 };
+//        int[] sorted = new int[x.length];
+//        merge_sort(x, 0, x.length, sorted);
+//        for (int i : sorted) {
+//			Logger.i(i+"");
+//		}
 	}
 	
 	public void ButtonClick(View v) {
@@ -198,11 +217,13 @@ public class FriendCards extends AppActivity {
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getFriendCard(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
@@ -216,12 +237,14 @@ public class FriendCards extends AppActivity {
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
 			}
 		});
@@ -278,35 +301,35 @@ public class FriendCards extends AppActivity {
 		alpha.setVisibility(View.VISIBLE);
 	}
 	
-	static void merge(int[] unsorted, int first, int mid, int last, int[] sorted)
-    {
-        int i = first, j = mid;
-        int k = 0;
-        while (i < mid && j < last)
-            if (unsorted[i] < unsorted[j])
-                sorted[k++] = unsorted[i++];
-            else
-                sorted[k++] = unsorted[j++];
+//	static void merge(int[] unsorted, int first, int mid, int last, int[] sorted)
+//    {
+//        int i = first, j = mid;
+//        int k = 0;
+//        while (i < mid && j < last)
+//            if (unsorted[i] < unsorted[j])
+//                sorted[k++] = unsorted[i++];
+//            else
+//                sorted[k++] = unsorted[j++];
+//
+//        while (i < mid)
+//            sorted[k++] = unsorted[i++];
+//        while (j < last)
+//            sorted[k++] = unsorted[j++];
+//
+//        for (int v = 0; v < k; v++)
+//            unsorted[first + v] = sorted[v];
+//    }
 
-        while (i < mid)
-            sorted[k++] = unsorted[i++];
-        while (j < last)
-            sorted[k++] = unsorted[j++];
-
-        for (int v = 0; v < k; v++)
-            unsorted[first + v] = sorted[v];
-    }
-
-    static void merge_sort(int[] unsorted, int first, int last, int[] sorted)
-    {
-        if (first + 1 < last)
-        {
-            int mid = (first + last) / 2;
-            merge_sort(unsorted, first, mid, sorted);
-            merge_sort(unsorted, mid, last, sorted);
-            merge(unsorted, first, mid, last, sorted);
-        }
-    }
+//    static void merge_sort(int[] unsorted, int first, int last, int[] sorted)
+//    {
+//        if (first + 1 < last)
+//        {
+//            int mid = (first + last) / 2;
+//            merge_sort(unsorted, first, mid, sorted);
+//            merge_sort(unsorted, mid, last, sorted);
+//            merge(unsorted, first, mid, last, sorted);
+//        }
+//    }
 
     
 	public class MyOnPageChangeListener implements OnPageChangeListener {

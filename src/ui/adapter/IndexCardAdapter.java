@@ -123,12 +123,22 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 			});
 		}
 		else if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
-			convertView.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View arg0) {
-					((Index)context).showFeedback();
-				}
-			});
+			if (position == 0) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showFeedback();
+					}
+				});
+			}
+			else {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showUpdate();
+					}
+				});
+			}
 			convertView.setOnLongClickListener(new OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View v) {

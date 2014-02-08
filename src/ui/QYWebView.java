@@ -3,6 +3,7 @@ package ui;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import org.apache.http.client.CookieStore;
 import org.json.JSONException;
@@ -14,8 +15,11 @@ import tools.StringUtils;
 import tools.UIHelper;
 
 import bean.CardIntroEntity;
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
@@ -52,6 +56,9 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
@@ -62,12 +69,15 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-public class QYWebView extends AppActivity {
+public class QYWebView extends AppActivity  {
+	private ImageView indicatorImageView;
+	private Animation indicatorAnimation;
 	private WebView webView;
 	private Button loadAgainButton;
-	private ProgressDialog loadingPd;
+//	private ProgressDialog loadingPd;
 	private Button rightBarButton;
 	private Button closeBarButton;
 	private MyAsyncQueryHandler asyncQuery;
@@ -101,6 +111,16 @@ public class QYWebView extends AppActivity {
 	}
 	
 	private void initUI() {
+		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
+		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
+		indicatorAnimation.setDuration(500);
+		indicatorAnimation.setInterpolator(new Interpolator() {
+		    private final int frameCount = 10;
+		    @Override
+		    public float getInterpolation(float input) {
+		        return (float)Math.floor(input*frameCount)/frameCount;
+		    }
+		});
 		rightBarButton = (Button) findViewById(R.id.rightBarButton);
 		closeBarButton = (Button) findViewById(R.id.closeBarButton);
 		webView = (WebView) findViewById(R.id.webview);
@@ -111,7 +131,9 @@ public class QYWebView extends AppActivity {
 		loadAgainButton.setVisibility(View.INVISIBLE);
 		webView.setVisibility(View.VISIBLE);
 		String url = CommonValue.BASE_URL + "/home/app";
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
@@ -190,7 +212,9 @@ public class QYWebView extends AppActivity {
 					    cookieManager.setCookie(url, cookieString); 
 					    CookieSyncManager.getInstance().sync(); 
 					}
-					QYWebView.this.loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
+//					QYWebView.this.loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
+					indicatorImageView.setVisibility(View.VISIBLE);
+			    	indicatorImageView.startAnimation(indicatorAnimation);
 					view.loadUrl(url);
 				}
 				return true;
@@ -219,7 +243,9 @@ public class QYWebView extends AppActivity {
 		        setProgress(progress * 100);
 		        
 		        if (progress >= 50) {
-		        	UIHelper.dismissProgress(loadingPd);
+//		        	UIHelper.dismissProgress(loadingPd);
+		        	indicatorImageView.setVisibility(View.INVISIBLE);
+		        	indicatorImageView.clearAnimation();
 		        }
 		    }
 		    
@@ -266,7 +292,9 @@ public class QYWebView extends AppActivity {
 		    cookieManager.setCookie(url, cookieString); 
 		    CookieSyncManager.getInstance().sync(); 
 		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
@@ -475,9 +503,10 @@ public class QYWebView extends AppActivity {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
-			oks.setText(String.format("%s。%s", desc, link));
-			oks.setImageUrl(MsgImg);
-			oks.setUrl(link);
+			oks.setText(String.format("%s, %s。%s", title, desc, link));
+			if (!StringUtils.isEmpty(link)) {
+				oks.setUrl(link);
+			}
 			oks.setSilent(silent);
 			if (platform != null) {
 				oks.setPlatform(platform);
@@ -517,7 +546,9 @@ public class QYWebView extends AppActivity {
 				ContactsContract.CommonDataKinds.Phone.PHOTO_ID,
 				ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
 		}; 
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		asyncQuery.startQuery(0, null, uri, projection, null, null,
 				"sort_key COLLATE LOCALIZED asc");
     }
@@ -532,7 +563,9 @@ public class QYWebView extends AppActivity {
 		
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-			UIHelper.dismissProgress(loadingPd);
+//			UIHelper.dismissProgress(loadingPd);
+			indicatorImageView.setVisibility(View.INVISIBLE);
+			indicatorImageView.clearAnimation();
 			try {
 				if (isPhoneExit(cursor, card)) {
 					UIHelper.ToastMessage(getApplicationContext(), "名片已存在", Toast.LENGTH_SHORT);
@@ -727,5 +760,6 @@ public class QYWebView extends AppActivity {
 			mUploadMessage = null;  
 
 		} 
-	} 
+	}
+
 }

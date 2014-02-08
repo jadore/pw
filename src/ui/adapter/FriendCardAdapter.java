@@ -77,7 +77,7 @@ public class FriendCardAdapter extends BaseAdapter {
 			cell = (CellHolder) convertView.getTag();
 		}
 		final CardIntroEntity model = cards.get(position);
-		ImageLoader.getInstance().displayImage(model.headimgurl, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
+		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
 		String currentStr = StringUtils.getAlpha(model.pinyin);

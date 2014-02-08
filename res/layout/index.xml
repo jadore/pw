@@ -38,6 +38,7 @@
             />
         
         <TextView 
+            android:id="@+id/barTitleTV"
             android:layout_width="wrap_content"
       		android:layout_height="wrap_content"
             android:text="群友通讯录"
@@ -45,6 +46,16 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             />
+        
+        <ImageView
+            android:layout_centerVertical="true"
+            android:id="@+id/xindicator"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_toRightOf="@+id/barTitleTV"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            android:background="@drawable/round_1"/>
         
         <Button
             android:id="@+id/rightBarButton"

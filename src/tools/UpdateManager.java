@@ -149,16 +149,16 @@ public class UpdateManager {
 				}
 				
 				mUpdate = (Update)data;
-				if(mUpdate != null && mUpdate.getResult().getError_code() == Result.RESULT_OK){
-					if(curVersionCode < mUpdate.getVersionCode()){
-						apkUrl = mUpdate.getDownloadUrl();
-						updateMsg = mUpdate.getUpdateLog();
+				if(mUpdate != null ){
+					if(curVersionCode < Integer.valueOf(mUpdate.version_code)){
+						apkUrl = mUpdate.app_url;
+						updateMsg = mUpdate.update_log;
 						showNoticeDialog();
 					}else if(isShowMsg){
 						showLatestOrFailDialog(DIALOG_TYPE_LATEST);
 					}
 				}else {
-					UIHelper.ToastMessage(context, R.layout.toastmessage_text, mUpdate.getResult().getMessage(), Toast.LENGTH_SHORT);
+					showLatestOrFailDialog(DIALOG_TYPE_LATEST);
 				}
 			}
 			
@@ -189,10 +189,6 @@ public class UpdateManager {
 				}
 			}
 		});
-		
-		if(isShowMsg){
-			showLatestOrFailDialog(DIALOG_TYPE_FAIL);
-		}
 	}	
 	
 	/**
@@ -233,22 +229,22 @@ public class UpdateManager {
 	 */
 	private void showNoticeDialog(){
 		AlertDialog.Builder builder = new Builder(mContext);
-		builder.setTitle("爱的流声机有更新啦");
+		builder.setTitle("群友通讯录有更新啦");
 		builder.setMessage(updateMsg);
 		builder.setPositiveButton("下次再说", new OnClickListener() {			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.dismiss();
 				
-				if (curVersionCode < mUpdate.getMinVersion()) {
-					UIHelper.ToastMessage(mContext, R.layout.toastmessage_text, "你的APP版本过低不建议继续使用，将会自动退出。", Toast.LENGTH_SHORT);
-					Handler handler = new Handler();
-					handler.postDelayed(new Runnable() {
-						public void run() {
-							AppManager.getAppManager().AppExit(mContext);
-						}
-					}, 2000);
-				}
+//				if (curVersionCode < mUpdate.getMinVersion()) {
+//					UIHelper.ToastMessage(mContext, R.layout.toastmessage_text, "你的APP版本过低不建议继续使用，将会自动退出。", Toast.LENGTH_SHORT);
+//					Handler handler = new Handler();
+//					handler.postDelayed(new Runnable() {
+//						public void run() {
+//							AppManager.getAppManager().AppExit(mContext);
+//						}
+//					}, 2000);
+//				}
 			}
 		});
 		builder.setNegativeButton("立即更新", new OnClickListener() {			
@@ -300,8 +296,8 @@ public class UpdateManager {
 		@Override
 		public void run() {
 			try {
-				String apkName = "qy_" + mUpdate.getVersionName() + ".apk";
-				String tmpApk = "qy_" + mUpdate.getVersionName() + ".tmp";
+				String apkName = "qy_" + mUpdate.version_name + ".apk";
+				String tmpApk = "qy_" + mUpdate.version_name + ".tmp";
 				String storageState = Environment.getExternalStorageState();		
 				if(storageState.equals(Environment.MEDIA_MOUNTED)){
 					savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/";

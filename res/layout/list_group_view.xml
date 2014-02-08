@@ -39,9 +39,9 @@
         android:layout_height="50.0dip"
         android:layout_alignParentRight="true"
         android:layout_marginRight="10.0dip"
-        android:gravity="center"
+        android:gravity="center_vertical|right"
         android:maxLines="1"
-        android:textColor="#ff929292"
-        android:textSize="12.0sp" />
+        android:textColor="@color/black"
+        android:textSize="13.0sp" />
 
 </RelativeLayout>

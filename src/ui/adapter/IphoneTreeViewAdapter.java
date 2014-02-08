@@ -120,8 +120,7 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 				.findViewById(R.id.group_indicator);
 		TextView onlineNum = (TextView) convertView
 				.findViewById(R.id.online_count);
-		onlineNum.setText(getChildrenCount(groupPosition) + "/"
-				+ getChildrenCount(groupPosition));
+		onlineNum.setText(getChildrenCount(groupPosition) + "");
 		if (isExpanded) {
 			indicator.setImageResource(R.drawable.indicator_expanded);
 		} else {

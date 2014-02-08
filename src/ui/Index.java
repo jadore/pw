@@ -1,6 +1,7 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.client.CookieStore;
@@ -18,6 +19,8 @@ import bean.RecommendListEntity;
 import bean.Result;
 import bean.UserEntity;
 
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.ShareSDK;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 import cn.sharesdk.wechat.friends.Wechat;
@@ -27,6 +30,7 @@ import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.baidu.android.pushservice.PushSettings;
+import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
@@ -44,6 +48,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -53,6 +59,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.webkit.CookieManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -64,6 +73,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -76,13 +86,17 @@ import tools.AppException;
 import tools.ImageUtils;
 import tools.Logger;
 import tools.UIHelper;
+import tools.UpdateManager;
 import ui.adapter.IndexCardAdapter;
 import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IphoneTreeViewAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
-public class Index extends AppActivity  {
+public class Index extends AppActivity {
 //	private ImageView avatarImageView;
+	private ImageView indicatorImageView;
+	private Animation indicatorAnimation;
+	
 	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
@@ -173,6 +187,17 @@ public class Index extends AppActivity  {
 	}
 	
 	private void initUI() {
+		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
+		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
+		indicatorAnimation.setDuration(500);
+		indicatorAnimation.setInterpolator(new Interpolator() {
+		    private final int frameCount = 10;
+		    @Override
+		    public float getInterpolation(float input) {
+		        return (float)Math.floor(input*frameCount)/frameCount;
+		    }
+		});
+		
 		messageView = (TextView) findViewById(R.id.messageView);
 		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
@@ -251,6 +276,24 @@ public class Index extends AppActivity  {
 		phones.add(phone4);
 		mPhoneAdapter = new IphoneTreeViewAdapter(this, phones);
 		iphoneTreeView.setAdapter(mPhoneAdapter);
+		iphoneTreeView.setOnGroupClickListener(new OnGroupClickListener() {
+			@Override
+			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
+					long arg3) {
+				Logger.i(position+"");
+				if (position == 0 || position == 1) {
+					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
+						getPhoneList();
+					}
+				}
+				else if (position == 2 || position == 3) {
+					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
+						getActivityList();
+					}
+				}
+				return false;
+			}
+		});
 //		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
 //		mPinedListView1.setAdapter(mPhoneAdapter);
 		
@@ -430,6 +473,10 @@ public class Index extends AppActivity  {
 		startActivity(intent);
 	}
 	
+	public void showUpdate() {
+		UpdateManager.getUpdateManager().checkAppUpdate(this, true);
+	}
+	
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
@@ -539,11 +586,16 @@ public class Index extends AppActivity  {
 	}
 	
 	private void checkLogin() {
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+    	
 		AppClient.autoLogin(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UserEntity user = (UserEntity)data;
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
@@ -565,12 +617,16 @@ public class Index extends AppActivity  {
 			}
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
 			}
 		});
@@ -634,76 +690,18 @@ public class Index extends AppActivity  {
 	}
 	
 	private void getPhoneList() {
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getPhoneList(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				PhoneListEntity entity = (PhoneListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-//					if (phones.size() == 3) {
-//						if (entity.owned.size()>0) {
-//							for (PhoneIntroEntity entity1 : phones.get(1)) {
-//								for (PhoneIntroEntity entity2 : entity.owned) {
-//									if (entity2.code.equals(entity1.code)) {
-//										entity2.willRefresh = !entity2.member.equals(entity1.member);
-//									}
-//								}
-//							}
-//						}
-//						if (entity.joined.size()>0) {
-//							for (PhoneIntroEntity entity1 : phones.get(2)) {
-//								for (PhoneIntroEntity entity2 : entity.owned) {
-//									if (entity2.code.equals(entity1.code)) {
-//										entity2.willRefresh = !entity2.member.equals(entity1.member);
-//									}
-//								}
-//							}
-//						}
-//					}
-//					else if (phones.size() == 2) {
-//						if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType)) {
-//							if (entity.owned.size()>0) {
-//								for (PhoneIntroEntity entity1 : phones.get(0)) {
-//									for (PhoneIntroEntity entity2 : entity.owned) {
-//										if (entity2.code.equals(entity1.code)) {
-//											entity2.willRefresh = !entity2.member.equals(entity1.member);
-//										}
-//									}
-//								}
-//							}
-//						}
-//						else if (phones.get(1).get(0).phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
-//							if (entity.joined.size()>0) {
-//								for (PhoneIntroEntity entity1 : phones.get(0)) {
-//									for (PhoneIntroEntity entity2 : entity.owned) {
-//										if (entity2.code.equals(entity1.code)) {
-//											entity2.willRefresh = !entity2.member.equals(entity1.member);
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//					phones.clear();
-//					List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-//					PhoneIntroEntity mobile = new PhoneIntroEntity();
-//					mobile.title = "手机通讯录";
-//					mobile.content = CommonValue.subTitle.subtitle1;
-//					mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//					mobilesInPhone.add(mobile);
-//					PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-//					mobile0.title = "家庭族谱通讯录";
-//					mobile0.content = CommonValue.subTitle.subtitle2;
-//					mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//					mobilesInPhone.add(mobile0);
-//					PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-//					mobile1.title = "个人微友通讯录";
-//					mobile1.content = CommonValue.subTitle.subtitle2;
-//					mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//					mobilesInPhone.add(mobile1);
-//					phones.add(mobilesInPhone);
 					if (entity.owned.size() > 0) {
 						phones.set(0, entity.owned);
 					}
@@ -721,70 +719,33 @@ public class Index extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
 			}
 		});
 	}
 	
 	private void getActivityList() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getActivityList(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				ActivityListEntity entity = (ActivityListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-//					if (activities.size() == 2) {
-//						if (entity.owned.size()>0) {
-//							for (ActivityIntroEntity entity1 : activities.get(0)) {
-//								for (ActivityIntroEntity entity2 : entity.owned) {
-//									if (entity2.code.equals(entity1.code)) {
-//										entity2.willRefresh = !entity2.member.equals(entity1.member);
-//									}
-//								}
-//							}
-//						}
-//						if (entity.joined.size()>0) {
-//							for (ActivityIntroEntity entity1 : activities.get(0)) {
-//								for (ActivityIntroEntity entity2 : entity.owned) {
-//									if (entity2.code.equals(entity1.code)) {
-//										entity2.willRefresh = !entity2.member.equals(entity1.member);
-//									}
-//								}
-//							}
-//						}
-//					}
-//					else if (activities.size() == 1) {
-//						if (activities.get(0).get(0).activitySectionType.equals(CommonValue.ActivitySectionType.OwnedSectionType)) {
-//							if (entity.owned.size()>0) {
-//								for (ActivityIntroEntity entity1 : activities.get(0)) {
-//									for (ActivityIntroEntity entity2 : entity.owned) {
-//										if (entity2.code.equals(entity1.code)) {
-//											entity2.willRefresh = !entity2.member.equals(entity1.member);
-//										}
-//									}
-//								}
-//							}
-//						}
-//						else {
-//							if (entity.joined.size()>0) {
-//								for (ActivityIntroEntity entity1 : activities.get(0)) {
-//									for (ActivityIntroEntity entity2 : entity.owned) {
-//										if (entity2.code.equals(entity1.code)) {
-//											entity2.willRefresh = !entity2.member.equals(entity1.member);
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//					activities.clear();
 					if (entity.owned.size()>0) {
 						phones.set(2, entity.owned);
 					}
@@ -802,20 +763,28 @@ public class Index extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
 			}
 		});
 	}
 	
 	private void getCardList() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getCardList(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				CardListEntity entity = (CardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
@@ -835,10 +804,14 @@ public class Index extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				e.printStackTrace();
 				Logger.i(e);
 			}
@@ -874,9 +847,13 @@ public class Index extends AppActivity  {
 	}
 	
 	private void getUnReadMessage() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getUnReadMessage(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				MessageUnReadEntity entity = (MessageUnReadEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
@@ -897,10 +874,14 @@ public class Index extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				e.printStackTrace();
 				Logger.i(e);
 			}
@@ -915,6 +896,12 @@ public class Index extends AppActivity  {
 				phoneButton.setSelected(true);
 				activityButton.setSelected(false);
 				cardButton.setSelected(false);
+				if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
+					getPhoneList();
+				}
+				if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
+					getActivityList();
+				}
 				break;
 			case PAGE2:// 切换到页卡2
 				if (isFirst) {
@@ -1070,8 +1057,30 @@ public class Index extends AppActivity  {
 		op21.position = "";
 		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
 		ops2.add(op21);
+		
+		CardIntroEntity op22 = new CardIntroEntity();
+		op22.realname = "检查版本";
+		op22.department = "当前版本:"+getCurrentVersionName();
+		op22.position = "";
+		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		ops2.add(op22);
+		
 		cards.add(ops2);
 		
+	}
+	
+	/**
+	 * 获取当前客户端版本信息
+	 */
+	private String  getCurrentVersionName(){
+		String versionName = null;
+        try { 
+        	PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        	versionName = info.versionName;
+        } catch (NameNotFoundException e) {    
+			e.printStackTrace(System.err);
+		} 
+        return versionName;
 	}
 
 	@Override
@@ -1173,7 +1182,9 @@ public class Index extends AppActivity  {
 		        setTitle("页面加载中，请稍候..." + progress + "%");
 		        setProgress(progress * 100);
 		        if (progress == 100) {
-		        	UIHelper.dismissProgress(loadingPd);
+//		        	UIHelper.dismissProgress(loadingPd);
+		        	indicatorImageView.clearAnimation();
+		        	indicatorImageView.setVisibility(View.INVISIBLE);
 		        }
 		    }
 		    
@@ -1197,7 +1208,8 @@ public class Index extends AppActivity  {
 		cookieManager.removeAllCookie();
 		cookieManager.setCookie(url, cookieString2);
 		cookieManager.setCookie(url, cookieString3);
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
@@ -1209,11 +1221,13 @@ public class Index extends AppActivity  {
 		loadAgainButton.setVisibility(View.INVISIBLE);
 		webView.setVisibility(View.VISIBLE);
 		String url = CommonValue.BASE_URL + "/home/app";
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
 	}
+
 }

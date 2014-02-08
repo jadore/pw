@@ -26,6 +26,7 @@ import bean.MessageUnReadEntity;
 import bean.PhoneListEntity;
 import bean.PhoneViewEntity;
 import bean.RecommendListEntity;
+import bean.Update;
 import bean.UserEntity;
 import tools.AppContext;
 import tools.AppException;
@@ -114,6 +115,9 @@ public class AppClient {
 	}
 	
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+//		params.add("key", "18967680777");
+//		QYRestClient.post("user/adminlogin", params, new AsyncHttpResponseHandler() {
 		QYRestClient.post("user/autologin", null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
@@ -340,6 +344,8 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
+//					Logger.i(new String(content));
+//					Logger.i(DecodeUtil.decode(new String(content)));
 					FriendCardListEntity data = FriendCardListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.FriendCardList, data);
 					callback.onSuccess(data);
@@ -504,21 +510,12 @@ public class AppClient {
 	
 	public static void update(final MyApplication appContext, String data, final ClientCallback callback) {
 		RequestParams param = new RequestParams();
-//		data += " | client_browser : android |";
-//		try {
-//			data += " | client_version :" + AppManager.getAppManager().currentActivity().getPackageManager().getPackageInfo(AppManager.getAppManager().currentActivity().getPackageName(), 0).versionCode+" |";
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		data += " |client_push : android |";
-//		param.add("message", data);
-		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
+		QYRestClient.post("update/check", param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					Logger.i(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(new Entity() {
-					});
+					Update data = Update.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
 				}

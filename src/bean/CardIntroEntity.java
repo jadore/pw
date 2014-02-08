@@ -35,6 +35,8 @@ public class CardIntroEntity extends Entity {
 	public String headimgurl;
 	public String pinyin;
 	
+	public String avatar;
+	
 	public String cardSectionType;
 	public boolean willRefresh;
 	public String code;
@@ -100,6 +102,9 @@ public class CardIntroEntity extends Entity {
 			if (!info.isNull("headimgurl")) {
 				data.headimgurl = info.getString("headimgurl");
 			}
+			if (!info.isNull("avatar")) {
+				data.avatar = info.getString("avatar");
+			}
 			if (!info.isNull("phone_display")) {
 				data.phone_display = info.getString("phone_display");
 			}
@@ -136,7 +141,9 @@ public class CardIntroEntity extends Entity {
 			data.intro = info.getString("intro");
 			data.wechat= info.getString("wechat");
 			data.link = info.getString("link");
-			data.headimgurl = info.getString("headimgurl");
+			if (!info.isNull("avatar")) {
+				data.avatar = info.getString("avatar");
+			}
 			data.cardSectionType = sectionType;
 			data.willRefresh = false;
 			data.nickname = info.getString("nickname");
@@ -175,6 +182,9 @@ public class CardIntroEntity extends Entity {
 				data.link = info.getString("link");
 				if (!info.isNull("headimgurl")) {
 					data.headimgurl = info.getString("headimgurl");
+				}
+				if (!info.isNull("avatar")) {
+					data.avatar = info.getString("avatar");
 				}
 				data. needs = info.getString("needs");
 				data. hometown = info.getString("hometown");
@@ -242,7 +252,9 @@ public class CardIntroEntity extends Entity {
 //			data.wechat_id = info.getString("wechat_id");
 			data.wechat= info.getString("wechat");
 			data.link = info.getString("link");
-			data.headimgurl = info.getString("headimgurl");
+			if (!info.isNull("avatar")) {
+				data.avatar = info.getString("avatar");
+			}
 			data.isfriend = info.getString("isfriend");
 			data.readable = info.getString("readable");
 			data.qun_readable = info.getString("qun_readable");

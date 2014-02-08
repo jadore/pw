@@ -33,6 +33,16 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             />
+        
+        <ImageView
+            android:layout_centerVertical="true"
+            android:id="@+id/xindicator"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_toRightOf="@+id/titleBarView"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            android:background="@drawable/round_1"/>
     </RelativeLayout>
     
     <LinearLayout 

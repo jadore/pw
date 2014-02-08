@@ -94,7 +94,7 @@ public class CommonValue {
 	}
 	
 	public interface CardSectionType {
-		String OwnedSectionType = "我的名片";
+		String OwnedSectionType = "我的名片(长按可分享)";
 		String BarcodeSectionType = "二维码扫一扫";
 		String VSectionType = "名片加V认证";
 		String FeedbackSectionType = "信息反馈";

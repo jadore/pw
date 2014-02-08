@@ -17,6 +17,7 @@ public class FriendCardListEntity extends Entity {
 	public List<CardIntroEntity> follower = new ArrayList<CardIntroEntity>();
 	
 	public static FriendCardListEntity parse(String res) throws IOException, AppException {
+//		Logger.i(res);
 		FriendCardListEntity data = new FriendCardListEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -44,6 +45,8 @@ public class FriendCardListEntity extends Entity {
 				data.message = js.getString("info");
 			}
 		} catch (JSONException e) {
+			Logger.i(e);
+//			Logger.i(res);
 			throw AppException.json(e);
 		}
 		return data;
