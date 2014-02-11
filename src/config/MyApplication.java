@@ -61,6 +61,10 @@ public class MyApplication extends AppContext {
 		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);
+		
+		Intent intent = new Intent();
+        intent.setAction("tools.NetworkState.Service");
+        startService(intent);
 	}
 	
 	/**

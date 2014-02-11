@@ -28,11 +28,14 @@ import bean.PhoneViewEntity;
 import bean.RecommendListEntity;
 import bean.Update;
 import bean.UserEntity;
+import bean.WebContent;
 import tools.AppContext;
 import tools.AppException;
 import tools.AppManager;
 import tools.DecodeUtil;
 import tools.Logger;
+import tools.MD5Util;
+import tools.StringUtils;
 
 public class AppClient {
 	
@@ -516,6 +519,48 @@ public class AppClient {
 				try{
 					Update data = Update.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
+	
+	public interface WebCallback{
+        abstract void onSuccess(int type, Entity data, String key);
+        abstract void onFailure(String message);
+        abstract void onError(Exception e);
+    }
+	
+	public static void loadURL(final MyApplication appContext, final String url, final WebCallback callback) {
+		
+		QYRestClient.getWeb(url, null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					String data = MD5Util.getMD5String(content);
+					String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
+					WebContent dc = (WebContent) appContext.readObject(key);
+					WebContent con = new WebContent();
+					con.text = data;
+					if(dc == null){
+						saveCache(appContext, MD5Util.getMD5String(url), con);
+						callback.onSuccess(0, con, MD5Util.getMD5String(url));
+					}
+					else {
+						if (dc.text.equals(con.text)) {
+							callback.onSuccess(2, con, MD5Util.getMD5String(url));
+						}
+						else {
+							callback.onSuccess(1, con, MD5Util.getMD5String(url));
+						}
+					}
 				}catch (Exception e) {
 					callback.onError(e);
 				}

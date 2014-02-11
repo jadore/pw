@@ -16,6 +16,8 @@ public class FriendCardListEntity extends Entity {
 	public List<CardIntroEntity> friend = new ArrayList<CardIntroEntity>();
 	public List<CardIntroEntity> follower = new ArrayList<CardIntroEntity>();
 	
+	public int status;
+	
 	public static FriendCardListEntity parse(String res) throws IOException, AppException {
 //		Logger.i(res);
 		FriendCardListEntity data = new FriendCardListEntity();

@@ -16,8 +16,10 @@ import ui.QYWebView;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.telephony.SmsManager;
 import android.widget.Toast;
 
@@ -76,12 +78,27 @@ public class SendSmsService extends IntentService {
 	private void sendSMS() {
 		try {
 			showNotify("群友通讯录,正在发短息...", "正在发短息...");
+			String addresses = "";
 			for (int i = 0; i < smsMember.size(); i++) {  
 	            String number = smsMember.get(i);  
+	            addresses += number +", ";
 	            Intent sentIntent = new Intent(SENT_SMS_ACTION); 
 	        	PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, sentIntent,  0); 
 	            sManage.sendTextMessage(number, null, smsBody, sentPI, null);  
 	        } 
+			ContentValues values = new ContentValues();  
+            //发送时间  
+			values.put("date", System.currentTimeMillis());   
+            //阅读状态              
+           values.put("read", 0);             
+            //1为收 2为发             
+          values.put("type", 2);           
+            //送达号码   
+          values.put("address",addresses);             
+            //送达内容            
+          values.put("body", smsBody);             
+            //插入短信库    
+          getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
 			showNotify("群友通讯录,短息发送完成", "短息发送完成");
 		} catch (Exception e ) {
 			Logger.i(e);

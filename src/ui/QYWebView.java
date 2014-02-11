@@ -15,6 +15,8 @@ import tools.StringUtils;
 import tools.UIHelper;
 
 import bean.CardIntroEntity;
+import bean.Entity;
+import bean.WebContent;
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.onekeyshare.OnekeyShare;
@@ -24,6 +26,8 @@ import com.google.analytics.tracking.android.EasyTracker;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
+import config.AppClient;
+import config.AppClient.WebCallback;
 import config.CommonValue;
 import config.QYRestClient;
 
@@ -70,6 +74,7 @@ import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class QYWebView extends AppActivity  {
@@ -90,6 +95,12 @@ public class QYWebView extends AppActivity  {
 	
 	private Uri outputFileUri;
 	
+	String QYurl ;
+	
+	private TextView newtv;
+	private WebContent wc;
+	private String wckey;
+	
 	@Override
 	public void onStart() {
 	    super.onStart();
@@ -108,9 +119,19 @@ public class QYWebView extends AppActivity  {
 		setContentView(R.layout.create_view);
 		initUI();
 		initData();
+//		Handler jumpHandler = new Handler();
+//        jumpHandler.postDelayed(new Runnable() {
+//			public void run() {
+//				if (appContext.isNetworkConnected()) {
+//					loadAgain();
+//		    	}
+//			}
+//		}, 5000);
 	}
 	
 	private void initUI() {
+		newtv = (TextView) findViewById(R.id.new_data_toast_message);
+		
 		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
 		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
 		indicatorAnimation.setDuration(500);
@@ -130,11 +151,11 @@ public class QYWebView extends AppActivity  {
 	private void loadAgain() {
 		loadAgainButton.setVisibility(View.INVISIBLE);
 		webView.setVisibility(View.VISIBLE);
-		String url = CommonValue.BASE_URL + "/home/app";
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-		webView.loadUrl(url);
+    	WebSettings webseting = webView.getSettings();  
+    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+		webView.loadUrl(QYurl);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
@@ -144,25 +165,23 @@ public class QYWebView extends AppActivity  {
 	private void initData() {
 		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		pbwc mJS = new pbwc();  
-		String url = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
-		WebSettings webseting = webView.getSettings();  
+		QYurl = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
+		final WebSettings webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
-	    webseting.setDomStorageEnabled(true);             
+		// 设置可以使用localStorage  
+		webseting.setDomStorageEnabled(true);  
+        // 应用可以有数据库  
+		webseting.setDatabaseEnabled(true);     
+        String dbPath =this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();  
+        webseting.setDatabasePath(dbPath);         
 	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
 	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
         webseting.setAppCachePath(appCacheDir);  
         webseting.setAllowFileAccess(true);  
         webseting.setAppCacheEnabled(true); 
         webView.addJavascriptInterface(mJS, "pbwc");
-        
-        if (appContext.isNetworkConnected()) {
-        	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-		}
-        else {
-        	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
-        }
-		
+    	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
 				rightBarButton.setVisibility(View.GONE);
@@ -212,9 +231,9 @@ public class QYWebView extends AppActivity  {
 					    cookieManager.setCookie(url, cookieString); 
 					    CookieSyncManager.getInstance().sync(); 
 					}
-//					QYWebView.this.loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
 					indicatorImageView.setVisibility(View.VISIBLE);
 			    	indicatorImageView.startAnimation(indicatorAnimation);
+			    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
 					view.loadUrl(url);
 				}
 				return true;
@@ -236,13 +255,14 @@ public class QYWebView extends AppActivity  {
 				loadAgainButton.setVisibility(View.VISIBLE);
 				super.onReceivedError(view, errorCode, description, failingUrl);
 			}
+			
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
 		    public void onProgressChanged(WebView view, int progress) {
 		        setTitle("页面加载中，请稍候..." + progress + "%");
 		        setProgress(progress * 100);
 		        
-		        if (progress >= 50) {
+		        if (progress == 100) {
 //		        	UIHelper.dismissProgress(loadingPd);
 		        	indicatorImageView.setVisibility(View.INVISIBLE);
 		        	indicatorImageView.clearAnimation();
@@ -270,38 +290,61 @@ public class QYWebView extends AppActivity  {
 	    		openFileChooser( uploadMsg, "" );
 	    	}
 		});
-//		CookieStore cookieStore = new PersistentCookieStore(this);  
-//		QYRestClient.getIntance().setCookieStore(cookieStore);
-//		String cookieString2 = "";
-//		String cookieString3 = "";
-//		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
-//		cookieString3 = String.format("isapp=%s;", "1");
-//		Logger.i(cookieString2);
-//		Logger.i(cookieString3);
-//		CookieManager cookieManager = CookieManager.getInstance();
-//		cookieManager.removeAllCookie();
-//		cookieManager.setCookie(url, cookieString2);
-//		cookieManager.setCookie(url, cookieString3);
 		CookieManager cookieManager = CookieManager.getInstance();
 		cookieManager.setAcceptCookie(true);
 		cookieManager.removeSessionCookie();
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
 			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-			Logger.i(cookieString);
-		    cookieManager.setCookie(url, cookieString); 
+		    cookieManager.setCookie(QYurl, cookieString); 
 		    CookieSyncManager.getInstance().sync(); 
 		}
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-		webView.loadUrl(url);
+		webView.loadUrl(QYurl);
 		if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
+		if (QYurl.contains("card")) {
+			loadAgain();
+		}
+		else {
+			loadURL(QYurl);
+		}
+		
 	}
 	
+	
+	private void loadURL(String url) {
+		AppClient.loadURL(appContext, url, new WebCallback() {
+			
+			@Override
+			public void onFailure(String message) {
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				
+			}
+
+			@Override
+			public void onSuccess(int type, Entity data, String key) {
+				switch (type) {
+				case 1:
+					newtv.setVisibility(View.VISIBLE);
+					newtv.setText("亲，页面有更新，请点击加载");
+					wc = (WebContent) data;
+					wckey = key;
+					break;
+				default:
+					newtv.setVisibility(View.INVISIBLE);
+					break;
+				}
+			}
+		});
+	}
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
@@ -317,6 +360,12 @@ public class QYWebView extends AppActivity  {
 			SMSDialog(keyType);
 			break;
 		case R.id.loadAgain:
+			loadAgain();
+			break;
+		case R.id.new_data_toast_message:
+			Logger.i(wc.text);
+			appContext.saveObject(wc, String.format("%s-%s", wckey, appContext.getLoginUid()));
+			newtv.setVisibility(View.INVISIBLE);
 			loadAgain();
 			break;
 		case R.id.closeBarButton:
@@ -456,7 +505,6 @@ public class QYWebView extends AppActivity  {
 				keyCode = code;
 				keyType = 1;
 				rightBarButton.setVisibility(View.VISIBLE);
-				Logger.i(code);
 				break;
 			case CommonValue.CreateViewJSType.showActivitySmsButton:
 				code = (String) msg.obj;

@@ -150,6 +150,18 @@ public class Index extends AppActivity {
 	}
 	  
 	@Override
+	protected void onResume() {
+		super.onResume();
+		TextView title = (TextView) findViewById(R.id.barTitleTV);
+		if (!appContext.isNetworkConnected()) {
+			title.setText("群友通讯录(未连接)");
+		}
+		else {
+			title.setText("群友通讯录");
+		}
+	}
+	  
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.index);
@@ -1042,14 +1054,6 @@ public class Index extends AppActivity {
 		ops.add(op2);
 		cards.add(ops);
 		
-//		List<CardIntroEntity> ops1 = new ArrayList<CardIntroEntity>();
-//		CardIntroEntity op11 = new CardIntroEntity();
-//		op11.realname = "加V认证";
-//		op11.department = CommonValue.subTitle.subtitle1;
-//		op11.cardSectionType = CommonValue.CardSectionType .VSectionType;
-//		ops1.add(op11);
-//		cards.add(ops1);
-		
 		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
 		CardIntroEntity op21 = new CardIntroEntity();
 		op21.realname = "客服反馈";
@@ -1091,13 +1095,6 @@ public class Index extends AppActivity {
 		switch (requestCode) {
 		case CommonValue.CreateViewUrlAndRequest.ContactCreat:
 			getPhoneList();
-//			int result = data.getIntExtra("resultcode", 0);
-//			if (result == CommonValue.CreateViewJSType.goPhonebookView) {
-//				PhoneIntroEntity entity = new PhoneIntroEntity();
-//				entity.code = data.getStringExtra("resultdata");
-//				entity.content = " ";
-//				showPhoneView(entity);
-//			}
 			mPager.setCurrentItem(PAGE1);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.ActivityCreateCreat:

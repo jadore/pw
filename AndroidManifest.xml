@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vikaa.mycontact"
-    android:versionCode="20140208"
-    android:versionName="1.2.3" >
+    android:versionCode="20140209"
+    android:versionName="1.2.4" >
 
     <uses-sdk android:minSdkVersion="8" />
 
@@ -320,6 +320,11 @@
             android:exported="true"
             android:process=":bdservice_v1" />
       
+        <service android:name="tools.NetworkStateService" >
+            <intent-filter android:priority="1000" >
+                <action android:name="tools.NetworkState.Service" /> 
+            </intent-filter>
+        </service>
         
         <meta-data android:name="api_key" android:value="eXvZH3r0oZidynO2gl6l92uR" />
         <meta-data android:name="com.crashlytics.ApiKey" android:value="d6f3179ac695a7efd4c28c329ce8a5c04f2e0bc7"/>
