@@ -7,6 +7,7 @@ import tools.StringUtils;
 import ui.CardView;
 import ui.QYWebView;
 import ui.FriendCards;
+import ui.WeFriendCard;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
@@ -82,12 +83,12 @@ public class FriendCardAdapter extends BaseAdapter {
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
 		String currentStr = StringUtils.getAlpha(model.pinyin);
 		String previewStr = (position - 1) >= 0 ? StringUtils.getAlpha(cards.get(position - 1).pinyin) : " ";
-		if (!previewStr.equals(currentStr)) { 
-			cell.alpha.setVisibility(View.VISIBLE);
-			cell.alpha.setText(currentStr);
-		} else {
+//		if (!previewStr.equals(currentStr)) { 
+//			cell.alpha.setVisibility(View.VISIBLE);
+//			cell.alpha.setText(currentStr);
+//		} else {
 			cell.alpha.setVisibility(View.GONE);
-		}
+//		}
 		if (model.phone_display.indexOf("*") != -1 || StringUtils.isEmpty(model.phone_display)) {
 			cell.callButton.setVisibility(View.INVISIBLE);
 		}
@@ -122,7 +123,7 @@ public class FriendCardAdapter extends BaseAdapter {
 //		context.startActivity(intent);
 		Intent intent = new Intent(context, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
-		((FriendCards)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
+		((WeFriendCard)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 }

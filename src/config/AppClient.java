@@ -365,6 +365,39 @@ public class AppClient {
 		});
 	}
 	
+	public static void getChatFriendCard(final MyApplication appContext, final String page, String keyword, String count, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		if (!StringUtils.isEmpty(page)) {
+			params.add("page", page);
+		}
+		if (!StringUtils.isEmpty(keyword)) {
+			params.add("keyword", keyword);
+		}
+		if (!StringUtils.isEmpty(count)) {
+			params.add("count", count);
+		}
+		QYRestClient.post("card/friendlist", params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
+					if (!StringUtils.isEmpty(page) && page.equals("1")) {
+						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
+					}
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
+			}
+		});
+	}
+	
 	public static void followCard(final MyApplication appContext, String openid, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		params.add("openid", openid);
@@ -544,17 +577,23 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					String data = MD5Util.getMD5String(content);
+					String data = new String(content);
+					String md5 = MD5Util.getMD5String(content);
 					String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
 					WebContent dc = (WebContent) appContext.readObject(key);
 					WebContent con = new WebContent();
 					con.text = data;
+					con.md5 = md5;
+					saveCache(appContext, MD5Util.getMD5String(url), con);
 					if(dc == null){
-						saveCache(appContext, MD5Util.getMD5String(url), con);
 						callback.onSuccess(0, con, MD5Util.getMD5String(url));
 					}
 					else {
-						if (dc.text.equals(con.text)) {
+						Logger.i(dc.md5);
+						Logger.i(con.md5);
+//						Logger.i(dc.text);
+//						Logger.i(con.text);
+						if (dc.md5.equals(con.md5)) {
 							callback.onSuccess(2, con, MD5Util.getMD5String(url));
 						}
 						else {

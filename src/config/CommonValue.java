@@ -37,6 +37,7 @@ public class CommonValue {
 		String ActivityView = "ActivityView";
 		String CardList = "CardList";
 		String FriendCardList = "FriendCardList";
+		String FriendCardList1 = "FriendCardList1";
 		String MessageList = "MessageList";
 	}
 	

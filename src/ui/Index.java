@@ -386,7 +386,7 @@ public class Index extends AppActivity {
 	                   null)            // Event value
 	      .build()
 		);
-		Intent intent = new Intent(this, FriendCards.class);
+		Intent intent = new Intent(this, WeFriendCard.class);
 		startActivity(intent);
 	}
 	

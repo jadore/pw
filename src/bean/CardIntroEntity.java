@@ -268,4 +268,40 @@ public class CardIntroEntity extends Entity {
 		}
 		return data;
 	}
+	
+	public static CardIntroEntity parseFC(JSONObject info, String sectionType) throws IOException, AppException {
+		CardIntroEntity data = new CardIntroEntity();
+		try {
+			data.code = info.getString("co");
+			data.openid = info.getString("o");
+			data.realname = info.getString("r");
+			data.phone = info.getString("ph");
+//			data.email = info.getString("email");
+			data.privacy = info.getString("pr");
+			data.department = info.getString("d");
+//			data.hits = info.getString("hits");
+			data.position = info.getString("po");
+			data.birthday = StringUtils.phpLongtoDate(info.getString("b"), new SimpleDateFormat("yyyy-MM-dd"));
+			data.address = info.getString("ad");
+//			data.create_at= info.getString("create_at");
+			data.certified = info.getString("c");
+			data.supply= info.getString("su");
+			data.intro = info.getString("i");
+			data.wechat= info.getString("we");
+			data.link = info.getString("l");
+			if (!info.isNull("av")) {
+				data.avatar = info.getString("av");
+			}
+			if (!info.isNull("pho")) {
+				data.phone_display = info.getString("pho");
+			}
+			data.cardSectionType = sectionType;
+			data.willRefresh = false;
+			data.pinyin = info.getString("p");
+			data.isfriend = info.getString("is");
+		} catch (JSONException e) {
+			throw AppException.json(e);
+		}
+		return data;
+	}
 }

@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import tools.AppManager;
 import tools.Logger;
+import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
 
@@ -96,10 +97,8 @@ public class QYWebView extends AppActivity  {
 	private Uri outputFileUri;
 	
 	String QYurl ;
-	
+	WebSettings webseting;
 	private TextView newtv;
-	private WebContent wc;
-	private String wckey;
 	
 	@Override
 	public void onStart() {
@@ -153,20 +152,21 @@ public class QYWebView extends AppActivity  {
 		webView.setVisibility(View.VISIBLE);
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-    	WebSettings webseting = webView.getSettings();  
-    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-		webView.loadUrl(QYurl);
-		if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-    		return;
-    	}
+//    	WebSettings webseting = webView.getSettings();  
+//    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+//		webView.loadUrl(QYurl);
+//		if (!appContext.isNetworkConnected()) {
+//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+//    		return;
+//    	}
+    	loadURLScheme(QYurl);
 	}
 	
 	private void initData() {
 		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		pbwc mJS = new pbwc();  
 		QYurl = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
-		final WebSettings webseting = webView.getSettings();  
+		webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
 		// 设置可以使用localStorage  
@@ -181,7 +181,6 @@ public class QYWebView extends AppActivity  {
         webseting.setAllowFileAccess(true);  
         webseting.setAppCacheEnabled(true); 
         webView.addJavascriptInterface(mJS, "pbwc");
-    	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
 		webView.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
 				rightBarButton.setVisibility(View.GONE);
@@ -221,20 +220,21 @@ public class QYWebView extends AppActivity  {
 					UIHelper.ToastMessage(QYWebView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
 				}
 				else {
-					CookieManager cookieManager = CookieManager.getInstance();
-					cookieManager.setAcceptCookie(true);
-					cookieManager.removeSessionCookie();
-					CookieStore cookieStore = new PersistentCookieStore(QYWebView.this);  
-					for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
-						String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-						Logger.i(cookieString);
-					    cookieManager.setCookie(url, cookieString); 
-					    CookieSyncManager.getInstance().sync(); 
-					}
+//					CookieManager cookieManager = CookieManager.getInstance();
+//					cookieManager.setAcceptCookie(true);
+//					cookieManager.removeSessionCookie();
+//					CookieStore cookieStore = new PersistentCookieStore(QYWebView.this);  
+//					for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
+//						String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
+//						Logger.i(cookieString);
+//					    cookieManager.setCookie(url, cookieString); 
+//					    CookieSyncManager.getInstance().sync(); 
+//					}
 					indicatorImageView.setVisibility(View.VISIBLE);
 			    	indicatorImageView.startAnimation(indicatorAnimation);
-			    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-					view.loadUrl(url);
+//			    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
+//					view.loadUrl(url);
+					loadSecondURLScheme(url);
 				}
 				return true;
 			}
@@ -290,6 +290,25 @@ public class QYWebView extends AppActivity  {
 	    		openFileChooser( uploadMsg, "" );
 	    	}
 		});
+		
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+    	loadURLScheme(QYurl);
+//		webView.loadUrl(QYurl);
+//		if (!appContext.isNetworkConnected()) {
+//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+//    		return;
+//    	}
+//		if (QYurl.contains("card")) {
+//			loadAgain();
+//		}
+//		else {
+//			loadURL(QYurl);
+//		}
+		
+	}
+	
+	private void loadURLScheme(String url) {
 		CookieManager cookieManager = CookieManager.getInstance();
 		cookieManager.setAcceptCookie(true);
 		cookieManager.removeSessionCookie();
@@ -299,24 +318,46 @@ public class QYWebView extends AppActivity  {
 		    cookieManager.setCookie(QYurl, cookieString); 
 		    CookieSyncManager.getInstance().sync(); 
 		}
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		webView.loadUrl(QYurl);
-		if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-    		return;
-    	}
-		if (QYurl.contains("card")) {
-			loadAgain();
+		String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
+		WebContent dc = (WebContent) appContext.readObject(key);
+		if(dc == null){
+			if (!appContext.isNetworkConnected()) {
+				webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+            	webView.loadUrl(url);
+            	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			}
+			else {
+				loadURL(url, true, true);
+			}
 		}
 		else {
-			loadURL(QYurl);
+			webView.loadDataWithBaseURL(CommonValue.BASE_URL, dc.text, "text/html", "utf-8", url);
+			loadURL(url, false, true);
 		}
-		
 	}
 	
+	private void loadSecondURLScheme(String url) {
+		newtv.setVisibility(View.INVISIBLE);
+		CookieManager cookieManager = CookieManager.getInstance();
+		cookieManager.setAcceptCookie(true);
+		cookieManager.removeSessionCookie();
+		CookieStore cookieStore = new PersistentCookieStore(this);  
+		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
+			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
+		    cookieManager.setCookie(QYurl, cookieString); 
+		    CookieSyncManager.getInstance().sync(); 
+		}
+		if (!appContext.isNetworkConnected()) {
+			webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        	webView.loadUrl(url);
+        	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+		}
+		else {
+			loadURL(url, true, false);
+		}
+	}
 	
-	private void loadURL(String url) {
+	private void loadURL(final String url, final boolean isLoad, final boolean isPlay) {
 		AppClient.loadURL(appContext, url, new WebCallback() {
 			
 			@Override
@@ -331,12 +372,17 @@ public class QYWebView extends AppActivity  {
 
 			@Override
 			public void onSuccess(int type, Entity data, String key) {
+				WebContent wc = (WebContent) data;
+				if (isLoad) {
+					webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
+					webView.loadDataWithBaseURL(CommonValue.BASE_URL, wc.text, "text/html", "utf-8", url);
+				}
 				switch (type) {
 				case 1:
-					newtv.setVisibility(View.VISIBLE);
-					newtv.setText("亲，页面有更新，请点击加载");
-					wc = (WebContent) data;
-					wckey = key;
+					if (isPlay) {
+						newtv.setVisibility(View.VISIBLE);
+						newtv.setText("亲，页面有更新，请点击加载");
+					}
 					break;
 				default:
 					newtv.setVisibility(View.INVISIBLE);
@@ -363,10 +409,14 @@ public class QYWebView extends AppActivity  {
 			loadAgain();
 			break;
 		case R.id.new_data_toast_message:
-			Logger.i(wc.text);
-			appContext.saveObject(wc, String.format("%s-%s", wckey, appContext.getLoginUid()));
 			newtv.setVisibility(View.INVISIBLE);
-			loadAgain();
+			try {
+				newtv.setVisibility(View.INVISIBLE);
+				loadURLScheme(QYurl);
+			} catch (Exception e) {
+				Logger.i(e);
+				Crashlytics.logException(e);
+			}
 			break;
 		case R.id.closeBarButton:
 			AppManager.getAppManager().finishActivity(this);

@@ -53,4 +53,35 @@ public class FriendCardListEntity extends Entity {
 		}
 		return data;
 	}
+	
+	public List<CardIntroEntity> u = new ArrayList<CardIntroEntity>();
+	public int ne;
+	public static FriendCardListEntity parseF(String res) throws IOException, AppException {
+//		Logger.i(res);
+		FriendCardListEntity data = new FriendCardListEntity();
+		try {
+			JSONObject js = new JSONObject(res);
+			if(js.getInt("status") == 1) {
+				data.error_code = Result.RESULT_OK;
+				JSONObject info = js.getJSONObject("info");
+				JSONArray bilateralArray = info.getJSONArray("u");
+				for (int i=0;i<bilateralArray.length();i++) {
+					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), "");
+					data.u.add(phone);
+				}
+				data.ne = info.getInt("ne");
+				Logger.i(data.ne+"");
+			}
+			else {
+				data.error_code = 11;
+				data.message = js.getString("info");
+			}
+		} catch (JSONException e) {
+			Logger.i(e);
+//			Logger.i(res);
+			throw AppException.json(e);
+		}
+		return data;
+	}
+	
 }
