@@ -85,8 +85,7 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 				+ " requestId=" + requestId;
 		// 绑定成功，设置已绑定flag，可以有效的减少不必要的绑定请求
 		if (errorCode == 0) {
-			AppClient.setUser(userId, channelId);
-			Utils.setBind(context, true);
+			AppClient.setUser(context, userId, channelId);
 		}
 		// Demo更新界面展示代码，应用请在这里加入自己的处理逻辑
 		updateContent(context, responseString);

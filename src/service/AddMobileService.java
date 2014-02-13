@@ -76,7 +76,7 @@ public class AddMobileService extends IntentService{
 			try {
 				getContactInfo();
 				try {
-					if (appContext.isLogin()) {
+					if (appContext.isLogin() && !Utils.hasBind(this)) {
 						PushManager.startWork(getApplicationContext(),
 								PushConstants.LOGIN_TYPE_API_KEY, 
 								Utils.getMetaValue(this, "api_key"));

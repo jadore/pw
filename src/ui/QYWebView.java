@@ -109,7 +109,15 @@ public class QYWebView extends AppActivity  {
 	@Override
 	public void onStop() {
 	    super.onStop();
+	    QYRestClient.getIntance().cancelRequests(this, true);
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	}
+	
+	@Override
+	protected void onDestroy() {
+		QYRestClient.getIntance().cancelRequests(this, true);
+		webView = null;
+		super.onDestroy();
 	}
 	  
 	@Override
@@ -118,14 +126,6 @@ public class QYWebView extends AppActivity  {
 		setContentView(R.layout.create_view);
 		initUI();
 		initData();
-//		Handler jumpHandler = new Handler();
-//        jumpHandler.postDelayed(new Runnable() {
-//			public void run() {
-//				if (appContext.isNetworkConnected()) {
-//					loadAgain();
-//		    	}
-//			}
-//		}, 5000);
 	}
 	
 	private void initUI() {
@@ -152,13 +152,6 @@ public class QYWebView extends AppActivity  {
 		webView.setVisibility(View.VISIBLE);
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-//    	WebSettings webseting = webView.getSettings();  
-//    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-//		webView.loadUrl(QYurl);
-//		if (!appContext.isNetworkConnected()) {
-//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-//    		return;
-//    	}
     	loadURLScheme(QYurl);
 	}
 	
@@ -251,6 +244,9 @@ public class QYWebView extends AppActivity  {
 				case -2:
 					webView.setVisibility(View.INVISIBLE);
 					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), "网速不给力,请重新加载", Toast.LENGTH_SHORT);
+					break;
 				}
 				loadAgainButton.setVisibility(View.VISIBLE);
 				super.onReceivedError(view, errorCode, description, failingUrl);
@@ -294,6 +290,7 @@ public class QYWebView extends AppActivity  {
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
     	loadURLScheme(QYurl);
+//    	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 //		webView.loadUrl(QYurl);
 //		if (!appContext.isNetworkConnected()) {
 //    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
@@ -348,7 +345,7 @@ public class QYWebView extends AppActivity  {
 		    CookieSyncManager.getInstance().sync(); 
 		}
 		if (!appContext.isNetworkConnected()) {
-			webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+			webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
         	webView.loadUrl(url);
         	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 		}
@@ -358,11 +355,16 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void loadURL(final String url, final boolean isLoad, final boolean isPlay) {
-		AppClient.loadURL(appContext, url, new WebCallback() {
+		AppClient.loadURL(this, appContext, url, new WebCallback() {
 			
 			@Override
 			public void onFailure(String message) {
-				
+				Logger.i("aaa");
+				if (isLoad) {
+					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
+					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+					webView.loadUrl(message);
+				}
 			}
 			
 			@Override
@@ -379,7 +381,7 @@ public class QYWebView extends AppActivity  {
 				}
 				switch (type) {
 				case 1:
-					if (isPlay) {
+					if (isPlay && !url.contains("card")) {
 						newtv.setVisibility(View.VISIBLE);
 						newtv.setText("亲，页面有更新，请点击加载");
 					}

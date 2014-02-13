@@ -55,6 +55,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
@@ -176,26 +177,9 @@ public class Index extends AppActivity {
 	}
 	
 	private void blindBaidu() {
-//		PushSettings.enableDebugMode(this, true);
-//		Resources resource = this.getResources();
-//		String pkgName = this.getPackageName();
 		PushManager.startWork(getApplicationContext(),
 				PushConstants.LOGIN_TYPE_API_KEY, 
 				Utils.getMetaValue(this, "api_key"));
-//			PushManager.enableLbs(getApplicationContext());
-		
-//        CustomPushNotificationBuilder cBuilder = new CustomPushNotificationBuilder(
-//        		getApplicationContext(),
-//        		resource.getIdentifier("notification_custom_builder", "layout", pkgName), 
-//        		resource.getIdentifier("notification_icon", "id", pkgName), 
-//        		resource.getIdentifier("notification_title", "id", pkgName), 
-//        		resource.getIdentifier("notification_text", "id", pkgName));
-//        cBuilder.setNotificationFlags(Notification.FLAG_AUTO_CANCEL);
-//        cBuilder.setNotificationDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
-//        cBuilder.setStatusbarIcon(this.getApplicationInfo().icon);
-//        cBuilder.setLayoutDrawable(resource.getIdentifier("simple_notification_icon", "drawable", pkgName));
-//		PushManager.setNotificationBuilder(this, 1, cBuilder);
-		
 	}
 	
 	private void initUI() {
@@ -611,15 +595,13 @@ public class Index extends AppActivity {
 				UserEntity user = (UserEntity)data;
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
-//					if (!Utils.hasBind(getApplicationContext())) {
-						blindBaidu();
-//					}
 					appContext.saveLoginInfo(user);
-//					imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 					getPhoneList();
 					getActivityList();
 					getUnReadMessage();
-//					
+					if (!Utils.hasBind(getApplicationContext())) {
+						blindBaidu();
+					}
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
@@ -873,8 +855,14 @@ public class Index extends AppActivity {
 						messageView.setVisibility(View.INVISIBLE);
 					}
 					else {
-						messageView.setText(entity.news);
-						messageView.setVisibility(View.VISIBLE);
+						try {
+							int news = Integer.valueOf(entity.news);
+							String n = news>99?"99+":entity.news;
+							messageView.setText(n);
+							messageView.setVisibility(View.VISIBLE);
+						} catch (Exception e) {
+							
+						}
 					}
 					break;
 				default:
@@ -917,7 +905,12 @@ public class Index extends AppActivity {
 				break;
 			case PAGE2:// 切换到页卡2
 				if (isFirst) {
-					initWebData();
+					Handler jumpHandler = new Handler();
+			        jumpHandler.postDelayed(new Runnable() {
+						public void run() {
+							initWebData();
+						}
+					}, 200);
 					isFirst = false;
 				}
 				phoneButton.setSelected(false);

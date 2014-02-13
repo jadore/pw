@@ -1,19 +1,11 @@
 package config;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.http.Header;
-import org.apache.http.client.CookieStore;
-import org.apache.http.cookie.Cookie;
-import org.apache.james.mime4j.codec.DecoderUtil;
-
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.util.Base64;
-import bean.ActivityIntroEntity;
+import android.content.Context;
+import baidupush.Utils;
 import bean.ActivityListEntity;
 import bean.ActivityViewEntity;
 import bean.CardIntroEntity;
@@ -29,8 +21,6 @@ import bean.RecommendListEntity;
 import bean.Update;
 import bean.UserEntity;
 import bean.WebContent;
-import tools.AppContext;
-import tools.AppException;
 import tools.AppManager;
 import tools.DecodeUtil;
 import tools.Logger;
@@ -118,7 +108,7 @@ public class AppClient {
 	}
 	
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
-		RequestParams params = new RequestParams();
+//		RequestParams params = new RequestParams();
 //		params.add("key", "18967680777");
 //		QYRestClient.post("user/adminlogin", params, new AsyncHttpResponseHandler() {
 		QYRestClient.post("user/autologin", null, new AsyncHttpResponseHandler() {
@@ -140,7 +130,7 @@ public class AppClient {
 		});
 	}
 	
-	public static void setUser(String baiduUserId, String baiduChannelId) {
+	public static void setUser(final Context context, String baiduUserId, String baiduChannelId) {
 		RequestParams params = new RequestParams();
 		params.add("client_browser", "android");
 		try {
@@ -155,6 +145,7 @@ public class AppClient {
 		QYRestClient.post("user/set", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				Utils.setBind(context, true);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -365,7 +356,7 @@ public class AppClient {
 		});
 	}
 	
-	public static void getChatFriendCard(final MyApplication appContext, final String page, String keyword, String count, final ClientCallback callback) {
+	public static void getChatFriendCard(Context context, final MyApplication appContext, final String page, String keyword, String count, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		if (!StringUtils.isEmpty(page)) {
 			params.add("page", page);
@@ -376,14 +367,17 @@ public class AppClient {
 		if (!StringUtils.isEmpty(count)) {
 			params.add("count", count);
 		}
-		QYRestClient.post("card/friendlist", params, new AsyncHttpResponseHandler() {
+		Logger.i("s");
+		QYRestClient.post(context, "card/friendlist", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				Logger.i("g");
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					if (!StringUtils.isEmpty(page) && page.equals("1")) {
 						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
 					}
+					Logger.i("e");
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -391,9 +385,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -530,6 +522,7 @@ public class AppClient {
 				try{
 					Logger.i(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(new Entity() {
+						private static final long serialVersionUID = 1L;
 					});
 				}catch (Exception e) {
 					callback.onError(e);
@@ -571,11 +564,12 @@ public class AppClient {
         abstract void onError(Exception e);
     }
 	
-	public static void loadURL(final MyApplication appContext, final String url, final WebCallback callback) {
-		
-		QYRestClient.getWeb(url, null, new AsyncHttpResponseHandler() {
+	public static void loadURL(Context context, final MyApplication appContext, final String url, final WebCallback callback) {
+		Logger.i("s");
+		QYRestClient.getWeb(context, url, null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				Logger.i("g");
 				try{
 					String data = new String(content);
 					String md5 = MD5Util.getMD5String(content);
@@ -589,8 +583,8 @@ public class AppClient {
 						callback.onSuccess(0, con, MD5Util.getMD5String(url));
 					}
 					else {
-						Logger.i(dc.md5);
-						Logger.i(con.md5);
+//						Logger.i(dc.md5);
+//						Logger.i(con.md5);
 //						Logger.i(dc.text);
 //						Logger.i(con.text);
 						if (dc.md5.equals(con.md5)) {
@@ -606,10 +600,13 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+//				Logger.i("aaaa");
+//				if (appContext.isNetworkConnected()) {
+//					callback.onFailure(e.getMessage());
+//				}
+				callback.onFailure(url);
 			}
 		});
 	}
+	
 }

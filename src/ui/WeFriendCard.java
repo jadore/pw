@@ -9,9 +9,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import bean.CardIntroEntity;
@@ -25,6 +23,7 @@ import com.vikaa.mycontact.R;
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
+import config.QYRestClient;
 
 import tools.AppManager;
 import tools.Logger;
@@ -34,7 +33,7 @@ import widget.XListView;
 import widget.XListView.IXListViewListener;
 
 public class WeFriendCard extends AppActivity implements IXListViewListener{
-
+	
 	private int lvDataState;
 	private int currentPage;
 	
@@ -55,7 +54,15 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 	  @Override
 	public void onStop() {
 	    super.onStop();
+	    QYRestClient.getIntance().cancelRequests(this, true);
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	    
+	}
+	  
+	@Override
+	protected void onDestroy() {
+		QYRestClient.getIntance().cancelRequests(this, true);
+		super.onDestroy();
 	}
 	  
 	@Override
@@ -68,7 +75,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 			public void run() {
 				getFriendCardFromCache();
 			}
-		}, 200);
+		}, 100);
 	}
 	
 	private void initUI() {
@@ -82,8 +89,8 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 		        return (float)Math.floor(input*frameCount)/frameCount;
 		    }
 		});
-		indicatorImageView.startAnimation(indicatorAnimation);
-		indicatorImageView.setVisibility(View.VISIBLE);
+//		indicatorImageView.startAnimation(indicatorAnimation);
+//		indicatorImageView.setVisibility(View.VISIBLE);
 		xlistView = (XListView)findViewById(R.id.xlistview);
 		xlistView.setXListViewListener(this, 0);
         xlistView.setRefreshTime();
@@ -114,9 +121,9 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getChatFriendCard(appContext, page+"", keyword, count, new ClientCallback() {
+    	indicatorImageView.setVisibility(View.VISIBLE);
+		AppClient.getChatFriendCard(this, appContext, page+"", keyword, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
 				indicatorImageView.clearAnimation();
