@@ -55,9 +55,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("请再次点击获取验证码");
 			}
 		});
 	}

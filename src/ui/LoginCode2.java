@@ -17,8 +17,12 @@ import config.AppClient;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -82,7 +86,7 @@ public class LoginCode2 extends AppActivity{
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			AppManager.getAppManager().finishActivity(this);
+			WarningDialog();
 			break;
 		case R.id.rightBarButton:
 			imm.hideSoftInputFromWindow(codeET.getWindowToken(), 0);
@@ -92,6 +96,27 @@ public class LoginCode2 extends AppActivity{
 			getVertifyCode(mobile);
 			break;
 		}
+	}
+	
+	protected void WarningDialog() {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage("验证码短信可能略有延迟,确定返回并重新开始?");
+		builder.setTitle("提示");
+		builder.setPositiveButton("返回", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				AppManager.getAppManager().finishActivity(LoginCode2.this);
+			}
+		});
+
+	   builder.setNegativeButton("等待", new OnClickListener() {
+		   @Override
+		   public void onClick(DialogInterface dialog, int which) {
+			   dialog.dismiss();
+		   }
+	   });
+	   builder.create().show();
 	}
 	
 	private void getVertifyCode(final String mobile) {
