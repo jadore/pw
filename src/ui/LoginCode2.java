@@ -10,18 +10,23 @@ import bean.Entity;
 import bean.Result;
 import bean.UserEntity;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
+import contact.MobileSynListBean;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -43,9 +48,11 @@ import android.widget.Toast;
 import tools.AppException;
 import tools.AppManager;
 import tools.BaseActivity;
+import tools.DecodeUtil;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
+import ui.HomeContactActivity.GetMobileReceiver;
 
 public class LoginCode2 extends AppActivity{
 	private TextView contentView;
@@ -56,6 +63,8 @@ public class LoginCode2 extends AppActivity{
 	private ProgressDialog loadingPd;
 	private String mobile;
 	private InputMethodManager imm;
+	
+	private GetCodeReceiver getCodeReceiver;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -63,6 +72,13 @@ public class LoginCode2 extends AppActivity{
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
 		initUI();
 		initData();
+		registerGetReceiver();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		unregisterGetReceiver();
+		super.onDestroy();
 	}
 	
 	private void initUI() {
@@ -256,5 +272,28 @@ public class LoginCode2 extends AppActivity{
 		@Override
 		public void onClick(View arg0) {
 		}
+	}
+	
+	class GetCodeReceiver extends BroadcastReceiver {
+		public void onReceive(Context context, Intent intent) {
+			String code = intent.getStringExtra("code");
+			Logger.i(code);
+			try {
+				codeET.setText(code);
+			} catch (Exception e) {
+				Logger.i(e);
+			}
+		}
+	}
+	
+	private void registerGetReceiver() {
+		getCodeReceiver =  new  GetCodeReceiver();
+        IntentFilter postFilter = new IntentFilter();
+        postFilter.addAction("get");
+        registerReceiver(getCodeReceiver, postFilter);
+	}
+	
+	private void unregisterGetReceiver() {
+		unregisterReceiver(getCodeReceiver);
 	}
 }

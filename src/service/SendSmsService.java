@@ -67,7 +67,7 @@ public class SendSmsService extends IntentService {
 				application = MyApplication.getInstance();
 				smsMember = new ArrayList<String>();
 				smsMember.addAll(intent.getStringArrayListExtra("smsMember"));
-				smsBody = intent.getStringExtra("smsBody") +". 此短信是由" + application.getNickname() + "发送的.";
+				smsBody = intent.getStringExtra("smsBody") +" （" + application.getNickname() + "）";
 				Logger.i(smsBody);
 				sManage = SmsManager.getDefault();  
 				

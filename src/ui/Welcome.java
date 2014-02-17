@@ -1,9 +1,13 @@
 package ui;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.crashlytics.android.Crashlytics;
 
 import service.AddMobileService;
 import tools.AppManager;
+import tools.Logger;
 
 import com.vikaa.mycontact.R;
 
@@ -40,6 +44,7 @@ public class Welcome extends AppActivity {
 			public void onAnimationStart(Animation animation) {}
 			
 		});
+		
 	}
 	
 	private void redirectTo(){     
