@@ -84,6 +84,7 @@ import android.widget.Toast;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.LinearLayout.LayoutParams;
 import tools.AppException;
+import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
 import tools.UIHelper;
@@ -168,12 +169,17 @@ public class Index extends AppActivity {
 		setContentView(R.layout.index);
 		ShareSDK.initSDK(this);
 		initUI();
-		getCache();
-		if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-    		return;
-    	}
-        checkLogin();
+		Handler jumpHandler = new Handler();
+        jumpHandler.postDelayed(new Runnable() {
+			public void run() {
+				getCache();
+				if (!appContext.isNetworkConnected()) {
+		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+		    		return;
+		    	}
+				checkLogin();
+			}
+		}, 500);
 	}
 	
 	private void blindBaidu() {
@@ -603,9 +609,11 @@ public class Index extends AppActivity {
 						blindBaidu();
 					}
 					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
 					break;
 				}
 			}
@@ -704,9 +712,11 @@ public class Index extends AppActivity {
 					}
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
 					break;
 				}
 			}
@@ -748,9 +758,11 @@ public class Index extends AppActivity {
 					}
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
 					break;
 				}
 			}
@@ -789,9 +801,11 @@ public class Index extends AppActivity {
 					addCardOp();
 					mCardAdapter.notifyDataSetChanged();
 					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
 					break;
 				}
 			}
@@ -865,9 +879,11 @@ public class Index extends AppActivity {
 						}
 					}
 					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
 					break;
 				}
 			}
@@ -1062,6 +1078,13 @@ public class Index extends AppActivity {
 		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
 		ops2.add(op22);
 		
+		CardIntroEntity op23 = new CardIntroEntity();
+		op23.realname = "注销";
+		op23.department = "退出当前账号重新登录";
+		op23.position = "";
+		op23.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		ops2.add(op23);
+		
 		cards.add(ops2);
 		
 	}
@@ -1218,6 +1241,61 @@ public class Index extends AppActivity {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
+	}
+	
+	@Override
+	public void onBackPressed() {
+		new AlertDialog.Builder(this).setTitle("确定退出吗?")
+		.setNeutralButton("确定", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				AppManager.getAppManager().finishAllActivity();
+			}
+		})
+		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		}).show();
+	}
+	
+	public void logout() {
+		new AlertDialog.Builder(this).setTitle("确定注销本账号吗?")
+		.setNeutralButton("确定", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				AppClient.Logout(appContext);
+				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
+				cookieStore.clear();
+				AppManager.getAppManager().finishAllActivity();
+				appContext.setUserLogout();
+				Intent intent = new Intent(Index.this, LoginCode1.class);
+				startActivity(intent);
+			}
+		})
+		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		}).show();
+	}
+	
+	public void forceLogout() {
+		UIHelper.ToastMessage(this, "用户未登录,1秒后重新进入登录界面", Toast.LENGTH_SHORT);
+		Handler jumpHandler = new Handler();
+        jumpHandler.postDelayed(new Runnable() {
+			public void run() {
+				AppClient.Logout(appContext);
+				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
+				cookieStore.clear();
+				AppManager.getAppManager().finishAllActivity();
+				appContext.setUserLogout();
+				Intent intent = new Intent(Index.this, LoginCode1.class);
+				startActivity(intent);
+			}
+		}, 1000);
 	}
 
 }

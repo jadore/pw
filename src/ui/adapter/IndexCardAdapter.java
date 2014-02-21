@@ -131,11 +131,19 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 					}
 				});
 			}
-			else {
+			else if (position == 1) {
 				convertView.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
 						((Index)context).showUpdate();
+					}
+				});
+			}
+			else {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).logout();
 					}
 				});
 			}

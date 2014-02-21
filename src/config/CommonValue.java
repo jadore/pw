@@ -13,10 +13,12 @@ import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.vikaa.baseapp.R;
 
 public class CommonValue {
+	public static final int USER_NOT_IN_ERROR = 1001;
+	
 	public static final String PackageName = "com.vikaa.mycontact";
 	
-	public static String BASE_API = "http://pb.wc.m0.hk/api/";
-	public static String BASE_URL = "http://pb.wc.m0.hk";
+	public static String BASE_API = "http://qun.hk/api/";
+	public static String BASE_URL = "http://qun.hk";
 	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	

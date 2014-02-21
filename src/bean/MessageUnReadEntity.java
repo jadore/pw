@@ -20,7 +20,9 @@ public class MessageUnReadEntity extends Entity{
 				data.news = info.getString("news");
 			}
 			else {
-				data.error_code = 11;
+				if (!js.isNull("error_code")) {
+					data.error_code = js.getInt("error_code");
+				}
 				data.message = js.getString("info");
 			}
 		} catch (JSONException e) {

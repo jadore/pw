@@ -89,11 +89,16 @@ public class FriendCardAdapter extends BaseAdapter {
 //		} else {
 			cell.alpha.setVisibility(View.GONE);
 //		}
-		if (model.phone_display.indexOf("*") != -1 || StringUtils.isEmpty(model.phone_display)) {
+		if (StringUtils.isEmpty(model.phone_display)) {
 			cell.callButton.setVisibility(View.INVISIBLE);
 		}
 		else {
-			cell.callButton.setVisibility(View.VISIBLE);
+			if (model.phone_display.indexOf("*") != -1 ) {
+				cell.callButton.setVisibility(View.INVISIBLE);
+			}
+			else {
+				cell.callButton.setVisibility(View.VISIBLE);
+			}
 		}
 		cell.callButton.setOnClickListener(new OnClickListener() {
 			@Override

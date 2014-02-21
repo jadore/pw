@@ -296,4 +296,8 @@ public class LoginCode2 extends AppActivity{
 	private void unregisterGetReceiver() {
 		unregisterReceiver(getCodeReceiver);
 	}
+	
+	public void onBackPressed() {
+		WarningDialog();
+	}
 }

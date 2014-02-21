@@ -14,4 +14,5 @@ public class AppActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		appContext =  (MyApplication)getApplication();
 	}
+	
 }

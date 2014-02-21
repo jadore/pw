@@ -57,7 +57,7 @@ public class MyApplication extends AppContext {
 		ImageCacheUtil.init(this);
 		Thread.setDefaultUncaughtExceptionHandler(AppException.getAppExceptionHandler());
 		L.disableLogging();
-		Logger.setDebug(true);
+		Logger.setDebug(false);
 		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);

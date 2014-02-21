@@ -1,10 +1,15 @@
 package config;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import org.apache.http.Header;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import android.content.Context;
+import android.os.Environment;
 import baidupush.Utils;
 import bean.ActivityListEntity;
 import bean.ActivityViewEntity;
@@ -21,6 +26,7 @@ import bean.RecommendListEntity;
 import bean.Update;
 import bean.UserEntity;
 import bean.WebContent;
+import tools.AppException;
 import tools.AppManager;
 import tools.DecodeUtil;
 import tools.Logger;
@@ -113,6 +119,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
+					Logger.i(DecodeUtil.decode(new String(content)));
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -124,6 +131,22 @@ public class AppClient {
 				if (appContext.isNetworkConnected()) {
 					callback.onFailure(e.getMessage());
 				}
+			}
+		});
+	}
+	
+	public static void Logout(final MyApplication appContext) {
+		QYRestClient.post("user/logout", null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try {
+					Logger.i(DecodeUtil.decode(new String(content)));
+				} catch (AppException e) {
+					Logger.i(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 			}
 		});
 	}
@@ -563,11 +586,9 @@ public class AppClient {
     }
 	
 	public static void loadURL(Context context, final MyApplication appContext, final String url, final WebCallback callback) {
-		Logger.i("s");
 		QYRestClient.getWeb(context, url, null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				Logger.i("g");
 				try{
 					String data = new String(content);
 					String md5 = MD5Util.getMD5String(content);
@@ -598,13 +619,31 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-//				Logger.i("aaaa");
-//				if (appContext.isNetworkConnected()) {
-//					callback.onFailure(e.getMessage());
-//				}
 				callback.onFailure(url);
 			}
 		});
 	}
 	
+	private void writeHtml2File(String fileName, String content) {
+		String savePath;
+		String htmlFilePath = "";
+		String storageState = Environment.getExternalStorageState();
+		if(storageState.equals(Environment.MEDIA_MOUNTED)){
+			savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/";
+			File file = new File(savePath);
+			if(!file.exists()){
+				file.mkdirs();
+			}
+			htmlFilePath = savePath + fileName;
+			File ApkFile = new File(htmlFilePath);
+			try {
+				FileOutputStream outStream = new FileOutputStream(ApkFile);
+				outStream.write(content.getBytes());
+				outStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+	}
 }

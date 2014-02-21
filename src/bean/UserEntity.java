@@ -29,7 +29,9 @@ public class UserEntity extends Entity{
 				data.hash = info.getString("hash");
 			}
 			else {
-				data.error_code = 11;
+				if (!js.isNull("error_code")) {
+					data.error_code = js.getInt("error_code");
+				}
 				data.message = js.getString("info");
 			}
 			

@@ -242,7 +242,11 @@ public class QYWebView extends AppActivity  {
 				Logger.i(errorCode+"");
 				switch (errorCode) {
 				case -2:
-					webView.setVisibility(View.INVISIBLE);
+					try {
+						view.setVisibility(View.INVISIBLE);
+					}catch (Exception e) {
+						Crashlytics.logException(e);
+					}
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), "网速不给力,请重新加载", Toast.LENGTH_SHORT);
@@ -255,9 +259,6 @@ public class QYWebView extends AppActivity  {
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
 		    public void onProgressChanged(WebView view, int progress) {
-		        setTitle("页面加载中，请稍候..." + progress + "%");
-		        setProgress(progress * 100);
-		        
 		        if (progress == 100) {
 //		        	UIHelper.dismissProgress(loadingPd);
 		        	indicatorImageView.setVisibility(View.INVISIBLE);
@@ -290,22 +291,9 @@ public class QYWebView extends AppActivity  {
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
     	loadURLScheme(QYurl);
-//    	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-//		webView.loadUrl(QYurl);
-//		if (!appContext.isNetworkConnected()) {
-//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-//    		return;
-//    	}
-//		if (QYurl.contains("card")) {
-//			loadAgain();
-//		}
-//		else {
-//			loadURL(QYurl);
-//		}
-		
 	}
 	
-	private void loadURLScheme(String url) {
+	private void setCookie() {
 		CookieManager cookieManager = CookieManager.getInstance();
 		cookieManager.setAcceptCookie(true);
 		cookieManager.removeSessionCookie();
@@ -315,11 +303,16 @@ public class QYWebView extends AppActivity  {
 		    cookieManager.setCookie(QYurl, cookieString); 
 		    CookieSyncManager.getInstance().sync(); 
 		}
+	}
+	
+	private void loadURLScheme(String url) {
+		setCookie();
 		String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
 		WebContent dc = (WebContent) appContext.readObject(key);
 		if(dc == null){
 			if (!appContext.isNetworkConnected()) {
 				webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+				setCookie();
             	webView.loadUrl(url);
             	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			}
@@ -335,23 +328,12 @@ public class QYWebView extends AppActivity  {
 	
 	private void loadSecondURLScheme(String url) {
 		newtv.setVisibility(View.INVISIBLE);
-		CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.setAcceptCookie(true);
-		cookieManager.removeSessionCookie();
-		CookieStore cookieStore = new PersistentCookieStore(this);  
-		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
-			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-		    cookieManager.setCookie(QYurl, cookieString); 
-		    CookieSyncManager.getInstance().sync(); 
-		}
-		if (!appContext.isNetworkConnected()) {
-			webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
-        	webView.loadUrl(url);
-        	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-		}
-		else {
-			loadURL(url, true, false);
-		}
+		setCookie();
+		webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
+    	webView.loadUrl(url);
+    	if (!appContext.isNetworkConnected()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    	}
 	}
 	
 	private void loadURL(final String url, final boolean isLoad, final boolean isPlay) {
@@ -360,9 +342,10 @@ public class QYWebView extends AppActivity  {
 			@Override
 			public void onFailure(String message) {
 				Logger.i("aaa");
-				if (isLoad) {
+				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected()) {
 					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
 					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+					setCookie();
 					webView.loadUrl(message);
 				}
 			}
