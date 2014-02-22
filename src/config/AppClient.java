@@ -1,11 +1,14 @@
 package config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.http.Header;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.BinaryHttpResponseHandler;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import android.content.Context;
@@ -645,5 +648,54 @@ public class AppClient {
 			}
 			
 		}
+	}
+	
+	public interface FileCallback{
+        abstract void onSuccess(String filePath);
+        abstract void onFailure(String message);
+        abstract void onError(Exception e);
+    }
+	public static void downFile(Context context, final MyApplication appContext, final String url, final String format, final FileCallback callback) {
+		QYRestClient.downImage(appContext, url, null, new BinaryHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
+				Logger.i(statusCode+"");
+				String storageState = Environment.getExternalStorageState();	
+				String savePath = null;
+				if(storageState.equals(Environment.MEDIA_MOUNTED)){
+					savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/";
+					File dir = new File(savePath);
+					if(!dir.exists()){
+						dir.mkdirs();
+					}
+				}
+				String md5FilePath = savePath + MD5Util.getMD5String(url) + format;
+//				File ApkFile = new File(md5FilePath);
+//				if(ApkFile.exists()){
+//					ApkFile.delete();
+//					return;
+//				}
+				File tmpFile = new File(md5FilePath);
+				try {
+					FileOutputStream fos = new FileOutputStream(tmpFile);
+					fos.write(binaryData);
+					fos.close();
+					callback.onSuccess(md5FilePath);
+				} catch (FileNotFoundException e) {
+					callback.onError(e);
+					e.printStackTrace();
+				} catch (IOException e) {
+					callback.onError(e);
+					e.printStackTrace();
+				}
+			}
+			
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] binaryData,
+					Throwable error) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
 	}
 }

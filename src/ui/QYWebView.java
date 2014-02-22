@@ -1,9 +1,12 @@
 package ui;
 
 import java.io.File;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.http.client.CookieStore;
 import org.json.JSONException;
@@ -25,13 +28,21 @@ import cn.sharesdk.onekeyshare.OnekeyShare;
 import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.loopj.android.http.PersistentCookieStore;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.SendMessageToWX;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
+import com.tencent.mm.sdk.openapi.WXImageObject;
+import com.tencent.mm.sdk.openapi.WXMediaMessage;
+import com.tencent.weibo.constants.APIConstants;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.AppClient.FileCallback;
 import config.AppClient.WebCallback;
 import config.CommonValue;
 import config.QYRestClient;
 
+import android.R.string;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
@@ -44,6 +55,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -83,12 +96,14 @@ public class QYWebView extends AppActivity  {
 	private Animation indicatorAnimation;
 	private WebView webView;
 	private Button loadAgainButton;
-//	private ProgressDialog loadingPd;
+	private ProgressDialog loadingPd;
 	private Button rightBarButton;
 	private Button closeBarButton;
 	private MyAsyncQueryHandler asyncQuery;
 	private String keyCode;
 	private int keyType;
+	
+	private List<String> urls = new ArrayList<String>();
 	
 	private ValueCallback<Uri> mUploadMessage;
 	private final static int FILECHOOSER_RESULTCODE = 1;
@@ -227,7 +242,10 @@ public class QYWebView extends AppActivity  {
 			    	indicatorImageView.startAnimation(indicatorAnimation);
 //			    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
 //					view.loadUrl(url);
-					loadSecondURLScheme(url);
+			    	if (!StringUtils.isEmpty(url)) {
+			    		urls.add(url);
+						loadSecondURLScheme(url);
+					}
 				}
 				return true;
 			}
@@ -290,29 +308,31 @@ public class QYWebView extends AppActivity  {
 		
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
+    	urls.add(QYurl);
     	loadURLScheme(QYurl);
 	}
 	
-	private void setCookie() {
+	private void setCookie(String url) {
 		CookieManager cookieManager = CookieManager.getInstance();
 		cookieManager.setAcceptCookie(true);
 		cookieManager.removeSessionCookie();
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
 			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-		    cookieManager.setCookie(QYurl, cookieString); 
+			Logger.i(cookieString);
+		    cookieManager.setCookie(url, cookieString); 
 		    CookieSyncManager.getInstance().sync(); 
 		}
 	}
 	
 	private void loadURLScheme(String url) {
-		setCookie();
+		setCookie(url);
 		String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
 		WebContent dc = (WebContent) appContext.readObject(key);
 		if(dc == null){
 			if (!appContext.isNetworkConnected()) {
 				webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-				setCookie();
+				setCookie(url);
             	webView.loadUrl(url);
             	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			}
@@ -327,10 +347,14 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void loadSecondURLScheme(String url) {
+		if (StringUtils.isEmpty(url)) {
+			return;
+		}
 		newtv.setVisibility(View.INVISIBLE);
-		setCookie();
+		setCookie(url);
 		webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
     	webView.loadUrl(url);
+    	Logger.i(url);
     	if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     	}
@@ -345,7 +369,7 @@ public class QYWebView extends AppActivity  {
 				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected()) {
 					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
 					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-					setCookie();
+					setCookie(url);
 					webView.loadUrl(message);
 				}
 			}
@@ -379,9 +403,12 @@ public class QYWebView extends AppActivity  {
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			if (webView.canGoBack()) {
-				webView.goBack();
-			}
+			if (urls.size() > 1) {
+				urls.remove(urls.size()-1);
+		        String url = urls.get(urls.size()-1);
+		        setCookie(url);
+		        webView.loadUrl(url);
+		    }
 			else {
 				AppManager.getAppManager().finishActivity(this);
 				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
@@ -581,12 +608,52 @@ public class QYWebView extends AppActivity  {
 		}
 	}
 	
-	private void showShare(boolean silent, String platform, String desc, String title, String link, String TLImg, String MsgImg) {
+	private void showShare(final boolean silent, final String platform, final String desc, final String title, final String link, String TLImg, String MsgImg) {
+		String storageState = Environment.getExternalStorageState();	
+		if(storageState.equals(Environment.MEDIA_MOUNTED)){
+			String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/" + MD5Util.getMD5String(TLImg) + ".png";
+			File file = new File(savePath);
+			if (file.exists()) {
+				okshare(silent, platform, desc, title, link, savePath);
+			}
+			else {
+				loadingPd = UIHelper.showProgress(this, null, null, true);
+				AppClient.downFile(this, appContext, TLImg, ".png", new FileCallback() {
+					@Override
+					public void onSuccess(String filePath) {
+						UIHelper.dismissProgress(loadingPd);
+						okshare(silent, platform, desc, title, link, filePath);
+					}
+					
+					@Override
+					public void onFailure(String message) {
+						UIHelper.dismissProgress(loadingPd);
+						okshare(silent, platform, desc, title, link, "");
+					}
+					
+					@Override
+					public void onError(Exception e) {
+						UIHelper.dismissProgress(loadingPd);
+						okshare(silent, platform, desc, title, link, "");
+					}
+				});
+			}
+		}
+	}
+	
+	private void okshare(boolean silent, String platform, String desc, String title, String link, String filePath) {
 		try {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle("群友通讯录");
 			oks.setText(String.format("%s, %s。%s", title, desc, link));
+			oks.setUrl(link);
+			if (!StringUtils.isEmpty(filePath)) {
+				oks.setImagePath(filePath);
+			}
+			else {
+				oks.setImagePath("file:///android_asset/ic_launcher.png");
+			}
 			if (!StringUtils.isEmpty(link)) {
 				oks.setUrl(link);
 			}

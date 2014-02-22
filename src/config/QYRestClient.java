@@ -29,6 +29,10 @@ public class QYRestClient {
 	  public static void post(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
 	      client.post(context, getAbsoluteUrl(url), params, responseHandler);
 	  }
+	  
+	  public static void downImage(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+		  client.get(context, url, params, responseHandler);
+	  }
 
 	  private static String getAbsoluteUrl(String relativeUrl) {
 		  client.setTimeout(10*1000);
