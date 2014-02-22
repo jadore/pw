@@ -228,20 +228,8 @@ public class QYWebView extends AppActivity  {
 					UIHelper.ToastMessage(QYWebView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
 				}
 				else {
-//					CookieManager cookieManager = CookieManager.getInstance();
-//					cookieManager.setAcceptCookie(true);
-//					cookieManager.removeSessionCookie();
-//					CookieStore cookieStore = new PersistentCookieStore(QYWebView.this);  
-//					for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
-//						String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-//						Logger.i(cookieString);
-//					    cookieManager.setCookie(url, cookieString); 
-//					    CookieSyncManager.getInstance().sync(); 
-//					}
 					indicatorImageView.setVisibility(View.VISIBLE);
 			    	indicatorImageView.startAnimation(indicatorAnimation);
-//			    	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-//					view.loadUrl(url);
 			    	if (!StringUtils.isEmpty(url)) {
 			    		urls.add(url);
 						loadSecondURLScheme(url);
@@ -277,8 +265,10 @@ public class QYWebView extends AppActivity  {
 		});
 		webView.setWebChromeClient(new WebChromeClient() {
 		    public void onProgressChanged(WebView view, int progress) {
+		    	if (progress >= 50) {
+		    		UIHelper.dismissProgress(loadingPd);
+		    	}
 		        if (progress == 100) {
-//		        	UIHelper.dismissProgress(loadingPd);
 		        	indicatorImageView.setVisibility(View.INVISIBLE);
 		        	indicatorImageView.clearAnimation();
 		        }
@@ -313,16 +303,16 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void setCookie(String url) {
-		CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.setAcceptCookie(true);
-		cookieManager.removeSessionCookie();
-		CookieStore cookieStore = new PersistentCookieStore(this);  
-		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
-			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-			Logger.i(cookieString);
-		    cookieManager.setCookie(url, cookieString); 
-		    CookieSyncManager.getInstance().sync(); 
-		}
+//		CookieManager cookieManager = CookieManager.getInstance();
+//		cookieManager.setAcceptCookie(true);
+//		cookieManager.removeSessionCookie();
+//		CookieStore cookieStore = new PersistentCookieStore(this);  
+//		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
+//			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
+//			Logger.i(cookieString);
+//		    cookieManager.setCookie(url, cookieString); 
+//		    CookieSyncManager.getInstance().sync(); 
+//		}
 	}
 	
 	private void loadURLScheme(String url) {
@@ -407,6 +397,7 @@ public class QYWebView extends AppActivity  {
 				urls.remove(urls.size()-1);
 		        String url = urls.get(urls.size()-1);
 		        setCookie(url);
+		        loadingPd = UIHelper.showProgress(this, "", "", true);
 		        webView.loadUrl(url);
 		    }
 			else {

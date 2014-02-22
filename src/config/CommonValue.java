@@ -20,6 +20,9 @@ public class CommonValue {
 	public static String BASE_API = "http://qun.hk/api/";
 	public static String BASE_URL = "http://qun.hk";
 	
+//	public static String BASE_API = "http://pb.wcl.m0.hk/api/";
+//	public static String BASE_URL = "http://pb.wcl.m0.hk";
+	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
 	public interface subTitle {

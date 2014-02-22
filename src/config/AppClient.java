@@ -102,6 +102,7 @@ public class AppClient {
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
+					Logger.i(e);
 					callback.onError(e);
 				}
 			}
@@ -178,7 +179,7 @@ public class AppClient {
 	}
 	
 	public static void getPhoneList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("phonebook/lists", null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("phonebook/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -270,7 +271,7 @@ public class AppClient {
 	}
 	
 	public static void getActivityList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("activity/lists", null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("activity/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -314,7 +315,7 @@ public class AppClient {
 	}
 	
 	public static void getCardList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("card/lists", null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("card/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -392,7 +393,7 @@ public class AppClient {
 			params.add("count", count);
 		}
 		Logger.i("s");
-		QYRestClient.post(context, "card/friendlist", params, new AsyncHttpResponseHandler() {
+		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginHash(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				Logger.i("g");
@@ -512,7 +513,7 @@ public class AppClient {
 	public static void syncContact(final MyApplication appContext, String data, final ClientCallback callback) {
 		RequestParams param = new RequestParams();
 		param.add("data", data);
-		QYRestClient.post("contact/sync", param, new AsyncHttpResponseHandler() {
+		QYRestClient.post("contact/sync"+"?_sign="+appContext.getLoginHash(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -540,7 +541,7 @@ public class AppClient {
 		}
 		data += " |client_push : android |";
 		param.add("message", data);
-		QYRestClient.post("feedback/send", param, new AsyncHttpResponseHandler() {
+		QYRestClient.post("feedback/send"+"?_sign="+appContext.getLoginHash(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -589,7 +590,9 @@ public class AppClient {
     }
 	
 	public static void loadURL(Context context, final MyApplication appContext, final String url, final WebCallback callback) {
-		QYRestClient.getWeb(context, url, null, new AsyncHttpResponseHandler() {
+//		RequestParams params = new RequestParams();
+//		params.add("_sign", appContext.getLoginHash());
+		QYRestClient.getWeb(context, url+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{

@@ -16,6 +16,7 @@ public class UserEntity extends Entity{
 	public String hash;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
+		Logger.i(res);
 		UserEntity data = new UserEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -26,16 +27,23 @@ public class UserEntity extends Entity{
 				data.sex = info.getString("sex");
 				data.headimgurl = info.getString("headimgurl");
 				data.nickname = info.getString("nickname");
-				data.hash = info.getString("hash");
+				if (!info.isNull("_sign")) {
+					data.hash = info.getString("_sign");
+				}
 			}
 			else {
 				if (!js.isNull("error_code")) {
-					data.error_code = js.getInt("error_code");
+					try {
+						data.error_code = js.getInt("error_code");
+					} catch (Exception  e) {
+						data.error_code = Integer.valueOf(js.getString("error_code"));
+					}
 				}
 				data.message = js.getString("info");
 			}
 			
 		} catch (JSONException e) {
+			Logger.i(res);
 			Logger.i(e);
 			throw AppException.json(e);
 		}
