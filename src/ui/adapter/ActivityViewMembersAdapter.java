@@ -266,7 +266,7 @@ public class ActivityViewMembersAdapter extends SectionedBaseAdapter {
 	}
 	
 	private void exchangeCard(final CardIntroEntity model) {
-		loadingPd = UIHelper.showProgress(context, null, null, true);
+//		loadingPd = UIHelper.showProgress(context, null, null, true);
 		AppClient.followCard(appContext, model.openid, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {

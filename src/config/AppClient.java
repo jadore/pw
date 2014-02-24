@@ -116,10 +116,9 @@ public class AppClient {
 	}
 	
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
-//		RequestParams params = new RequestParams();
-//		params.add("key", "18967680777");
-//		QYRestClient.post("user/adminlogin", params, new AsyncHttpResponseHandler() {
-		QYRestClient.post("user/autologin", null, new AsyncHttpResponseHandler() {
+		RequestParams params = new RequestParams();
+		params.add("hash", appContext.getLoginHashCode());
+		QYRestClient.post("user/autologin", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -179,7 +178,7 @@ public class AppClient {
 	}
 	
 	public static void getPhoneList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("phonebook/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("phonebook/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -271,7 +270,7 @@ public class AppClient {
 	}
 	
 	public static void getActivityList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("activity/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("activity/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -315,7 +314,7 @@ public class AppClient {
 	}
 	
 	public static void getCardList(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("card/lists"+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("card/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -393,7 +392,7 @@ public class AppClient {
 			params.add("count", count);
 		}
 		Logger.i("s");
-		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginHash(), params, new AsyncHttpResponseHandler() {
+		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				Logger.i("g");
@@ -459,7 +458,7 @@ public class AppClient {
 	}
 	
 	public static void getUnReadMessage(final MyApplication appContext, final ClientCallback callback) {
-		QYRestClient.post("message/getnewsnumber", null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("message/getnewsnumber"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -479,7 +478,7 @@ public class AppClient {
 	}
 	
 	public static void setMessageRead(MyApplication appContext) {
-		QYRestClient.post("message/read", null, new AsyncHttpResponseHandler() {
+		QYRestClient.post("message/read"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 			}
@@ -513,7 +512,7 @@ public class AppClient {
 	public static void syncContact(final MyApplication appContext, String data, final ClientCallback callback) {
 		RequestParams param = new RequestParams();
 		param.add("data", data);
-		QYRestClient.post("contact/sync"+"?_sign="+appContext.getLoginHash(), param, new AsyncHttpResponseHandler() {
+		QYRestClient.post("contact/sync"+"?_sign="+appContext.getLoginSign(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -541,7 +540,7 @@ public class AppClient {
 		}
 		data += " |client_push : android |";
 		param.add("message", data);
-		QYRestClient.post("feedback/send"+"?_sign="+appContext.getLoginHash(), param, new AsyncHttpResponseHandler() {
+		QYRestClient.post("feedback/send"+"?_sign="+appContext.getLoginSign(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
@@ -576,9 +575,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("");
 			}
 		});
 	}
@@ -591,8 +588,8 @@ public class AppClient {
 	
 	public static void loadURL(Context context, final MyApplication appContext, final String url, final WebCallback callback) {
 //		RequestParams params = new RequestParams();
-//		params.add("_sign", appContext.getLoginHash());
-		QYRestClient.getWeb(context, url+"?_sign="+appContext.getLoginHash(), null, new AsyncHttpResponseHandler() {
+//		params.add("_sign", appContext.getLoginSign());
+		QYRestClient.getWeb(context, url+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{

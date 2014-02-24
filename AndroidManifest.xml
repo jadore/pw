@@ -146,13 +146,6 @@
         </activity>
         
         <activity
-            android:name="ui.PhonebookViewWeb"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
-             >
-        </activity>
-        
-        <activity
             android:name="ui.PhonebookSMS"
             android:screenOrientation="portrait"
              >
@@ -171,21 +164,8 @@
         </activity>
         
         <activity
-            android:name="ui.ActivityViewWeb"
-            android:screenOrientation="portrait"
-             >
-        </activity>
-        
-        <activity
             android:name="ui.CardView"
             android:screenOrientation="portrait"
-             >
-        </activity>
-        
-        <activity
-            android:name="ui.CardViewWeb"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
              >
         </activity>
         

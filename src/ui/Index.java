@@ -608,7 +608,6 @@ public class Index extends AppActivity {
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
-					WebView webView = (WebView) findViewById(R.id.webview);
 					webView.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginHash())  ;
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:

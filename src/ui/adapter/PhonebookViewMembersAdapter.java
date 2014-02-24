@@ -507,7 +507,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 	}
 	
 	private void setRole(final CardIntroEntity model, final String role) {
-		loadingPd = UIHelper.showProgress(context, null, null, true);
+//		loadingPd = UIHelper.showProgress(context, null, null, true);
 		AppClient.setPhonebookRole(appContext, phonebook.code, model.openid, role, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -537,7 +537,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 	}
 	
 	private void setPass(final CardIntroEntity model, final String state) {
-		loadingPd = UIHelper.showProgress(context, null, null, true);
+//		loadingPd = UIHelper.showProgress(context, null, null, true);
 		AppClient.setPhonebookPassmember(appContext, phonebook.code, model.openid, state, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -567,7 +567,7 @@ public class PhonebookViewMembersAdapter extends SectionedBaseAdapter {
 	}
 	
 	private void exchangeCard(final CardIntroEntity model) {
-		loadingPd = UIHelper.showProgress(context, null, null, true);
+//		loadingPd = UIHelper.showProgress(context, null, null, true);
 		AppClient.followCard(appContext, model.openid, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {

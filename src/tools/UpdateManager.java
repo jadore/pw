@@ -173,7 +173,6 @@ public class UpdateManager {
 					mProDialog.dismiss();
 					mProDialog = null;
 				}
-				UIHelper.ToastMessage(context, R.layout.toastmessage_text, message, Toast.LENGTH_SHORT);
 			}
 			
 			@Override

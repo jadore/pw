@@ -101,7 +101,8 @@ public class MyApplication extends AppContext {
 				setProperty("user.uid", user.openid);
 				setProperty("user.name", user.nickname);
 				setProperty("user.face", user.headimgurl);
-				setProperty("user.hash", user.hash);
+				setProperty("user.hashcode", user.hash);
+				setProperty("user.sign", user._sign);
 			}
 		});		
 	}
@@ -114,8 +115,12 @@ public class MyApplication extends AppContext {
 		return (getProperty("user.uid"));
 	}
 	
-	public String getLoginHash() {
-		return (getProperty("user.hash"));
+	public String getLoginHashCode() {
+		return (getProperty("user.hashcode"));
+	}
+	
+	public String getLoginSign() {
+		return (getProperty("user.sign"));
 	}
 
 	/**

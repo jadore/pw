@@ -14,6 +14,7 @@ public class UserEntity extends Entity{
 	public String sex;
 	public String headimgurl;
 	public String hash;
+	public String _sign;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
 		Logger.i(res);
@@ -27,8 +28,9 @@ public class UserEntity extends Entity{
 				data.sex = info.getString("sex");
 				data.headimgurl = info.getString("headimgurl");
 				data.nickname = info.getString("nickname");
+				data.hash = info.getString("hash");
 				if (!info.isNull("_sign")) {
-					data.hash = info.getString("_sign");
+					data._sign = info.getString("_sign");
 				}
 			}
 			else {

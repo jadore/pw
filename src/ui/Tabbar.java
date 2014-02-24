@@ -72,7 +72,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	
 	private void prepareIntent() {
 		homeIntent = new Intent(this, MessageView.class);
-		nearmeIntent = new Intent(this, IndexWeb.class);
+		nearmeIntent = new Intent(this, MessageView.class);
 		meIntent = new Intent(this, Find.class);
 		moreIntent = new Intent(this, HomeContactActivity.class);
 	}

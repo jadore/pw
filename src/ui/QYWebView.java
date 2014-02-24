@@ -1,14 +1,11 @@
 package ui;
 
 import java.io.File;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 
-import org.apache.http.client.CookieStore;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,29 +17,22 @@ import tools.UIHelper;
 
 import bean.CardIntroEntity;
 import bean.Entity;
+import bean.Result;
+import bean.UserEntity;
 import bean.WebContent;
-import cn.sharesdk.framework.Platform;
-import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
-import com.loopj.android.http.PersistentCookieStore;
-import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.openapi.SendMessageToWX;
-import com.tencent.mm.sdk.openapi.WXAPIFactory;
-import com.tencent.mm.sdk.openapi.WXImageObject;
-import com.tencent.mm.sdk.openapi.WXMediaMessage;
-import com.tencent.weibo.constants.APIConstants;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import config.AppClient.WebCallback;
 import config.CommonValue;
 import config.QYRestClient;
 
-import android.R.string;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
@@ -55,8 +45,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -77,8 +65,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -131,7 +117,8 @@ public class QYWebView extends AppActivity  {
 	@Override
 	protected void onDestroy() {
 		QYRestClient.getIntance().cancelRequests(this, true);
-		webView = null;
+		webView.destroy();
+		
 		super.onDestroy();
 	}
 	  
@@ -147,7 +134,7 @@ public class QYWebView extends AppActivity  {
 		newtv = (TextView) findViewById(R.id.new_data_toast_message);
 		
 		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
-		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
+		indicatorAnimation = AnimationUtils.loadAnimation(context, R.anim.refresh_button_rotation);
 		indicatorAnimation.setDuration(500);
 		indicatorAnimation.setInterpolator(new Interpolator() {
 		    private final int frameCount = 10;
@@ -225,13 +212,12 @@ public class QYWebView extends AppActivity  {
 					}
 				}
 				else if (url.startsWith("weixin:")) {
-					UIHelper.ToastMessage(QYWebView.this, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
+					UIHelper.ToastMessage(context, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
 				}
 				else {
 					indicatorImageView.setVisibility(View.VISIBLE);
 			    	indicatorImageView.startAnimation(indicatorAnimation);
-			    	if (!StringUtils.isEmpty(url)) {
-			    		urls.add(url);
+			    	if (!StringUtils.isEmpty(url) && !QYWebView.this.isFinishing()) {
 						loadSecondURLScheme(url);
 					}
 				}
@@ -302,27 +288,11 @@ public class QYWebView extends AppActivity  {
     	loadURLScheme(QYurl);
 	}
 	
-	private void setCookie(String url) {
-//		CookieManager cookieManager = CookieManager.getInstance();
-//		cookieManager.setAcceptCookie(true);
-//		cookieManager.removeSessionCookie();
-//		CookieStore cookieStore = new PersistentCookieStore(this);  
-//		for (org.apache.http.cookie.Cookie cookie : cookieStore.getCookies()) {
-//			String cookieString = cookie.getName() +"="+cookie.getValue()+"; domain="+cookie.getDomain(); 
-//			Logger.i(cookieString);
-//		    cookieManager.setCookie(url, cookieString); 
-//		    CookieSyncManager.getInstance().sync(); 
-//		}
-	}
-	
 	private void loadURLScheme(String url) {
-		setCookie(url);
 		String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
 		WebContent dc = (WebContent) appContext.readObject(key);
 		if(dc == null){
 			if (!appContext.isNetworkConnected()) {
-				webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-				setCookie(url);
             	webView.loadUrl(url);
             	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			}
@@ -337,21 +307,19 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void loadSecondURLScheme(String url) {
-		if (StringUtils.isEmpty(url)) {
-			return;
-		}
+		urls.add(url);
 		newtv.setVisibility(View.INVISIBLE);
-		setCookie(url);
-		webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
     	webView.loadUrl(url);
-    	Logger.i(url);
     	if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		UIHelper.ToastMessage(context, "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     	}
 	}
 	
 	private void loadURL(final String url, final boolean isLoad, final boolean isPlay) {
-		AppClient.loadURL(this, appContext, url, new WebCallback() {
+		if (this.isFinishing()) {
+			return;
+		}
+		AppClient.loadURL(context, appContext, url, new WebCallback() {
 			
 			@Override
 			public void onFailure(String message) {
@@ -359,7 +327,6 @@ public class QYWebView extends AppActivity  {
 				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected()) {
 					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
 					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-					setCookie(url);
 					webView.loadUrl(message);
 				}
 			}
@@ -373,7 +340,6 @@ public class QYWebView extends AppActivity  {
 			public void onSuccess(int type, Entity data, String key) {
 				WebContent wc = (WebContent) data;
 				if (isLoad) {
-					webseting.setCacheMode(WebSettings.LOAD_DEFAULT);
 					webView.loadDataWithBaseURL(CommonValue.BASE_URL, wc.text, "text/html", "utf-8", url);
 				}
 				switch (type) {
@@ -396,8 +362,7 @@ public class QYWebView extends AppActivity  {
 			if (urls.size() > 1) {
 				urls.remove(urls.size()-1);
 		        String url = urls.get(urls.size()-1);
-		        setCookie(url);
-		        loadingPd = UIHelper.showProgress(this, "", "", true);
+		        loadingPd = UIHelper.showProgress(QYWebView.this, "", "", true);
 		        webView.loadUrl(url);
 		    }
 			else {
@@ -505,6 +470,11 @@ public class QYWebView extends AppActivity  {
 	    	msg.obj = code;
 	    	mJSHandler.sendMessage(msg);
 	    }
+	    public void webNotSign(String c) {
+	    	Message msg = new Message();
+	    	msg.what = CommonValue.CreateViewJSType.webNotSign;
+	    	mJSHandler.sendMessage(msg);
+	    }
     }
 	
 	Handler mJSHandler = new Handler(){
@@ -566,9 +536,51 @@ public class QYWebView extends AppActivity  {
 				rightBarButton.setVisibility(View.VISIBLE);
 				Logger.i(code);
 				break;
+			case CommonValue.CreateViewJSType.webNotSign:
+				reLogin();
+				break;
 			}
 		};
 	};
+	
+	private void reLogin() {
+		if (this.isFinishing()) {
+			return;
+		}
+		loadingPd = UIHelper.showProgress(QYWebView.this, null, "用户未登录，正在尝试重连", true);
+		AppClient.autoLogin(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				UserEntity user = (UserEntity) data;
+				switch (user.getError_code()) {
+				case Result.RESULT_OK:
+					if (urls.size() > 1) {
+						urls.remove(urls.size()-1);
+				        String url = urls.get(urls.size()-1);
+				        loadingPd = UIHelper.showProgress(QYWebView.this, null, "正在刷新页面", true);
+				       	url = url.contains("?")? url+"&_sign="+appContext.getLoginSign() :  url+"?_sign="+appContext.getLoginSign();
+				        webView.loadUrl(url);
+					}
+					break;
+				default:
+					forceLogout();
+					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				UIHelper.dismissProgress(loadingPd);
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				UIHelper.dismissProgress(loadingPd);
+			}
+		});
+	}
 	
 	private void parseShare(String res) {
 		String MsgImg = "";
@@ -608,7 +620,7 @@ public class QYWebView extends AppActivity  {
 				okshare(silent, platform, desc, title, link, savePath);
 			}
 			else {
-				loadingPd = UIHelper.showProgress(this, null, null, true);
+				loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
 				AppClient.downFile(this, appContext, TLImg, ".png", new FileCallback() {
 					@Override
 					public void onSuccess(String filePath) {
@@ -652,7 +664,7 @@ public class QYWebView extends AppActivity  {
 			if (platform != null) {
 				oks.setPlatform(platform);
 			}
-			oks.show(this);
+			oks.show(context);
 		} catch (Exception e) {
 			Logger.i(e);
 		}
@@ -802,24 +814,28 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	protected void SMSDialog(final int type) {
-		AlertDialog.Builder builder = new Builder(this);
-		builder.setMessage("允许群友通讯录发送短信?\n建议一次发送不超过50条短信");
-		builder.setTitle("提示");
-		builder.setPositiveButton("确认", new OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
-				showSMS(type);
-			}
-		});
+		try {
+			AlertDialog.Builder builder = new Builder(context);
+			builder.setMessage("允许群友通讯录发送短信?\n建议一次发送不超过50条短信");
+			builder.setTitle("提示");
+			builder.setPositiveButton("确认", new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					showSMS(type);
+				}
+			});
 
-	   builder.setNegativeButton("取消", new OnClickListener() {
-		   @Override
-		   public void onClick(DialogInterface dialog, int which) {
-			   dialog.dismiss();
-		   }
-	   });
-	   builder.create().show();
+		   builder.setNegativeButton("取消", new OnClickListener() {
+			   @Override
+			   public void onClick(DialogInterface dialog, int which) {
+				   dialog.dismiss();
+			   }
+		   });
+		   builder.create().show();
+		} catch (Exception e) {
+			
+		}
 	}
 	
 	private void showSMS(int type) {
