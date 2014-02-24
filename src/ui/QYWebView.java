@@ -648,14 +648,14 @@ public class QYWebView extends AppActivity  {
 		try {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-			oks.setTitle("群友通讯录");
-			oks.setText(String.format("%s, %s。%s", title, desc, link));
+			oks.setTitle(title);
+			oks.setText(desc);
 			oks.setUrl(link);
 			if (!StringUtils.isEmpty(filePath)) {
 				oks.setImagePath(filePath);
 			}
 			else {
-				oks.setImagePath("file:///android_asset/ic_launcher.png");
+				oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
 			}
 			if (!StringUtils.isEmpty(link)) {
 				oks.setUrl(link);

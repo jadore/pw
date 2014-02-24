@@ -80,7 +80,7 @@ public class IndexPhoneAdapter extends SectionedBaseAdapter {
 			convertView.setOnLongClickListener(new OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View arg0) {
-					((Index)context).showShareDialog(model);
+//					((Index)context).showShareDialog(model);
 					return false;
 				}
 			});

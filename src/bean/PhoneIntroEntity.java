@@ -25,6 +25,8 @@ public class PhoneIntroEntity extends Entity {
 	public String question;//": "",
 	public String member;//": "0"
 	
+	public String logo;
+	
 	public String phoneSectionType;
 	public boolean willRefresh;
 	
@@ -77,6 +79,9 @@ public class PhoneIntroEntity extends Entity {
 			}
 			if (!info.isNull("count")) {
 				data.count = info.getString("count");
+			}
+			if (!info.isNull("logo")) {
+				data.logo = info.getString("logo");
 			}
 			if (!info.isNull("creator")) {
 				JSONObject creatorObj = new JSONObject(info.getString("creator"));

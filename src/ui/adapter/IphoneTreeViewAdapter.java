@@ -171,7 +171,7 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		convertView.setOnLongClickListener(new OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View arg0) {
-				((Index)context).showShare(false, null, model);
+				((Index)context).showSharePre(false, null, model);
 				return false;
 			}
 		});

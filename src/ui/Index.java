@@ -1,5 +1,6 @@
 package ui;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.AppClient.ClientCallback;
+import config.AppClient.FileCallback;
 import config.CommonValue;
 
 import android.app.AlertDialog;
@@ -44,6 +46,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -71,6 +74,8 @@ import android.widget.LinearLayout.LayoutParams;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
+import tools.MD5Util;
+import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
 import ui.adapter.IndexCardAdapter;
@@ -143,7 +148,6 @@ public class Index extends AppActivity {
 			title.setText("群友通讯录(未连接)");
 		}
 		else {
-			UpdateManager.getUpdateManager().checkAppUpdate(this, false);
 			title.setText("群友通讯录");
 		}
 	}
@@ -162,6 +166,7 @@ public class Index extends AppActivity {
 		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 		    		return;
 		    	}
+				UpdateManager.getUpdateManager().checkAppUpdate(Index.this, false);
 				checkLogin();
 			}
 		}, 500);
@@ -932,33 +937,23 @@ public class Index extends AppActivity {
 		}
 	}
 	
-	private String[] ot = new String[] { "推荐给好友", "分享到朋友圈"};
-	
-	public void showShareDialog(final PhoneIntroEntity phoneIntro){
-		new AlertDialog.Builder(this).setTitle("").setItems(ot,
-				new DialogInterface.OnClickListener(){
-			public void onClick(DialogInterface dialog, int which){
-				switch(which){
-				case 0:
-					showShare(false, Wechat.NAME, phoneIntro);
-					break;
-				case 1:
-					showShare(false, WechatMoments.NAME, phoneIntro);
-					break;
-				}
-			}
-		}).show();
-	}
-	
-	public void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro) {
+	public void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro, String filePath) {
 		if (phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType) 
 				|| phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
 			try {
 				final OnekeyShare oks = new OnekeyShare();
 				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-				oks.setTitle("群友通讯录");
-				oks.setText(String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。%s", phoneIntro.title, CommonValue.BASE_URL+"/book/"+phoneIntro.code));
-				oks.setImagePath("file:///android_asset/ic_launcher.png");
+				oks.setTitle(phoneIntro.title);
+				if (!StringUtils.isEmpty(filePath)) {
+					oks.setImagePath(filePath);
+					Logger.i("d");
+				}
+				else {
+					Logger.i("d");
+					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
+				}
+				
+				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
 				oks.setUrl(CommonValue.BASE_URL+"/book/"+phoneIntro.code);
 				oks.setSilent(silent);
 				if (platform != null) {
@@ -973,9 +968,14 @@ public class Index extends AppActivity {
 			try {
 				final OnekeyShare oks = new OnekeyShare();
 				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-				oks.setTitle("群友通讯录");
-				oks.setText(String.format("群友聚会，帮您更方便的发起聚会、签到报名，自动通知，统计人数。%s", CommonValue.BASE_URL+"/event/"+phoneIntro.code));
-				oks.setImagePath("file:///android_asset/ic_launcher.png");
+				oks.setTitle(phoneIntro.title);
+				if (!StringUtils.isEmpty(filePath)) {
+					oks.setImagePath(filePath);
+				}
+				else {
+					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
+				}
+				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s 群活动，点击参加。", phoneIntro.title));
 				oks.setUrl(CommonValue.BASE_URL+"/event/"+phoneIntro.code);
 				oks.setSilent(silent);
 				if (platform != null) {
@@ -988,29 +988,55 @@ public class Index extends AppActivity {
 		}
 	}
 	
-//	public void showShareDialog2(final PhoneIntroEntity phoneIntro){
-//		new AlertDialog.Builder(this).setTitle("").setItems(ot,
-//				new DialogInterface.OnClickListener(){
-//			public void onClick(DialogInterface dialog, int which){
-//				switch(which){
-//				case 0:
-//					showShare2(false, Wechat.NAME, phoneIntro);
-//					break;
-//				case 1:
-//					showShare2(false, WechatMoments.NAME, phoneIntro);
-//					break;
-//				}
-//			}
-//		}).show();
-//	}
+	public void showSharePre(final boolean silent, final String platform, final PhoneIntroEntity phoneIntro) {
+		if (StringUtils.isEmpty(phoneIntro.logo)) {
+			showShare(silent, platform, phoneIntro, "");
+			return;
+		}
+		String storageState = Environment.getExternalStorageState();	
+		if(storageState.equals(Environment.MEDIA_MOUNTED)){
+			String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/" + MD5Util.getMD5String(phoneIntro.logo) + ".png";
+			File file = new File(savePath);
+			if (file.exists()) {
+				showShare(silent, platform, phoneIntro, savePath);
+			}
+			else {
+				loadingPd = UIHelper.showProgress(Index.this, null, null, true);
+				AppClient.downFile(this, appContext, phoneIntro.logo, ".png", new FileCallback() {
+					@Override
+					public void onSuccess(String filePath) {
+						UIHelper.dismissProgress(loadingPd);
+						showShare(silent, platform, phoneIntro, filePath);
+					}
+					
+					@Override
+					public void onFailure(String message) {
+						UIHelper.dismissProgress(loadingPd);
+						showShare(silent, platform, phoneIntro, "");
+					}
+					
+					@Override
+					public void onError(Exception e) {
+						UIHelper.dismissProgress(loadingPd);
+						showShare(silent, platform, phoneIntro, "");
+					}
+				});
+			}
+		}
+	}
 	
-	public void cardShare(boolean silent, String platform, CardIntroEntity card) {
+	public void cardShare(boolean silent, String platform, CardIntroEntity card, String filePath) {
 		try {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-			oks.setTitle("群友通讯录");
-			oks.setText(String.format("您好，我叫%s，这是我的名片，请多多指教.%s",card.realname, CommonValue.BASE_URL+"/card/"+card.code));
-			oks.setImagePath("file:///android_asset/ic_launcher.png");
+			oks.setTitle(card.realname+"的名片");
+			oks.setText(!StringUtils.isEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
+			if (!StringUtils.isEmpty(filePath)) {
+				oks.setImagePath(filePath);
+			}
+			else {
+				oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
+			}
 			oks.setUrl(CommonValue.BASE_URL+"/card/"+card.code);
 			oks.setSilent(silent);
 			if (platform != null) {
@@ -1019,6 +1045,43 @@ public class Index extends AppActivity {
 			oks.show(this);
 		} catch (Exception e) {
 			Logger.i(e);
+		}
+	}
+	
+	public void cardSharePre(final boolean silent, final String platform, final CardIntroEntity card) {
+		if (StringUtils.isEmpty(appContext.getLoginInfo().headimgurl)) {
+			cardShare(silent, platform, card, "");
+			return;
+		}
+		String storageState = Environment.getExternalStorageState();	
+		if(storageState.equals(Environment.MEDIA_MOUNTED)){
+			String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/" + MD5Util.getMD5String(appContext.getLoginInfo().headimgurl) + ".png";
+			File file = new File(savePath);
+			if (file.exists()) {
+				cardShare(silent, platform, card, savePath);
+			}
+			else {
+				loadingPd = UIHelper.showProgress(Index.this, null, null, true);
+				AppClient.downFile(this, appContext, appContext.getLoginInfo().headimgurl, ".png", new FileCallback() {
+					@Override
+					public void onSuccess(String filePath) {
+						UIHelper.dismissProgress(loadingPd);
+						cardShare(silent, platform, card, filePath);
+					}
+					
+					@Override
+					public void onFailure(String message) {
+						UIHelper.dismissProgress(loadingPd);
+						cardShare(silent, platform, card, "");
+					}
+					
+					@Override
+					public void onError(Exception e) {
+						UIHelper.dismissProgress(loadingPd);
+						cardShare(silent, platform, card, "");
+					}
+				});
+			}
 		}
 	}
 	

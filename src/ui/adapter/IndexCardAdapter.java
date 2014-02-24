@@ -93,7 +93,7 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 			convertView.setOnLongClickListener(new OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View v) {
-					((Index)context).cardShare(false, null, model);
+					((Index)context).cardSharePre(false, null, model);
 					return false;
 				}
 			});
