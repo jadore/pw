@@ -1,7 +1,6 @@
 package ui;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.client.CookieStore;
@@ -19,18 +18,13 @@ import bean.RecommendListEntity;
 import bean.Result;
 import bean.UserEntity;
 
-import cn.sharesdk.framework.Platform;
-import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.ShareSDK;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 import cn.sharesdk.wechat.friends.Wechat;
 import cn.sharesdk.wechat.moments.WechatMoments;
 
-import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
-import com.baidu.android.pushservice.PushSettings;
-import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
@@ -38,21 +32,16 @@ import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
-import config.QYRestClient;
 import config.AppClient.ClientCallback;
 import config.CommonValue;
 
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
@@ -63,15 +52,12 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
-import android.webkit.CookieManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
@@ -81,9 +67,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.LinearLayout.LayoutParams;
-import tools.AppException;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
@@ -159,6 +143,7 @@ public class Index extends AppActivity {
 			title.setText("群友通讯录(未连接)");
 		}
 		else {
+			UpdateManager.getUpdateManager().checkAppUpdate(this, false);
 			title.setText("群友通讯录");
 		}
 	}
@@ -323,24 +308,6 @@ public class Index extends AppActivity {
 //		});
 		webView = (WebView) lay2.findViewById(R.id.webview);
 		loadAgainButton = (Button) lay2.findViewById(R.id.loadAgain);
-//		String url = "http://pb.wc.m0.hk/home/app";
-//		CookieStore cookieStore = new PersistentCookieStore(this);  
-//		QYRestClient.getIntance().setCookieStore(cookieStore);
-//		String cookieString2 = "";
-//		String cookieString3 = "";
-//		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
-//		cookieString3 = String.format("isapp=%s;", "1");
-//		Logger.i(cookieString2);
-//		Logger.i(cookieString3);
-//		CookieManager cookieManager = CookieManager.getInstance();
-//		cookieManager.removeAllCookie();
-//		cookieManager.setCookie(url, cookieString2);
-//		cookieManager.setCookie(url, cookieString3);
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
-//		webView.loadUrl(url);
-//		if (!appContext.isNetworkConnected()) {
-//    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-//    	}
 		
 		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
 		mPinedListView0.setDividerHeight(0);
@@ -608,7 +575,14 @@ public class Index extends AppActivity {
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
-					webView.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginHash())  ;
+					WebView webview = (WebView) findViewById(R.id.webview);
+					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
+					webview.setWebViewClient(new WebViewClient() {
+						public boolean shouldOverrideUrlLoading(WebView view, String url) {
+							view.loadUrl(url);
+							return true;
+						};
+					});
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
@@ -1149,7 +1123,7 @@ public class Index extends AppActivity {
 	}
 	
 	private void initWebData() {
-		String url = CommonValue.BASE_URL + "/home/app";
+		String url = CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign() ;
 		WebSettings webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
@@ -1207,21 +1181,7 @@ public class Index extends AppActivity {
 		    		long quota, QuotaUpdater quotaUpdater) {
 		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
 		    }
-		    
-		    
 		});
-		CookieStore cookieStore = new PersistentCookieStore(this);  
-		QYRestClient.getIntance().setCookieStore(cookieStore);
-		String cookieString2 = "";
-		String cookieString3 = "";
-		cookieString2 = String.format("hash=%s;", appContext.getLoginHash());
-		cookieString3 = String.format("isapp=%s;", "1");
-		Logger.i(cookieString2);
-		Logger.i(cookieString3);
-		CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.removeAllCookie();
-		cookieManager.setCookie(url, cookieString2);
-		cookieManager.setCookie(url, cookieString3);
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
@@ -1234,7 +1194,7 @@ public class Index extends AppActivity {
 	private void loadAgain() {
 		loadAgainButton.setVisibility(View.INVISIBLE);
 		webView.setVisibility(View.VISIBLE);
-		String url = CommonValue.BASE_URL + "/home/app";
+		String url = CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign() ;
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
 		webView.loadUrl(url);
@@ -1283,20 +1243,19 @@ public class Index extends AppActivity {
 		}).show();
 	}
 	
-	public void forceLogout() {
-		UIHelper.ToastMessage(this, "用户未登录,1秒后重新进入登录界面", Toast.LENGTH_SHORT);
-		Handler jumpHandler = new Handler();
-        jumpHandler.postDelayed(new Runnable() {
-			public void run() {
-				AppClient.Logout(appContext);
-				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
-				cookieStore.clear();
-				AppManager.getAppManager().finishAllActivity();
-				appContext.setUserLogout();
-				Intent intent = new Intent(Index.this, LoginCode1.class);
-				startActivity(intent);
-			}
-		}, 1000);
-	}
-
+//	public void forceLogout() {
+//		UIHelper.ToastMessage(this, "用户未登录,1秒后重新进入登录界面", Toast.LENGTH_SHORT);
+//		Handler jumpHandler = new Handler();
+//        jumpHandler.postDelayed(new Runnable() {
+//			public void run() {
+//				AppClient.Logout(appContext);
+//				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
+//				cookieStore.clear();
+//				AppManager.getAppManager().finishAllActivity();
+//				appContext.setUserLogout();
+//				Intent intent = new Intent(Index.this, LoginCode1.class);
+//				startActivity(intent);
+//			}
+//		}, 1000);
+//	}
 }
