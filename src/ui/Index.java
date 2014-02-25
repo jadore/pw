@@ -363,12 +363,12 @@ public class Index extends AppActivity {
 		easyTracker.send(MapBuilder
 	      .createEvent("ui_action",     // Event category (required)
 	                   "button_press",  // Event action (required)
-	                   "查看群友通讯录："+String.format("%s/book/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   "查看群友通讯录："+entity.link,   // Event label
 	                   null)            // Event value
 	      .build()
 		);
 		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/book/%s", CommonValue.BASE_URL, entity.code));
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
@@ -383,12 +383,12 @@ public class Index extends AppActivity {
 		easyTracker.send(MapBuilder
 	      .createEvent("ui_action",     // Event category (required)
 	                   "button_press",  // Event action (required)
-	                   "查看聚会："+String.format("%s/event/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   "查看聚会："+entity.link,   // Event label
 	                   null)            // Event value
 	      .build()
 		);
 		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/event/%s", CommonValue.BASE_URL, entity.code));
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
 	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
 	}
 	
@@ -397,12 +397,12 @@ public class Index extends AppActivity {
 		easyTracker.send(MapBuilder
 	      .createEvent("ui_action",     // Event category (required)
 	                   "button_press",  // Event action (required)
-	                   "查看名片："+String.format("%s/card/%s", CommonValue.BASE_URL, entity.code),   // Event label
+	                   "查看名片："+entity.link,   // Event label
 	                   null)            // Event value
 	      .build()
 		);
 		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/%s", CommonValue.BASE_URL, entity.code));
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
@@ -946,15 +946,13 @@ public class Index extends AppActivity {
 				oks.setTitle(phoneIntro.title);
 				if (!StringUtils.isEmpty(filePath)) {
 					oks.setImagePath(filePath);
-					Logger.i("d");
 				}
 				else {
-					Logger.i("d");
 					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
 				}
 				
 				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
-				oks.setUrl(CommonValue.BASE_URL+"/book/"+phoneIntro.code);
+				oks.setUrl(phoneIntro.link);
 				oks.setSilent(silent);
 				if (platform != null) {
 					oks.setPlatform(platform);
@@ -976,7 +974,7 @@ public class Index extends AppActivity {
 					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
 				}
 				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s 群活动，点击参加。", phoneIntro.title));
-				oks.setUrl(CommonValue.BASE_URL+"/event/"+phoneIntro.code);
+				oks.setUrl(phoneIntro.link);
 				oks.setSilent(silent);
 				if (platform != null) {
 					oks.setPlatform(platform);
@@ -1037,7 +1035,7 @@ public class Index extends AppActivity {
 			else {
 				oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
 			}
-			oks.setUrl(CommonValue.BASE_URL+"/card/"+card.code);
+			oks.setUrl(card.link);
 			oks.setSilent(silent);
 			if (platform != null) {
 				oks.setPlatform(platform);

@@ -6,12 +6,16 @@ import java.util.List;
 import org.json.JSONException;
 
 import baidupush.Utils;
+import bean.CardIntroEntity;
 
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
+import com.crashlytics.android.Crashlytics;
 
 import tools.AppException;
 import tools.Logger;
+import tools.StringUtils;
+import config.CommonValue;
 import config.MyApplication;
 import contact.AddressBean;
 import contact.DateBean;
@@ -28,6 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Email;
@@ -46,14 +51,17 @@ public class AddMobileService extends IntentService{
 	private static final String ACTION_START_PAY = MOBILESYN_CLIENT + ".START.PAY";
 	private static final String	ACTION_STOP = MOBILESYN_CLIENT + ".STOP";
 	private MyApplication appContext ;
+	
 	public AddMobileService() {
 		super(MOBILESYN_CLIENT);
 	}
 
-	public static void actionStartPAY(Context ctx) {
+	public static void actionStartPAY(Context ctx, CardIntroEntity entity, boolean sendBC) {
 		try{
 			Intent i = new Intent(ctx, AddMobileService.class);
+			i.putExtra("card", entity);
 			i.setAction(ACTION_START_PAY);
+			i.putExtra("sendBC", sendBC);
 			ctx.startService(i);
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -73,8 +81,10 @@ public class AddMobileService extends IntentService{
 	protected void onHandleIntent(Intent intent) {
 		if (intent.getAction().equals(ACTION_START_PAY) == true) {
 			appContext = MyApplication.getInstance();
+			CardIntroEntity card = (CardIntroEntity) intent.getSerializableExtra("card");
+			boolean sendBC = intent.getBooleanExtra("sendBC", false);
 			try {
-				getContactInfo();
+				getContactInfo(card, sendBC);
 				try {
 					if (appContext.isLogin() && !Utils.hasBind(this)) {
 						PushManager.startWork(getApplicationContext(),
@@ -95,18 +105,26 @@ public class AddMobileService extends IntentService{
 //	private Context context;
 	
 	private MobileSynBean person;
-	public void getContactInfo() throws JSONException, AppException {
+	public void getContactInfo(CardIntroEntity card, boolean sendBC) throws JSONException, AppException {
 		// 获得通讯录信息 ，URI是ContactsContract.Contacts.CONTENT_URI
+		MobileSynListBean allPerson = new MobileSynListBean();
 		List<MobileSynBean> persons = new ArrayList<MobileSynBean>();
 		String mimetype = "";
 		int oldrid = -1;
 		int contactId = -1;
 		Cursor cursor = getContentResolver().query(Data.CONTENT_URI,null, null, null, Data.RAW_CONTACT_ID);
+		if (cursor.getColumnCount() == 1) {
+			if (sendBC) {
+				sendBroadcast(CommonValue.ContactOperationResult.NOT_AUTHORITY);
+			}
+			return;
+		}
 		while (cursor.moveToNext()) {
 			contactId = cursor.getInt(cursor.getColumnIndex(Data.RAW_CONTACT_ID));
 			if (oldrid != contactId) {
 				person = new MobileSynBean();
 			   	persons.add(person);
+			   	allPerson.data.add(person);
 			    oldrid = contactId;
 			}
 			// 取得mimetype类型
@@ -369,6 +387,7 @@ public class AddMobileService extends IntentService{
 		   }   
 	   }
 	  cursor.close();
+	  updateMobiles(true, allPerson);
 	  try {
 		  boolean exit = false;
 		  for (MobileSynBean mobileSynBean : persons) {
@@ -377,35 +396,104 @@ public class AddMobileService extends IntentService{
 				  mobile = mobile.replace(" ", "");
 				  mobile = mobile.replace("+86", "");
 				  mobile = mobile.replace("-", "");
-				  if (mobile.indexOf("18811168650") != -1) {
+				  if (mobile.indexOf(card.phone) != -1) {
 					  exit = true;
+					  if (sendBC) {
+						  Logger.i("aaa");
+							sendBroadcast(CommonValue.ContactOperationResult.EXIST);
+						}
 					  break;
 				  }
 			  }
 		  }
 		  if (!exit) {
-			  ContentValues values = new ContentValues();
-		        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
-		        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
-		        long rawContactId = ContentUris.parseId(rawContactUri);
-		        
-		        values.clear();
-		        values.put(Data.RAW_CONTACT_ID, rawContactId);
-		        values.put(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
-		        values.put(StructuredName.GIVEN_NAME, "群友通讯录客服");
-		        this.getContentResolver().insert(
-		                android.provider.ContactsContract.Data.CONTENT_URI, values);
-		        
-		        values.clear();
-		        values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-		        values.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
-		        values.put(Phone.NUMBER, "+86 188-1116-8650");
-		        values.put(Phone.TYPE, Phone.TYPE_MOBILE);
-		        this.getContentResolver().insert(
-		                android.provider.ContactsContract.Data.CONTENT_URI, values);
+			  insert(card, sendBC);
 		  }
 	  } catch (Exception e) {
-		  Logger.i(e);
+		  if (sendBC) {
+				sendBroadcast(CommonValue.ContactOperationResult.SAVE_FAILURE);
+		  }
+		  Crashlytics.logException(e);
 	  }
+	}
+	
+	private void insert(CardIntroEntity card, boolean sendBC) {
+		try {
+			ContentValues values = new ContentValues();
+	        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
+	        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
+	        long rawContactId = ContentUris.parseId(rawContactUri);
+	        
+	        values.clear();
+	        values.put(Data.RAW_CONTACT_ID, rawContactId);
+	        values.put(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+	        values.put(StructuredName.GIVEN_NAME, card.realname);
+	        this.getContentResolver().insert(
+	                android.provider.ContactsContract.Data.CONTENT_URI, values);
+	        
+	        values.clear();
+	        values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+	        values.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
+	        values.put(Phone.NUMBER, card.phone);
+	        values.put(Phone.TYPE, Phone.TYPE_MOBILE);
+	        this.getContentResolver().insert(
+	                android.provider.ContactsContract.Data.CONTENT_URI, values);
+
+	        if (!StringUtils.isEmpty(card.email)) {
+	            values.clear();
+	            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+	            values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
+	            values.put(Email.DATA, card.email);
+	            values.put(Email.TYPE, Email.TYPE_WORK);
+	            this.getContentResolver().insert(
+	                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+			}
+	        
+	            values.clear();
+	            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+	            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
+	            if (!StringUtils.isEmpty( card.department)) {
+	            	values.put(Organization.COMPANY, card.department);
+				}
+	            else {
+	            	values.put(Organization.COMPANY, card.position);
+	            }
+	            values.put(Organization.TITLE, card.position);  
+	            values.put(Organization.TYPE, Organization.TYPE_WORK);  
+	            this.getContentResolver().insert(
+	                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+
+	            values.clear();
+	            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
+	            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
+	            values.put(Contacts.ContactMethods.KIND, Contacts.KIND_POSTAL);
+	            values.put(Contacts.ContactMethods.TYPE, Contacts.ContactMethods.TYPE_WORK);
+	            values.put(Contacts.ContactMethods.DATA, card.address);
+	            this.getContentResolver().insert(
+	                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+	            if (sendBC) {
+					sendBroadcast(CommonValue.ContactOperationResult.SAVE_SUCCESS);
+	            }
+		} catch (Exception e) {
+			if (sendBC) {
+				sendBroadcast(CommonValue.ContactOperationResult.SAVE_FAILURE);
+			}
+			Crashlytics.logException(e);
+		}
+	}
+	
+	private void updateMobiles(boolean authority, MobileSynListBean model) {
+		try {
+			appContext.saveObject(model, "mobile");
+		} catch(Exception e) {
+			Crashlytics.logException(e);
+		}
+	}
+	
+	private void sendBroadcast(int type) {
+		Intent intent = new Intent();
+		intent.putExtra(CommonValue.ContactOperationResult.ContactOperationResultType, type);
+		intent.setAction(CommonValue.ContactOperationResult.ContactBCAction);
+		sendBroadcast(intent);
 	}
 }

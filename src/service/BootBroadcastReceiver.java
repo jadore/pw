@@ -8,7 +8,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context arg0, Intent arg1) {
-		AddMobileService.actionStartPAY(arg0);
+//		AddMobileService.actionStartPAY(arg0);
 	}
 
 }

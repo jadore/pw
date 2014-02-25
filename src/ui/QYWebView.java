@@ -9,12 +9,12 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import service.AddMobileService;
 import tools.AppManager;
 import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
-
 import bean.CardIntroEntity;
 import bean.Entity;
 import bean.Result;
@@ -32,33 +32,21 @@ import config.AppClient.FileCallback;
 import config.AppClient.WebCallback;
 import config.CommonValue;
 import config.QYRestClient;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
-import android.content.AsyncQueryHandler;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.DialogInterface.OnClickListener;
-import android.database.Cursor;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Contacts;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.RawContacts;
-import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.ContactsContract.CommonDataKinds.Organization;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.View;
@@ -85,7 +73,6 @@ public class QYWebView extends AppActivity  {
 	private ProgressDialog loadingPd;
 	private Button rightBarButton;
 	private Button closeBarButton;
-	private MyAsyncQueryHandler asyncQuery;
 	private String keyCode;
 	private int keyType;
 	
@@ -100,6 +87,8 @@ public class QYWebView extends AppActivity  {
 	String QYurl ;
 	WebSettings webseting;
 	private TextView newtv;
+	
+	private MobileReceiver mobileReceiver;
 	
 	@Override
 	public void onStart() {
@@ -118,7 +107,7 @@ public class QYWebView extends AppActivity  {
 	protected void onDestroy() {
 		QYRestClient.getIntance().cancelRequests(this, true);
 		webView.destroy();
-		
+		unregisterGetReceiver();
 		super.onDestroy();
 	}
 	  
@@ -126,6 +115,7 @@ public class QYWebView extends AppActivity  {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.create_view);
+		registerGetReceiver();
 		initUI();
 		initData();
 	}
@@ -158,7 +148,6 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void initData() {
-		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		pbwc mJS = new pbwc();  
 		QYurl = getIntent().getStringExtra(CommonValue.IndexIntentKeyValue.CreateView);
 		webseting = webView.getSettings();  
@@ -687,131 +676,61 @@ public class QYWebView extends AppActivity  {
 		}
 	}
 	
+	protected void WarningDialog(String message) {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage(message);
+		builder.setTitle("通讯录提示");
+		builder.setPositiveButton("确定", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+	   builder.create().show();
+	}
+	
 	public void addContact(CardIntroEntity entity){
-		asyncQuery.setCard(entity);
-		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
-		String[] projection = { 
-				ContactsContract.CommonDataKinds.Phone._ID,
-				ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-				ContactsContract.CommonDataKinds.Phone.DATA1,
-				"sort_key",
-				ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-				ContactsContract.CommonDataKinds.Phone.PHOTO_ID,
-				ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
-		}; 
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		asyncQuery.startQuery(0, null, uri, projection, null, null,
-				"sort_key COLLATE LOCALIZED asc");
+		loadingPd = UIHelper.showProgress(QYWebView.this, null, null, true);
+		AddMobileService.actionStartPAY(this, entity, true);
     }
 	
-	class MyAsyncQueryHandler extends AsyncQueryHandler {
-		
-		private CardIntroEntity card;
-		
-		public MyAsyncQueryHandler(ContentResolver cr) {
-			super(cr);
-		}
-		
-		@Override
-		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-//			UIHelper.dismissProgress(loadingPd);
-			indicatorImageView.setVisibility(View.INVISIBLE);
-			indicatorImageView.clearAnimation();
-			try {
-				if (isPhoneExit(cursor, card)) {
-					UIHelper.ToastMessage(getApplicationContext(), "名片已存在", Toast.LENGTH_SHORT);
-				}
-				else {//insert
-					insert(card);
-					UIHelper.ToastMessage(getApplicationContext(), "名片保存成功", Toast.LENGTH_SHORT);
-				}
-			} catch (Exception e) {
-				Logger.i(e);
+	class MobileReceiver extends BroadcastReceiver {
+		public void onReceive(Context context, Intent intent) {
+			UIHelper.dismissProgress(loadingPd);
+			int type = intent.getIntExtra(CommonValue.ContactOperationResult.ContactOperationResultType, CommonValue.ContactOperationResult.SAVE_FAILURE);
+			String message = "";
+			switch (type) {
+			case CommonValue.ContactOperationResult.EXIST:
+				message = "名片已保存了";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.SAVE_FAILURE:
+				message = "保存名片失败";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.SAVE_SUCCESS:
+				message = "保存名片成功";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.NOT_AUTHORITY:
+				message = "请在手机的[设置]->[应用]->[群友通讯录]->[权限管理]，允许群友通讯录访问你的联系人记录并重新运行程序";
+				WarningDialog(message);
+				break;
 			}
-			
-		}
-
-		public CardIntroEntity getCard() {
-			return card;
-		}
-
-		public void setCard(CardIntroEntity card) {
-			this.card = card;
 		}
 	}
 	
-	private boolean isPhoneExit(Cursor cursor, CardIntroEntity card) {
-		if (cursor != null && cursor.getCount() > 0) {
-			cursor.moveToFirst();
-			for (int i = 0; i < cursor.getCount(); i++) {
-				cursor.moveToPosition(i);
-				String number = cursor.getString(2);
-				number = number.replace("-", "");
-				number = number.replace("+86", "");
-				if (number.indexOf(card.phone) != -1) {
-					return true;
-				}
-			}
-		}
-		return false;
+	private void registerGetReceiver() {
+		mobileReceiver =  new  MobileReceiver();
+        IntentFilter postFilter = new IntentFilter();
+        postFilter.addAction(CommonValue.ContactOperationResult.ContactBCAction);
+        registerReceiver(mobileReceiver, postFilter);
 	}
 	
-	private void insert(CardIntroEntity card) {
-		ContentValues values = new ContentValues();
-        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
-        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
-        long rawContactId = ContentUris.parseId(rawContactUri);
-        
-        values.clear();
-        values.put(Data.RAW_CONTACT_ID, rawContactId);
-        values.put(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
-        values.put(StructuredName.GIVEN_NAME, card.realname);
-        this.getContentResolver().insert(
-                android.provider.ContactsContract.Data.CONTENT_URI, values);
-        
-        values.clear();
-        values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-        values.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
-        values.put(Phone.NUMBER, card.phone);
-        values.put(Phone.TYPE, Phone.TYPE_MOBILE);
-        this.getContentResolver().insert(
-                android.provider.ContactsContract.Data.CONTENT_URI, values);
-
-        if (!StringUtils.isEmpty(card.email)) {
-            values.clear();
-            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-            values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
-            values.put(Email.DATA, card.email);
-            values.put(Email.TYPE, Email.TYPE_WORK);
-            this.getContentResolver().insert(
-                    android.provider.ContactsContract.Data.CONTENT_URI, values);
-		}
-        
-            values.clear();
-            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
-            if (!StringUtils.isEmpty( card.department)) {
-            	values.put(Organization.COMPANY, card.department);
-			}
-            else {
-            	values.put(Organization.COMPANY, card.position);
-            }
-            values.put(Organization.TITLE, card.position);  
-            values.put(Organization.TYPE, Organization.TYPE_WORK);  
-            this.getContentResolver().insert(
-                    android.provider.ContactsContract.Data.CONTENT_URI, values);
-
-            values.clear();
-            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
-            values.put(Contacts.ContactMethods.KIND, Contacts.KIND_POSTAL);
-            values.put(Contacts.ContactMethods.TYPE, Contacts.ContactMethods.TYPE_WORK);
-            values.put(Contacts.ContactMethods.DATA, card.address);
-            this.getContentResolver().insert(
-                    android.provider.ContactsContract.Data.CONTENT_URI, values);
+	private void unregisterGetReceiver() {
+		unregisterReceiver(mobileReceiver);
 	}
+	
 	
 	protected void SMSDialog(final int type) {
 		try {

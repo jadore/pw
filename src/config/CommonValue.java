@@ -192,4 +192,17 @@ public class CommonValue {
 		String QunReadable_Yes = "1";
 		String QunReadable_No = "2";
 	}
+	
+	public interface ContactOperationResult {
+		int NOT_AUTHORITY = 0;
+		int EXIST = 1;
+		int SAVE_SUCCESS = 2;
+		int SAVE_FAILURE = 3;
+		
+		String ContactOperationResultType = "ContactOperationResultType";
+		
+		String ContactBCAction = "ContactOperation";
+		
+		
+	}
 }

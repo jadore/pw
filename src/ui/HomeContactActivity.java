@@ -10,6 +10,7 @@ import java.util.Set;
 import bean.ContactBean;
 import bean.Entity;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.vikaa.mycontact.R;
 
@@ -17,7 +18,6 @@ import config.AppClient;
 import config.AppClient.ClientCallback;
 import contact.MobileSynListBean;
 
-import service.MobileSynService;
 import sms.MessageBoxList;
 import tools.AppException;
 import tools.AppManager;
@@ -26,9 +26,12 @@ import tools.DecodeUtil;
 import tools.ImageUtils;
 import tools.Logger;
 import tools.StringUtils;
+import tools.UIHelper;
 import ui.adapter.ContactHomeAdapter;
 import widget.QuickAlphabeticBar;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -37,15 +40,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class HomeContactActivity extends AppActivity {
@@ -55,23 +61,29 @@ public class HomeContactActivity extends AppActivity {
 	private List<ContactBean> list;
 	private AsyncQueryHandler asyncQuery;
 	private QuickAlphabeticBar alpha;
-
+	private boolean authority;
 	private Map<Integer, ContactBean> contactIdMap = null;
+	private ProgressDialog loadingPd;
+//	private GetMobileReceiver getMobileReceiver;
 	
-	private GetMobileReceiver getMobileReceiver;
-
+	
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_contact_page);
-
-		personList = (ListView)this.findViewById(R.id.acbuwa_list);
-		alpha = (QuickAlphabeticBar)this.findViewById(R.id.fast_scroller);
-		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
-		init();
-		setAdapter();
-		registerGetReceiver();
-		MobileSynService.actionStartPAY(this);
+		loadingPd = UIHelper.showProgress(HomeContactActivity.this, null, null, true);
+		Handler jumpHandler = new Handler();
+        jumpHandler.postDelayed(new Runnable() {
+			public void run() {
+				personList = (ListView) HomeContactActivity.this.findViewById(R.id.acbuwa_list);
+				alpha = (QuickAlphabeticBar) HomeContactActivity.this.findViewById(R.id.fast_scroller);
+				asyncQuery = new MyAsyncQueryHandler(getContentResolver());
+				init();
+				setAdapter();
+				getMobileFromCache();
+			}
+		}, 100);
+		
 	}
 	
 	public void ButtonClick(View v) {
@@ -128,8 +140,6 @@ public class HomeContactActivity extends AppActivity {
 			if (cursor != null && cursor.getCount() > 0) {
 				
 				contactIdMap = new HashMap<Integer, ContactBean>();
-				
-				
 				cursor.moveToFirst();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
@@ -181,14 +191,20 @@ public class HomeContactActivity extends AppActivity {
 
 					alpha.setAlphaIndexer(alphaIndexer);
 					alpha.setVisibility(View.VISIBLE);
+					UIHelper.dismissProgress(loadingPd);
 				}
 			}
+			else {
+				authority = false;
+				UIHelper.dismissProgress(loadingPd);
+				WarningDialog();
+				return;
+			}
 		}
-
 	}
 
-
 	private void setAdapter() {
+		
 		list = new ArrayList<ContactBean>();
 		adapter = new ContactHomeAdapter(this, list, alpha);
 		personList.setAdapter(adapter);
@@ -294,35 +310,57 @@ public class HomeContactActivity extends AppActivity {
 		}
 	}
 	
+	private void getMobileFromCache() {
+		try {
+			MobileSynListBean mobiles = (MobileSynListBean) appContext.readObject("mobile");
+			if (mobiles != null) {
+				Gson gson = new Gson();
+				String json = gson.toJson(mobiles.data);
+				try {
+					String encodeJson = DecodeUtil.encodeContact(json);
+					syncMobile(encodeJson);
+				} catch (AppException e) {
+					Logger.i(e);
+				}
+			}
+		} catch(Exception e) {
+			Crashlytics.logException(e);
+		}
+	}
+	
 	class GetMobileReceiver extends BroadcastReceiver {
 		public void onReceive(Context context, Intent intent) {
-			MobileSynListBean mobiles = (MobileSynListBean) intent.getSerializableExtra("mobile");
-			Logger.i(mobiles.data.size()+"");
-			Gson gson = new Gson();
-			String json = gson.toJson(mobiles.data);
-			try {
-				String encodeJson = DecodeUtil.encodeContact(json);
-				syncMobile(encodeJson);
-			} catch (AppException e) {
-				Logger.i(e);
+			boolean authority = intent.getBooleanExtra("authority", false);
+			if (authority) {
+				MobileSynListBean mobiles = (MobileSynListBean) intent.getSerializableExtra("mobile");
+				Gson gson = new Gson();
+				String json = gson.toJson(mobiles.data);
+				try {
+					String encodeJson = DecodeUtil.encodeContact(json);
+					syncMobile(encodeJson);
+				} catch (AppException e) {
+					Logger.i(e);
+				}
+			}
+			else {
+				
 			}
 		}
 	}
 	
-	private void registerGetReceiver() {
-		getMobileReceiver =  new  GetMobileReceiver();
-        IntentFilter postFilter = new IntentFilter();
-        postFilter.addAction("update");
-        registerReceiver(getMobileReceiver, postFilter);
-	}
-	
-	private void unregisterGetReceiver() {
-		unregisterReceiver(getMobileReceiver);
-	}
+//	private void registerGetReceiver() {
+//		getMobileReceiver =  new  GetMobileReceiver();
+//        IntentFilter postFilter = new IntentFilter();
+//        postFilter.addAction("update");
+//        registerReceiver(getMobileReceiver, postFilter);
+//	}
+//	
+//	private void unregisterGetReceiver() {
+//		unregisterReceiver(getMobileReceiver);
+//	}
 	
 	@Override
 	protected void onDestroy() {
-		unregisterGetReceiver();
 		super.onDestroy();
 	}
 	
@@ -343,6 +381,21 @@ public class HomeContactActivity extends AppActivity {
 				Logger.i(e.toString());
 			}
 	  });
+	}
+	
+	protected void WarningDialog() {
+		String message = "请在手机的[设置]->[应用]->[群友通讯录]->[权限管理]，允许群友通讯录访问你的联系人记录并重新运行程序";
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage(message);
+		builder.setTitle("通讯录提示");
+		builder.setPositiveButton("确定", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				AppManager.getAppManager().finishActivity(HomeContactActivity.this);
+			}
+		});
+	   builder.create().show();
 	}
 
 }

@@ -26,6 +26,7 @@ public class PhoneIntroEntity extends Entity {
 	public String member;//": "0"
 	
 	public String logo;
+	public String link;
 	
 	public String phoneSectionType;
 	public boolean willRefresh;
@@ -43,6 +44,7 @@ public class PhoneIntroEntity extends Entity {
 			data.question = info.getString("question");
 			data.member = info.getString("member");
 			data.phoneSectionType = sectionType;
+			data.link = info.getString("link");
 			data.willRefresh = false;
 		} catch (JSONException e) {
 			throw AppException.json(e);
@@ -88,6 +90,7 @@ public class PhoneIntroEntity extends Entity {
 				data. creator = creatorObj.getString("nickname");
 			}
 			data.phoneSectionType = sectionType;
+			data.link = info.getString("link");
 		} catch (JSONException e) {
 			throw AppException.json(e);
 		}

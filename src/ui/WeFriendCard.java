@@ -79,6 +79,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 	}
 	
 	private void initUI() {
+		nobilateralView = (TextView) findViewById(R.id.noting_view);
 		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
 		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
 		indicatorAnimation.setDuration(500);
@@ -155,6 +156,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 	}
 	
 	private void handleFriends(FriendCardListEntity entity, int action) {
+		nobilateralView.setVisibility(View.GONE);
 		xlistView.stopLoadMore();
 		xlistView.stopRefresh();
 		switch (action) {
@@ -180,6 +182,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener{
 		if(bilaterals.isEmpty()){
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
 			xlistView.setPullLoadEnable(false);
+			nobilateralView.setVisibility(View.VISIBLE);
 		}
 	}
 	

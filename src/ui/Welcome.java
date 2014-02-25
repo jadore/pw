@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import bean.CardIntroEntity;
+
 import com.crashlytics.android.Crashlytics;
 
 import service.AddMobileService;
@@ -41,7 +43,10 @@ public class Welcome extends AppActivity {
 		AlphaAnimation aa = new AlphaAnimation(0.3f,1.0f);
 		aa.setDuration(2000);
 		view.startAnimation(aa);
-		AddMobileService.actionStartPAY(this);
+		CardIntroEntity card = new CardIntroEntity();
+		card.realname = "群友通讯录客服";
+		card.phone = "18811168650";
+		AddMobileService.actionStartPAY(this, card, false);
 		copyFile("ic_launcher.png");
 		aa.setAnimationListener(new AnimationListener()
 		{
