@@ -93,14 +93,14 @@ public class QYWebView extends AppActivity  {
 	@Override
 	public void onStart() {
 	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
+	    EasyTracker.getInstance(this).activityStart(this);  
 	}
 	
 	@Override
 	public void onStop() {
 	    super.onStop();
 	    QYRestClient.getIntance().cancelRequests(this, true);
-	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
+	    EasyTracker.getInstance(this).activityStop(this);  
 	}
 	
 	@Override
@@ -153,13 +153,11 @@ public class QYWebView extends AppActivity  {
 		webseting = webView.getSettings();  
 		webseting.setJavaScriptEnabled(true);
 		webseting.setLightTouchEnabled(true);
-		// 设置可以使用localStorage  
 		webseting.setDomStorageEnabled(true);  
-        // 应用可以有数据库  
 		webseting.setDatabaseEnabled(true);     
         String dbPath =this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();  
         webseting.setDatabasePath(dbPath);         
-	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
+	    webseting.setAppCacheMaxSize(1024*1024*8); 
 	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
         webseting.setAppCachePath(appCacheDir);  
         webseting.setAllowFileAccess(true);  
@@ -496,9 +494,6 @@ public class QYWebView extends AppActivity  {
 				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
 			case CommonValue.CreateViewJSType.goCardView:
-//				code = (String) msg.obj;
-//				intent.putExtra("resultcode", CommonValue.CreateViewJSType.goPhonebookView);
-//				intent.putExtra("resultdata", code);
 				setResult(RESULT_OK, intent);
 				AppManager.getAppManager().finishActivity(QYWebView.this);
 				break;
@@ -523,7 +518,6 @@ public class QYWebView extends AppActivity  {
 				keyCode = code;
 				keyType = 2;
 				rightBarButton.setVisibility(View.VISIBLE);
-				Logger.i(code);
 				break;
 			case CommonValue.CreateViewJSType.webNotSign:
 				reLogin();
@@ -753,7 +747,7 @@ public class QYWebView extends AppActivity  {
 		   });
 		   builder.create().show();
 		} catch (Exception e) {
-			
+			Crashlytics.logException(e);
 		}
 	}
 	

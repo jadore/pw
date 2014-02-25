@@ -17,11 +17,11 @@ public class CommonValue {
 	
 	public static final String PackageName = "com.vikaa.mycontact";
 	
-	public static String BASE_API = "http://qun.hk/api/";
-	public static String BASE_URL = "http://qun.hk";
+//	public static String BASE_API = "http://qun.hk/api/";
+//	public static String BASE_URL = "http://qun.hk";
 	
-//	public static String BASE_API = "http://pb.wcl.m0.hk/api/";
-//	public static String BASE_URL = "http://pb.wcl.m0.hk";
+	public static String BASE_API = "http://pb.wcl.m0.hk/api/";
+	public static String BASE_URL = "http://pb.wcl.m0.hk";
 	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
@@ -36,6 +36,7 @@ public class CommonValue {
 	}
 	
 	public interface CacheKey {
+		String FamilyList = "FamilyList";
 		String PhoneList = "PhoneList";
 		String PhoneView = "PhoneView";
 		String ActivityList = "ActivityList";
@@ -80,6 +81,11 @@ public class CommonValue {
 		.imageScaleType(ImageScaleType.EXACTLY_STRETCHED) 
 		.displayer(new RoundedBitmapDisplayer(ImageUtils.dip2px(AppManager.getAppManager().currentActivity(), 30)))
 		.build();
+	}
+	
+	public interface FamilySectionType {
+		String FamilySectionType = "家庭通讯录(长按可分享)";
+		String ClanSectionType = "宗亲通讯录(长按可分享)";
 	}
 	
 	public interface PhoneSectionType {

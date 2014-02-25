@@ -11,7 +11,6 @@ import tools.UIHelper;
 import bean.CardIntroEntity;
 
 import com.google.analytics.tracking.android.EasyTracker;
-import com.tencent.tauth.UiError;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;

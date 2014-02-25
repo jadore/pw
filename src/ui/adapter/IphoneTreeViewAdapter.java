@@ -9,6 +9,7 @@ import ui.adapter.IndexPhoneAdapter.CellHolder;
 import widget.IphoneTreeView;
 import widget.IphoneTreeView.IphoneTreeHeaderAdapter;
 
+import com.google.android.gms.analytics.internal.Command;
 import com.vikaa.mycontact.R;
 
 
@@ -29,6 +30,8 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 	private IphoneTreeView iphoneTreeView;
 	
 	private String[] groups = { 
+			CommonValue.FamilySectionType.FamilySectionType,
+			CommonValue.FamilySectionType.ClanSectionType,
 			CommonValue.PhoneSectionType .OwnedSectionType,
 			CommonValue.PhoneSectionType.JoinedSectionType,
 			CommonValue.ActivitySectionType.OwnedSectionType,
@@ -57,14 +60,14 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 
 	@Override
 	public int getChildrenCount(int groupPosition) {
-		if (groupPosition>=0 && groupPosition <= 3) {
+		if (groupPosition>=0 && groupPosition <= 5) {
 			return phones.get(groupPosition).size();
 		}
 		else if (groupPosition<0) {
 			return phones.get(0).size();
 		} 
 		else {
-			return phones.get(3).size();
+			return phones.get(5).size();
 		}
 	}
 
@@ -74,14 +77,14 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 //			return groups[groupPosition];
 //		}
 //		return  groups[0];
-		if (groupPosition>=0 && groupPosition <= 3) {
+		if (groupPosition>=0 && groupPosition <= 5) {
 			return groups[groupPosition];
 		}
 		else if (groupPosition<0) {
 			return  groups[0];
 		} 
 		else {
-			return  groups[3];
+			return  groups[5];
 		}
 	}
 
@@ -149,20 +152,22 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 			cell = (CellHolder) convertView.getTag();
 		}
 		final PhoneIntroEntity model = (PhoneIntroEntity) getChild(groupPosition, childPosition);
-		
-//		if (groupPosition == 0) {
-//			cell.desView.setText(model.content);
-//		}
 		if (groupPosition == 0 ) {
+			cell.desView.setText(model.content);
+		}
+		else if (groupPosition == 1 ) {
+			cell.desView.setText(model.content);
+		}
+		else if (groupPosition == 2 ) {
 			cell.desView.setText(String.format("人数: %s | 点击数: %s", model.member, model.hits));
 		}
-		else if (groupPosition == 1) {
+		else if (groupPosition == 3) {
 			cell.desView.setText(String.format("人数: %s | 发起人: %s", model.member, model.creator));
 		}
-		else if (groupPosition == 2 ) {//activity created
+		else if (groupPosition == 4 ) {//activity created
 			cell.desView.setText(String.format("点击数: %s | 参加人数: %s", model.hits, model.member));
 		}
-		else if (groupPosition == 3) {//activity took part
+		else if (groupPosition == 5) {//activity took part
 			cell.desView.setText(String.format("聚会时间: %s | 参加人数: %s", model.begin_at, model.member));
 		}
 		cell.titleView.setText(model.title);

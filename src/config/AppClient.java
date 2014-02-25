@@ -8,7 +8,6 @@ import java.io.IOException;
 import org.apache.http.Header;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import android.content.Context;
@@ -20,6 +19,7 @@ import bean.CardIntroEntity;
 import bean.CardListEntity;
 import bean.CodeEntity;
 import bean.Entity;
+import bean.FamilyListEntity;
 import bean.FriendCardListEntity;
 import bean.MessageListEntity;
 import bean.MessageUnReadEntity;
@@ -32,7 +32,6 @@ import bean.WebContent;
 import tools.AppException;
 import tools.AppManager;
 import tools.DecodeUtil;
-import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
 
@@ -102,7 +101,6 @@ public class AppClient {
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
-					Logger.i(e);
 					callback.onError(e);
 				}
 			}
@@ -122,7 +120,6 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					Logger.i(DecodeUtil.decode(new String(content)));
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -142,11 +139,6 @@ public class AppClient {
 		QYRestClient.post("user/logout", null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try {
-					Logger.i(DecodeUtil.decode(new String(content)));
-				} catch (AppException e) {
-					Logger.i(e);
-				}
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -391,17 +383,14 @@ public class AppClient {
 		if (!StringUtils.isEmpty(count)) {
 			params.add("count", count);
 		}
-		Logger.i("s");
 		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				Logger.i("g");
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					if (!StringUtils.isEmpty(page) && page.equals("1")) {
 						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
 					}
-					Logger.i("e");
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -515,11 +504,6 @@ public class AppClient {
 		QYRestClient.post("contact/sync"+"?_sign="+appContext.getLoginSign(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					Logger.i(DecodeUtil.decode(new String(content)));
-				}catch (Exception e) {
-					callback.onError(e);
-				}
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -544,7 +528,6 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					Logger.i(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(new Entity() {
 						private static final long serialVersionUID = 1L;
 					});
@@ -660,7 +643,6 @@ public class AppClient {
 			
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
-				Logger.i(statusCode+"");
 				String storageState = Environment.getExternalStorageState();	
 				String savePath = null;
 				if(storageState.equals(Environment.MEDIA_MOUNTED)){
@@ -671,11 +653,10 @@ public class AppClient {
 					}
 				}
 				String md5FilePath = savePath + MD5Util.getMD5String(url) + format;
-//				File ApkFile = new File(md5FilePath);
-//				if(ApkFile.exists()){
-//					ApkFile.delete();
-//					return;
-//				}
+				File ApkFile = new File(md5FilePath);
+				if(ApkFile.exists()){
+					ApkFile.delete();
+				}
 				File tmpFile = new File(md5FilePath);
 				try {
 					FileOutputStream fos = new FileOutputStream(tmpFile);
@@ -695,6 +676,27 @@ public class AppClient {
 			public void onFailure(int statusCode, Header[] headers, byte[] binaryData,
 					Throwable error) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
+	public static void getFamilyList(final MyApplication appContext, final ClientCallback callback) {
+		QYRestClient.post("family/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					FamilyListEntity data = FamilyListEntity.parse(DecodeUtil.decode(new String(content)));
+					saveCache(appContext, CommonValue.CacheKey.FamilyList, data);
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				if (appContext.isNetworkConnected()) {
+					callback.onFailure(e.getMessage());
+				}
 			}
 		});
 	}

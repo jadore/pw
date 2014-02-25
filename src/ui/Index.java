@@ -12,6 +12,7 @@ import bean.ActivityListEntity;
 import bean.CardIntroEntity;
 import bean.CardListEntity;
 import bean.Entity;
+import bean.FamilyListEntity;
 import bean.MessageUnReadEntity;
 import bean.PhoneIntroEntity;
 import bean.PhoneListEntity;
@@ -115,7 +116,7 @@ public class Index extends AppActivity {
 //	private PinnedHeaderListView mPinedListView1;
 //	private IndexPhoneAdapter mPhoneAdapter;
 	
-	private List<List<ActivityIntroEntity>> activities;
+//	private List<List<ActivityIntroEntity>> activities;
 //	private PinnedHeaderListView mPinedListView2;
 //	private IndexActivityAdapter mActivityAdapter;
 	private WebView webView;
@@ -258,31 +259,34 @@ public class Index extends AppActivity {
 //		mobilesInPhone.add(mobile1);
 //		phones.add(mobilesInPhone);
 		
+		List<PhoneIntroEntity> phone0 = new ArrayList<PhoneIntroEntity>();
 		List<PhoneIntroEntity> phone1 = new ArrayList<PhoneIntroEntity>();
 		List<PhoneIntroEntity> phone2 = new ArrayList<PhoneIntroEntity>();
 		List<PhoneIntroEntity> phone3 = new ArrayList<PhoneIntroEntity>();
 		List<PhoneIntroEntity> phone4 = new ArrayList<PhoneIntroEntity>();
+		List<PhoneIntroEntity> phone5 = new ArrayList<PhoneIntroEntity>();
+		phones.add(phone0);
 		phones.add(phone1);
 		phones.add(phone2);
 		phones.add(phone3);
 		phones.add(phone4);
+		phones.add(phone5);
 		mPhoneAdapter = new IphoneTreeViewAdapter(this, phones);
 		iphoneTreeView.setAdapter(mPhoneAdapter);
 		iphoneTreeView.setOnGroupClickListener(new OnGroupClickListener() {
 			@Override
 			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
 					long arg3) {
-				Logger.i(position+"");
-				if (position == 0 || position == 1) {
-					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
-						getPhoneList();
-					}
-				}
-				else if (position == 2 || position == 3) {
-					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
-						getActivityList();
-					}
-				}
+//				if (position == 0 || position == 1) {
+//					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
+//						getPhoneList();
+//					}
+//				}
+//				else if (position == 2 || position == 3) {
+//					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
+//						getActivityList();
+//					}
+//				}
 				return false;
 			}
 		});
@@ -484,15 +488,26 @@ public class Index extends AppActivity {
 	
 	private void getCache() {
 //		getCacheUser();
+		getFamilyListFromCache();
 		getPhoneListFromCache();
 		getActivityListFromCache();
 		getCardListFromCache();
 	}
 	
-//	private void getCacheUser() {
-//		UserEntity user = appContext.getLoginInfo();
-//		imageLoader.displayImage(user.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
-//	}
+	private void getFamilyListFromCache() {
+		String key = String.format("%s-%s", CommonValue.CacheKey.FamilyList, appContext.getLoginUid());
+		FamilyListEntity entity = (FamilyListEntity) appContext.readObject(key);
+		if(entity == null){
+			return;
+		}
+		if (entity.family.size()>0) {
+			phones.set(0, entity.family);
+		}
+		if (entity.clan.size()>0) {
+			phones.set(1, entity.clan);
+		}
+		mPhoneAdapter.notifyDataSetChanged();
+	}
 	
 	private void getPhoneListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.PhoneList, appContext.getLoginUid());
@@ -500,29 +515,11 @@ public class Index extends AppActivity {
 		if(entity == null){
 			return;
 		}
-//		phones.clear();
-//		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-//		PhoneIntroEntity mobile = new PhoneIntroEntity();
-//		mobile.title = "手机通讯录";
-//		mobile.content = CommonValue.subTitle.subtitle1;
-//		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile);
-//		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-//		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-//		mobile0.title = "家庭族谱通讯录";
-//		mobile0.content = CommonValue.subTitle.subtitle2;
-//		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile0);
-//		mobile1.title = "个人微友通讯录";
-//		mobile1.content = CommonValue.subTitle.subtitle2;
-//		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile1);
-//		phones.add(mobilesInPhone);
 		if (entity.owned.size()>0) {
-			phones.set(0, entity.owned);
+			phones.set(2, entity.owned);
 		}
 		if (entity.joined.size()>0) {
-			phones.set(1, entity.joined);
+			phones.set(3, entity.joined);
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -535,10 +532,10 @@ public class Index extends AppActivity {
 		}
 //		activities.clear();
 		if (entity.owned.size()>0) {
-			phones.set(2, entity.owned);
+			phones.set(4, entity.owned);
 		}
 		if (entity.joined.size()>0) {
-			phones.set(3, entity.joined);
+			phones.set(5, entity.joined);
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -574,6 +571,7 @@ public class Index extends AppActivity {
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
+					getFamilyList();
 					getPhoneList();
 					getActivityList();
 					getUnReadMessage();
@@ -671,24 +669,22 @@ public class Index extends AppActivity {
         startActivityForResult(intent, RequestCode);
 	}
 	
-	private void getPhoneList() {
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
+	private void getFamilyList() {
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getPhoneList(appContext, new ClientCallback() {
+		AppClient.getFamilyList(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-//				UIHelper.dismissProgress(loadingPd);
 				indicatorImageView.clearAnimation();
 				indicatorImageView.setVisibility(View.INVISIBLE);
-				PhoneListEntity entity = (PhoneListEntity)data;
+				FamilyListEntity entity = (FamilyListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (entity.owned.size() > 0) {
-						phones.set(0, entity.owned);
+					if (entity.family.size() > 0) {
+						phones.set(0, entity.family);
 					}
-					if (entity.joined.size() > 0) {
-						phones.set(1, entity.joined);
+					if (entity.clan.size() > 0) {
+						phones.set(1, entity.clan);
 					}
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
@@ -703,14 +699,55 @@ public class Index extends AppActivity {
 			
 			@Override
 			public void onFailure(String message) {
-//				UIHelper.dismissProgress(loadingPd);
 				indicatorImageView.clearAnimation();
 				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				Logger.i(e);
+			}
+		});
+	}
+	
+	private void getPhoneList() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+		AppClient.getPhoneList(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				PhoneListEntity entity = (PhoneListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					if (entity.owned.size() > 0) {
+						phones.set(2, entity.owned);
+					}
+					if (entity.joined.size() > 0) {
+						phones.set(3, entity.joined);
+					}
+					mPhoneAdapter.notifyDataSetChanged();
+					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
 				indicatorImageView.clearAnimation();
 				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
@@ -731,10 +768,10 @@ public class Index extends AppActivity {
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
 					if (entity.owned.size()>0) {
-						phones.set(2, entity.owned);
+						phones.set(4, entity.owned);
 					}
 					if (entity.joined.size()>0) {
-						phones.set(3, entity.joined);
+						phones.set(5, entity.joined);
 					}
 					mPhoneAdapter.notifyDataSetChanged();
 					break;

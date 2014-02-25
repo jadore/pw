@@ -17,7 +17,6 @@ public class UserEntity extends Entity{
 	public String _sign;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
-		Logger.i(res);
 		UserEntity data = new UserEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -45,8 +44,6 @@ public class UserEntity extends Entity{
 			}
 			
 		} catch (JSONException e) {
-			Logger.i(res);
-			Logger.i(e);
 			throw AppException.json(e);
 		}
 		return data;

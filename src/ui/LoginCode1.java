@@ -4,7 +4,6 @@ import bean.CodeEntity;
 import bean.Entity;
 import bean.Result;
 
-import com.tencent.weibo.constants.APIConstants;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;

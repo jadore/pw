@@ -60,11 +60,21 @@ public class PhoneIntroEntity extends Entity {
 	public static PhoneIntroEntity parsePhonebookAndActivity(JSONObject info, String sectionType) throws IOException, AppException {
 		PhoneIntroEntity data = new PhoneIntroEntity();
 		try {
-			data.code = info.getString("code");
+			if (!info.isNull("code")) {
+				data.code = info.getString("code");
+			}
+			if (!info.isNull("family_id")) {
+				data.code = info.getString("family_id");
+			}
 			data.title = info.getString("title");
 			data.content = info.getString("content");
-			data.privacy = info.getString("privacy");
-			data.dateline = info.getString("dateline");
+			
+			if (!info.isNull("privacy")) {
+				data.privacy = info.getString("privacy");
+			}
+			if (!info.isNull("dateline")) {
+				data.dateline = info.getString("dateline");
+			}
 			data.hits = info.getString("hits");
 			data.type = info.getString("type");
 			if (!info.isNull("question")) {
