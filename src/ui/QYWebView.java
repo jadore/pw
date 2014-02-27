@@ -632,13 +632,14 @@ public class QYWebView extends AppActivity  {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle(title);
-			oks.setText(desc);
+			oks.setText("#群友通讯录#" +desc + "\n" + link);
 			oks.setUrl(link);
 			if (!StringUtils.isEmpty(filePath)) {
 				oks.setImagePath(filePath);
 			}
 			else {
-				oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
+				String cachePath = cn.sharesdk.framework.utils.R.getCachePath(this, null);
+				oks.setImagePath(cachePath + "logo.png");
 			}
 			if (!StringUtils.isEmpty(link)) {
 				oks.setUrl(link);
@@ -647,6 +648,11 @@ public class QYWebView extends AppActivity  {
 			if (platform != null) {
 				oks.setPlatform(platform);
 			}
+			oks.setSiteUrl(link);
+			oks.setSite(link);
+			oks.setTitleUrl(link);
+			oks.setLatitude(23.056081f);
+			oks.setLongitude(113.385708f);
 			oks.show(context);
 		} catch (Exception e) {
 			Logger.i(e);

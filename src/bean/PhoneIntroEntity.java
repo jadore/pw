@@ -28,6 +28,11 @@ public class PhoneIntroEntity extends Entity {
 	public String logo;
 	public String link;
 	
+	public String hall;
+	public String family_name;
+	public String city;
+	public String family_intro;
+	
 	public String phoneSectionType;
 	public boolean willRefresh;
 	
@@ -97,10 +102,26 @@ public class PhoneIntroEntity extends Entity {
 			}
 			if (!info.isNull("creator")) {
 				JSONObject creatorObj = new JSONObject(info.getString("creator"));
-				data. creator = creatorObj.getString("nickname");
+				if (!info.isNull("nickname")) {
+					data. creator = creatorObj.getString("nickname");
+				}
 			}
 			data.phoneSectionType = sectionType;
 			data.link = info.getString("link");
+			if (!info.isNull("hall")) {
+				data.hall = info.getString("hall");
+			}
+			if (!info.isNull("family_name")) {
+				data.family_name = info.getString("family_name");
+			}
+			if (!info.isNull("city")) {
+				data.city = info.getString("city");
+			}
+			String hallTemp = StringUtils.notEmpty(data.hall)?String.format("堂号:%s\n", data.hall):"";
+		    String familyTemp = StringUtils.notEmpty(data.family_name)?String.format("始祖:%s\n", data.family_name):"";
+		    String cityTemp = StringUtils.notEmpty(data.city)?String.format("地区分支:%s\n", data.city):"";
+		    String memberTemp = StringUtils.notEmpty(data.member)?String.format("宗亲人数:%s", data.member):"";
+		    data.family_intro = String.format("%s%s%s%s", hallTemp, familyTemp, cityTemp, memberTemp);
 		} catch (JSONException e) {
 			throw AppException.json(e);
 		}

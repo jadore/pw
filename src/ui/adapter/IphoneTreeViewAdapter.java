@@ -154,21 +154,23 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		final PhoneIntroEntity model = (PhoneIntroEntity) getChild(groupPosition, childPosition);
 		if (groupPosition == 0 ) {
 			cell.desView.setText(model.content);
+			cell.desView.setText(String.format("%s氏   人数:%s", model.family_name, model.member));
 		}
 		else if (groupPosition == 1 ) {
 			cell.desView.setText(model.content);
+			cell.desView.setText(model.family_intro);
 		}
 		else if (groupPosition == 2 ) {
-			cell.desView.setText(String.format("人数: %s | 点击数: %s", model.member, model.hits));
+			cell.desView.setText(String.format("人数:%s   点击数:%s", model.member, model.hits));
 		}
 		else if (groupPosition == 3) {
-			cell.desView.setText(String.format("人数: %s | 发起人: %s", model.member, model.creator));
+			cell.desView.setText(String.format("人数:%s   发起人:%s", model.member, model.creator));
 		}
 		else if (groupPosition == 4 ) {//activity created
-			cell.desView.setText(String.format("点击数: %s | 参加人数: %s", model.hits, model.member));
+			cell.desView.setText(String.format("点击数:%s   参加人数:%s", model.hits, model.member));
 		}
 		else if (groupPosition == 5) {//activity took part
-			cell.desView.setText(String.format("聚会时间: %s | 参加人数: %s", model.begin_at, model.member));
+			cell.desView.setText(String.format("聚会时间:%s   参加人数:%s", model.begin_at, model.member));
 		}
 		cell.titleView.setText(model.title);
 		convertView.setTag(R.id.title, groupPosition);

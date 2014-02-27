@@ -25,6 +25,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -47,7 +50,7 @@ public class Welcome extends AppActivity {
 		card.realname = "群友通讯录客服";
 		card.phone = "18811168650";
 		AddMobileService.actionStartPAY(this, card, false);
-		copyFile("ic_launcher.png");
+		initImagePath();
 		aa.setAnimationListener(new AnimationListener()
 		{
 			public void onAnimationEnd(Animation arg0) {
@@ -95,23 +98,21 @@ public class Welcome extends AppActivity {
 	    return false;
 	}
 	
-	public void copyFile(String from) {  
-        try {  
-            int bytesum = 0;  
-            int byteread = 0;  
-        	Logger.i("aa");
-        	String path = this.getApplicationInfo().dataDir + "/" + "logo.png";
-            InputStream inStream = getResources().getAssets().open(from);
-            OutputStream fs = new BufferedOutputStream(new FileOutputStream(path)); 
-            byte[] buffer = new byte[1024];  
-            while ((byteread = inStream.read(buffer)) != -1) {  
-                bytesum += byteread;  
-                fs.write(buffer, 0, byteread);  
-            }  
-            inStream.close();  
-            fs.close();  
-        } catch (Exception e) {  
-        	Logger.i(e);
-        }  
-    }  
+	private void initImagePath() {
+		try {
+			String cachePath = cn.sharesdk.framework.utils.R.getCachePath(this, null);
+			String TEST_IMAGE = cachePath + "logo.png";
+			File file = new File(TEST_IMAGE);
+			if (!file.exists()) {
+				file.createNewFile();
+				Bitmap pic = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+				FileOutputStream fos = new FileOutputStream(file);
+				pic.compress(CompressFormat.JPEG, 100, fos);
+				fos.flush();
+				fos.close();
+			}
+		} catch(Throwable t) {
+			t.printStackTrace();
+		}
+	} 
 }

@@ -32,6 +32,7 @@ import bean.WebContent;
 import tools.AppException;
 import tools.AppManager;
 import tools.DecodeUtil;
+import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
 
@@ -63,7 +64,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				callback.onFailure("请再次点击获取验证码");
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -83,9 +84,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -106,9 +105,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -116,6 +113,14 @@ public class AppClient {
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		params.add("hash", appContext.getLoginHashCode());
+		params.add("client_browser", "android");
+		try {
+			params.add("client_version", AppManager.getAppManager().currentActivity().getPackageManager().getPackageInfo(AppManager.getAppManager().currentActivity().getPackageName(), 0).versionCode+"");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		params.add("client_push", "android");
+		params.add("push_device_type", "3");
 		QYRestClient.post("user/autologin", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
@@ -128,9 +133,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -183,9 +186,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -206,9 +207,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -230,9 +229,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				if (appContext.isNetworkConnected()) {
-					callback.onFailure(e.getMessage());
-				}
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}
@@ -372,7 +369,7 @@ public class AppClient {
 		});
 	}
 	
-	public static void getChatFriendCard(Context context, final MyApplication appContext, final String page, String keyword, String count, final ClientCallback callback) {
+	public static void getChatFriendCard(Context context, final MyApplication appContext, final String page, final String keyword, String count, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		if (!StringUtils.isEmpty(page)) {
 			params.add("page", page);
@@ -388,7 +385,9 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					if (!StringUtils.isEmpty(page) && page.equals("1")) {
+					Logger.i(keyword);
+					if (!StringUtils.isEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
+						Logger.i("a");
 						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
 					}
 					callback.onSuccess(data);

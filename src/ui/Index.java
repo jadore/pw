@@ -277,16 +277,21 @@ public class Index extends AppActivity {
 			@Override
 			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
 					long arg3) {
-//				if (position == 0 || position == 1) {
-//					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
-//						getPhoneList();
-//					}
-//				}
-//				else if (position == 2 || position == 3) {
-//					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
-//						getActivityList();
-//					}
-//				}
+				if (position == 0 || position == 1) {
+					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
+						getFamilyList();
+					}
+				}
+				else if (position == 2 || position == 3) {
+					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
+						getPhoneList();
+					}
+				}
+				else if (position == 4 || position == 5) {
+					if (phones.get(4).size() == 0 && phones.get(5).size() == 0) {
+						getActivityList();
+					}
+				}
 				return false;
 			}
 		});
@@ -974,52 +979,43 @@ public class Index extends AppActivity {
 		}
 	}
 	
+	public void oks(String title, String text, String link, String filePath) {
+		try {
+			final OnekeyShare oks = new OnekeyShare();
+			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
+			oks.setTitle(title);
+			if (!StringUtils.isEmpty(filePath)) {
+				oks.setImagePath(filePath);
+			}
+			else {
+				String cachePath = cn.sharesdk.framework.utils.R.getCachePath(this, null);
+				oks.setImagePath(cachePath + "logo.png");
+			}
+			oks.setText("#群友通讯录#" + text + "\n" + link);
+			oks.setUrl(link);
+			oks.setSiteUrl(link);
+			oks.setSite(link);
+			oks.setTitleUrl(link);
+			oks.setLatitude(23.056081f);
+			oks.setLongitude(113.385708f);
+			oks.setSilent(false);
+			oks.show(this);
+		} catch (Exception e) {
+			Logger.i(e);
+		}
+	}
+	
 	public void showShare(boolean silent, String platform, PhoneIntroEntity phoneIntro, String filePath) {
 		if (phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.OwnedSectionType) 
-				|| phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)) {
-			try {
-				final OnekeyShare oks = new OnekeyShare();
-				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-				oks.setTitle(phoneIntro.title);
-				if (!StringUtils.isEmpty(filePath)) {
-					oks.setImagePath(filePath);
-				}
-				else {
-					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
-				}
-				
-				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s群通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
-				oks.setUrl(phoneIntro.link);
-				oks.setSilent(silent);
-				if (platform != null) {
-					oks.setPlatform(platform);
-				}
-				oks.show(this);
-			} catch (Exception e) {
-				Logger.i(e);
-			}
+			|| phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)
+			|| phoneIntro.phoneSectionType.equals(CommonValue.FamilySectionType.FamilySectionType)
+			|| phoneIntro.phoneSectionType.equals(CommonValue.FamilySectionType.ClanSectionType)) {
+			String text = (!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
+			oks(phoneIntro.title, text, phoneIntro.link, filePath);
 		}
 		else {
-			try {
-				final OnekeyShare oks = new OnekeyShare();
-				oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-				oks.setTitle(phoneIntro.title);
-				if (!StringUtils.isEmpty(filePath)) {
-					oks.setImagePath(filePath);
-				}
-				else {
-					oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
-				}
-				oks.setText(!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s 群活动，点击参加。", phoneIntro.title));
-				oks.setUrl(phoneIntro.link);
-				oks.setSilent(silent);
-				if (platform != null) {
-					oks.setPlatform(platform);
-				}
-				oks.show(this);
-			} catch (Exception e) {
-				Logger.i(e);
-			}
+			String text = (!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s活动，点击参加。", phoneIntro.title));
+			oks(phoneIntro.title, text, phoneIntro.link, filePath);
 		}
 	}
 	
@@ -1062,22 +1058,8 @@ public class Index extends AppActivity {
 	
 	public void cardShare(boolean silent, String platform, CardIntroEntity card, String filePath) {
 		try {
-			final OnekeyShare oks = new OnekeyShare();
-			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
-			oks.setTitle(card.realname+"的名片");
-			oks.setText(!StringUtils.isEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
-			if (!StringUtils.isEmpty(filePath)) {
-				oks.setImagePath(filePath);
-			}
-			else {
-				oks.setImagePath(this.getApplicationInfo().dataDir + "/" + "logo.png");
-			}
-			oks.setUrl(card.link);
-			oks.setSilent(silent);
-			if (platform != null) {
-				oks.setPlatform(platform);
-			}
-			oks.show(this);
+			String text = (!StringUtils.isEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
+			oks(card.realname, text, card.link, filePath);
 		} catch (Exception e) {
 			Logger.i(e);
 		}
