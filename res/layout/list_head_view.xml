@@ -30,7 +30,7 @@
         android:maxLines="1"
         android:singleLine="true"
         android:textColor="#ff333333"
-        android:textSize="15.0sp" />
+        android:textSize="15.0dp" />
 
     <TextView
         android:id="@+id/online_count"
@@ -41,6 +41,6 @@
         android:gravity="center"
         android:maxLines="1"
         android:textColor="#ff929292"
-        android:textSize="12.0sp" />
+        android:textSize="12.0dp" />
 
 </RelativeLayout>

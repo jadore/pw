@@ -19,7 +19,7 @@
             android:layout_centerVertical="true"
             android:text="返回"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:drawablePadding="-20dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
@@ -32,7 +32,7 @@
             android:text="个人微友通讯录"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="@dimen/navbar_title_size"
             />
         
         <ImageView
@@ -65,7 +65,7 @@
         android:text="还没有微友哦\n请与你的朋友交换名片"
         android:gravity="center"
         android:textColor="@color/black"
-        android:textSize="14sp"
+        android:textSize="14dp"
         android:id="@+id/noting_view"
         android:visibility="gone"
         />

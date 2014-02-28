@@ -18,7 +18,7 @@
             android:layout_centerVertical="true"
             android:text="返回"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:drawablePadding="-20dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
@@ -30,7 +30,7 @@
             android:text="手机号登录"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="@dimen/navbar_title_size"
             />
         
         <Button
@@ -42,7 +42,7 @@
             android:layout_centerVertical="true"
             android:text="验证"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
            	android:layout_alignParentRight="true"
 			android:paddingRight="12dp"
 			android:drawablePadding="2dp"
@@ -58,7 +58,7 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:text="您的手机号码："
-        android:textSize="16sp" 
+        android:textSize="@dimen/navbar_button_text_size" 
         android:textColor="#222222"
         android:gravity="center"
         />
@@ -75,7 +75,7 @@
         android:gravity="center_horizontal"
         android:textColorHint="#8f8f8f"
         android:textColor="#222222"
-        android:textSize="18sp" 
+        android:textSize="@dimen/navbar_title_size" 
         android:inputType="phone" >
         <requestFocus />
     </EditText>
@@ -87,7 +87,7 @@
         android:layout_marginTop="10dp"
         android:text="@string/code_retake" 
         android:textColor="#0189bd"
-        android:textSize="15sp" 
+        android:textSize="@dimen/navbar_button_text_size" 
         android:layout_gravity="center_horizontal"
         android:clickable="true"
         android:onClick="ButtonClick"

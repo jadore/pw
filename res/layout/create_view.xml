@@ -18,7 +18,7 @@
             android:layout_centerVertical="true"
             android:text="返回"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:drawablePadding="-20dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
@@ -30,7 +30,7 @@
       		android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="@dimen/navbar_title_size"
             />
         
         <Button
@@ -41,7 +41,7 @@
             android:layout_centerVertical="true"
             android:text="关闭"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
 			android:onClick="ButtonClick"
 			android:layout_toRightOf="@+id/leftBarButton"
             />
@@ -64,7 +64,7 @@
             android:layout_centerVertical="true"
             android:text="群发短信"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
            	android:layout_alignParentRight="true"
 			android:paddingRight="12dp"
 			android:drawablePadding="2dp"
@@ -91,7 +91,7 @@
 	    	android:layout_height="48dp"
 	    	android:background="#71a0d0"
 	    	android:gravity="center"
-	        android:textSize="16sp"
+	        android:textSize="@dimen/navbar_button_text_size"
 	        android:textColor="@color/white"
 	        android:clickable="true"
 	        android:onClick="ButtonClick"
@@ -107,6 +107,7 @@
 	        android:background="@drawable/card_view_btn"
 	        android:visibility="invisible"
 	        android:onClick="ButtonClick"
+	        android:textSize="@dimen/navbar_button_text_size"
 	        />
 </RelativeLayout>
 

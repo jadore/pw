@@ -37,7 +37,7 @@
         android:padding="0.0dip"
         android:singleLine="true"
         android:textColor="@drawable/contact_list_item_buddy_name_text_color"
-        android:textSize="16.0sp" />
+        android:textSize="16.0dp" />
 
     <TextView
         android:id="@+id/cpntact_list_item_state"
@@ -54,6 +54,6 @@
         android:padding="0.0dip"
         android:singleLine="true"
         android:textColor="@drawable/contact_list_item_buddy_signature_text_color2"
-        android:textSize="12.0sp" />
+        android:textSize="12.0dp" />
 
 </RelativeLayout>

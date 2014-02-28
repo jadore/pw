@@ -10,10 +10,10 @@
     <TextView 
         android:id="@+id/titleView"
         android:layout_width="match_parent"
-        android:layout_height="16dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="9dp"
         android:layout_marginLeft="18dp"
-        android:textSize="12sp"
+        android:textSize="@dimen/section_title_size"
         android:textColor="#999999"
         />
     

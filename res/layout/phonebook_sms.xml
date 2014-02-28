@@ -19,7 +19,7 @@
             android:layout_centerVertical="true"
             android:text="返回"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:drawablePadding="-20dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
@@ -32,7 +32,7 @@
             android:text="群发短信"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="@dimen/navbar_title_size"
             />
         
         <Button
@@ -43,7 +43,7 @@
             android:layout_centerVertical="true"
             android:text="全选"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:onClick="ButtonClick"
             android:layout_alignParentRight="true"
             android:gravity="right|center_vertical"
@@ -80,6 +80,7 @@
         	android:text="下一步"
         	android:textColor="@color/white"
         	android:onClick="ButtonClick"
+        	android:textSize="@dimen/navbar_button_text_size"
         />
     </RelativeLayout>
 </RelativeLayout>

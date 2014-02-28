@@ -18,7 +18,7 @@
             android:layout_centerVertical="true"
             android:text="消息"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
             android:drawablePadding="-5dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
@@ -30,7 +30,7 @@
             android:layout_height="15dp"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="8dp"
-            android:textSize="12sp"
+            android:textSize="@dimen/message_count_size"
             android:minWidth="15dp"
             android:background="@drawable/message_label"
             android:gravity="center"
@@ -44,7 +44,7 @@
             android:text="群友通讯录"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="@dimen/navbar_title_size"
             />
         
         <ImageView
@@ -59,14 +59,14 @@
         
         <Button
             android:id="@+id/rightBarButton"
-            android:layout_width="70dp"
+            android:layout_width="wrap_content"
             android:layout_height="44dp"
             android:drawableLeft="@drawable/btn_add_normal"
             android:background="@null"
             android:layout_centerVertical="true"
             android:text="创建"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="@dimen/navbar_button_text_size"
            	android:layout_alignParentRight="true"
 			android:paddingRight="12dp"
 			android:drawablePadding="8dp"
@@ -87,6 +87,7 @@
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
+				android:textSize="@dimen/navbar_button_text_size"
         	    />
         	<Button 
         	    android:id="@+id/activityButton"
@@ -96,6 +97,7 @@
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
+				android:textSize="@dimen/navbar_button_text_size"
         	    />
         	<Button 
         	    android:id="@+id/cardButton"
@@ -105,6 +107,7 @@
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
+				android:textSize="@dimen/navbar_button_text_size"
         	    />
     </LinearLayout>
     
