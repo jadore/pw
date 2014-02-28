@@ -17,6 +17,7 @@ public class UserEntity extends Entity{
 	public String _sign;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
+		Logger.i(res);
 		UserEntity data = new UserEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -34,16 +35,13 @@ public class UserEntity extends Entity{
 			}
 			else {
 				if (!js.isNull("error_code")) {
-					try {
-						data.error_code = js.getInt("error_code");
-					} catch (Exception  e) {
-						data.error_code = Integer.valueOf(js.getString("error_code"));
-					}
+					data.error_code = js.getInt("error_code");
 				}
 				data.message = js.getString("info");
 			}
 			
 		} catch (JSONException e) {
+			Logger.i(res);
 			throw AppException.json(e);
 		}
 		return data;

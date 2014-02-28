@@ -6,7 +6,6 @@ import java.util.List;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -38,7 +37,7 @@ import config.AppClient.ClientCallback;
 import config.QYRestClient;
 
 import tools.AppManager;
-import tools.Logger;
+import tools.StringUtils;
 import tools.UIHelper;
 import ui.adapter.FriendCardAdapter;
 import widget.XListView;
@@ -180,7 +179,6 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 				UIHelper.dismissProgress(loadingPd);
 				indicatorImageView.clearAnimation();
 				indicatorImageView.setVisibility(View.INVISIBLE);
-				Logger.i(e);
 			}
 		});
 	}
@@ -213,6 +211,12 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
 			xlistView.setPullLoadEnable(false);
 			nobilateralView.setVisibility(View.VISIBLE);
+			if (StringUtils.notEmpty(keyword)) {
+				nobilateralView.setText(R.string.friend_search_no);
+			}
+			else {
+				nobilateralView.setText(R.string.friend_no);
+			}
 		}
 	}
 	
@@ -269,7 +273,6 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
         case EditorInfo.IME_ACTION_SEARCH:  
         	imm.hideSoftInputFromWindow(v.getWindowToken(), 0);  
     		editText.setCursorVisible(false);
-            Logger.i("action search for text: "  + v.getText());  
             currentPage = 1;
             keyword = v.getText().toString();
             loadingPd = UIHelper.showProgress(this, null, null, true);
@@ -291,13 +294,11 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
         public void onTextChanged(CharSequence s, int start, int before,
                 int count) {
         	if (s.length() > 0) {
-        		Logger.i(s.toString());
             	searchDeleteButton.setVisibility(View.VISIBLE);
             	String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
         		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
         		if(entity != null){
         			if (entity.u.size() > 0) {
-        				Logger.i("a");
         				List<CardIntroEntity> tempList = new ArrayList<CardIntroEntity>();
                 		for (CardIntroEntity friend : entity.u) {
     						if (friend.realname.contains(s.toString()) ) {

@@ -11,4 +11,6 @@
     <string name="main_message">消息</string>
     <string name="main_more">更多</string>
 	
+    <string name="friend_search_no">无结果</string>
+    <string name="friend_no">还没有微友哦\n请与你的朋友交换名片</string>
 </resources>

@@ -69,7 +69,11 @@ public class FriendCardListEntity extends Entity {
 					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), "");
 					data.u.add(phone);
 				}
-				data.ne = info.getInt("ne");
+				data.ne = -1;
+				if (!info.isNull("ne")) {
+					data.ne = info.getInt("ne");
+				}
+				
 				Logger.i(data.ne+"");
 			}
 			else {

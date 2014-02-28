@@ -62,7 +62,7 @@
         android:layout_below="@+id/navLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="还没有微友哦\n请与你的朋友交换名片"
+        android:text="@string/friend_no"
         android:gravity="center"
         android:textColor="@color/black"
         android:textSize="14dp"

@@ -1,31 +1,13 @@
 package ui.adapter;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import sms.MessageBoxList;
-import tools.AppManager;
-import tools.BaseIntentUtil;
-import ui.HomeContactActivity;
-import ui.adapter.IndexActivityAdapter.CellHolder;
-
 import com.vikaa.mycontact.R;
 
-import bean.ActivityIntroEntity;
-import bean.ContactBean;
 import bean.KeyValue;
-import android.app.AlertDialog;
-import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
-import android.provider.ContactsContract;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;

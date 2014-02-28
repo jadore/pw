@@ -20,14 +20,15 @@
         />
     
     <TextView 
-        android:layout_width="268dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="数据已进行隐私加密，请放心使用\nPower By 群友通讯录"
         android:gravity="center"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="50dp"
         android:textColor="@color/white"
+        android:textSize="@dimen/navbar_button_text_size"
         />
 
 </RelativeLayout>

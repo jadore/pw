@@ -35,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:layout_marginLeft="14dp"
-        android:textSize="16dp"
+        android:textSize="@dimen/cell_title_size"
         android:textColor="#2b2b2b"
         android:text="华南区社会化媒体市场通讯录" />
 
@@ -46,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="16dp"
         android:layout_marginTop="5dp"
-        android:textSize="12dp"
+        android:textSize="@dimen/cell_subtitle_size"
         android:textColor="#999999"
         android:text="人数 20   点击数 200"/>
 
