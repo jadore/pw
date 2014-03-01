@@ -11,7 +11,8 @@
         android:cacheColorHint="@android:color/transparent"
         android:divider="@null"
         android:fadingEdge="none"
-        android:transcriptMode="normal" />
+        android:transcriptMode="disabled"
+        />
 	<FrameLayout
         android:id="@+id/topGroup"
         android:layout_width="match_parent"

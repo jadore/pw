@@ -7,7 +7,6 @@ import java.util.List;
 import org.apache.http.client.CookieStore;
 
 import baidupush.Utils;
-import bean.ActivityIntroEntity;
 import bean.ActivityListEntity;
 import bean.CardIntroEntity;
 import bean.CardListEntity;
@@ -22,9 +21,6 @@ import bean.UserEntity;
 
 import cn.sharesdk.framework.ShareSDK;
 import cn.sharesdk.onekeyshare.OnekeyShare;
-import cn.sharesdk.wechat.friends.Wechat;
-import cn.sharesdk.wechat.moments.WechatMoments;
-
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
@@ -62,10 +58,11 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -99,26 +96,13 @@ public class Index extends AppActivity {
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
 	private static final int PAGE3 = 2;// 页面3
-//	private static final int PAGE4 = 3;// 页面3
 	private ViewPager mPager;
 	private List<View> mListViews;// Tab页面
 	
-//	private int currentIndex = PAGE1; // 默认选中第2个，可以动态的改变此参数值
-//	private int offset = 0;// 动画图片偏移量
-//	private int bmpW;// 动画图片宽度
-	
-	private FrameLayout indicatorGroup;
-	private int indicatorGroupId = -1;
-	private int indicatorGroupHeight;
 	private ExpandableListView iphoneTreeView;
 	private IphoneTreeViewAdapter mPhoneAdapter;
 	private List<List<PhoneIntroEntity>> phones;
-//	private PinnedHeaderListView mPinedListView1;
-//	private IndexPhoneAdapter mPhoneAdapter;
 	
-//	private List<List<ActivityIntroEntity>> activities;
-//	private PinnedHeaderListView mPinedListView2;
-//	private IndexActivityAdapter mActivityAdapter;
 	private WebView webView;
 	private Button loadAgainButton;
 	
@@ -128,6 +112,9 @@ public class Index extends AppActivity {
 	
 	private ListView mListView3;
 	private ProgressDialog loadingPd;
+	
+	private int firstVisibleItemPosition;
+	private float mLastY = -1;
 	
 	@Override
 	public void onStart() {
@@ -229,35 +216,12 @@ public class Index extends AppActivity {
 		
 		View footer = inflater.inflate(R.layout.index_footer, null);
 		
-		indicatorGroup = (FrameLayout) lay1.findViewById(R.id.topGroup);
 		View header = inflater.inflate(R.layout.index_tab0_header, null);
 		iphoneTreeView = (ExpandableListView) lay1.findViewById(R.id.iphone_tree_view);
 		iphoneTreeView.setGroupIndicator(null);
 		iphoneTreeView.addHeaderView(header);
 		iphoneTreeView.addFooterView(footer);
-//		iphoneTreeView.setOnItemLongClickListener(this);
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
-		
-//		mPinedListView1 = (PinnedHeaderListView) lay1.findViewById(R.id.tab1_listView);
-//		mPinedListView1.setDividerHeight(0);
-//		phones = new ArrayList<List<PhoneIntroEntity>>();
-//		List<PhoneIntroEntity> mobilesInPhone = new ArrayList<PhoneIntroEntity>();
-//		PhoneIntroEntity mobile = new PhoneIntroEntity();
-//		mobile.title = "手机通讯录";
-//		mobile.content = CommonValue.subTitle.subtitle1;
-//		mobile.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile);
-//		PhoneIntroEntity mobile0 = new PhoneIntroEntity();
-//		mobile0.title = "家庭族谱通讯录";
-//		mobile0.content = CommonValue.subTitle.subtitle2;
-//		mobile0.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile0);
-//		PhoneIntroEntity mobile1 = new PhoneIntroEntity();
-//		mobile1.title = "个人微友通讯录";
-//		mobile1.content = CommonValue.subTitle.subtitle2;
-//		mobile1.phoneSectionType = CommonValue.PhoneSectionType .MobileSectionType;
-//		mobilesInPhone.add(mobile1);
-//		phones.add(mobilesInPhone);
 		
 		List<PhoneIntroEntity> phone0 = new ArrayList<PhoneIntroEntity>();
 		List<PhoneIntroEntity> phone1 = new ArrayList<PhoneIntroEntity>();
@@ -271,12 +235,19 @@ public class Index extends AppActivity {
 		phones.add(phone3);
 		phones.add(phone4);
 		phones.add(phone5);
-		mPhoneAdapter = new IphoneTreeViewAdapter(this, phones);
+		mPhoneAdapter = new IphoneTreeViewAdapter(iphoneTreeView, this, phones);
 		iphoneTreeView.setAdapter(mPhoneAdapter);
+		iphoneTreeView.setSelection(0);
 		iphoneTreeView.setOnGroupClickListener(new OnGroupClickListener() {
 			@Override
 			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
 					long arg3) {
+				if (iphoneTreeView.isGroupExpanded(position)) {
+					iphoneTreeView.collapseGroup(position);
+				}
+				else {
+					iphoneTreeView.expandGroup(position, false); 
+				}
 				if (position == 0 || position == 1) {
 					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
 						getFamilyList();
@@ -292,34 +263,9 @@ public class Index extends AppActivity {
 						getActivityList();
 					}
 				}
-				return false;
+				return true;
 			}
 		});
-//		mPhoneAdapter = new IndexPhoneAdapter(this, phones);
-//		mPinedListView1.setAdapter(mPhoneAdapter);
-		
-		
-		
-//		mPinedListView2 = (PinnedHeaderListView) lay2.findViewById(R.id.tab2_listView);
-//		mPinedListView2.setDividerHeight(0);
-//		activities = new ArrayList<List<ActivityIntroEntity>>();
-//		mActivityAdapter = new IndexActivityAdapter(this, activities);
-//		mPinedListView2.setAdapter(mActivityAdapter);
-//		mPinedListView2.setOnItemClickListener(new OnItemClickListener() {
-//			
-//			@Override
-//			public void onSectionClick(AdapterView<?> adapterView, View view,
-//					int section, long id) {
-//				
-//			}
-//			
-//			@Override
-//			public void onItemClick(AdapterView<?> adapterView, View view, int section,
-//					int position, long id) {
-//				ActivityIntroEntity entity = activities.get(section).get(position);
-//				showActivityViewWeb(entity, 46);
-//			}
-//		});
 		webView = (WebView) lay2.findViewById(R.id.webview);
 		loadAgainButton = (Button) lay2.findViewById(R.id.loadAgain);
 		
@@ -330,9 +276,6 @@ public class Index extends AppActivity {
 		cards = new ArrayList<List<CardIntroEntity>>();
 		mCardAdapter = new IndexCardAdapter(this, cards);
 		mPinedListView0.setAdapter(mCardAdapter);
-		
-//		mListView3 = (ListView) lay3.findViewById(R.id.tab3_listView);
-//		mListView3.setDividerHeight(0);
 	}
 	
 	public void showMobileView() {
@@ -361,12 +304,6 @@ public class Index extends AppActivity {
 		startActivity(intent);
 	}
 	
-//	public void showPhoneView(PhoneIntroEntity entity) {
-//		Intent intent = new Intent(this, PhonebookViewMembers.class);
-//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-//		startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
-//	}
-	
 	public void showPhoneViewWeb(PhoneIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
@@ -380,12 +317,6 @@ public class Index extends AppActivity {
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
-	
-//	private void showActivityView(ActivityIntroEntity entity) {
-//		Intent intent = new Intent(this, AcivityViewMembers.class);
-//		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
-//		startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
-//	}
 	
 	public void showActivityViewWeb(PhoneIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
@@ -425,8 +356,6 @@ public class Index extends AppActivity {
 	      .build()
 		);
 		messageView.setVisibility(View.INVISIBLE);
-//		Intent intent = new Intent(this, MessageView.class);
-//		startActivity(intent);
 		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		startActivity(intent);
@@ -502,14 +431,23 @@ public class Index extends AppActivity {
 	private void getFamilyListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.FamilyList, appContext.getLoginUid());
 		FamilyListEntity entity = (FamilyListEntity) appContext.readObject(key);
-		if(entity == null){
-			return;
+		if(entity != null){
+			handlerFamilySection(entity);
 		}
+	}
+	
+	private void handlerFamilySection(FamilyListEntity entity) {
 		if (entity.family.size()>0) {
-			phones.set(0, entity.family);
+			phones.set(4, entity.family);
+			if (entity.family.size() <= 3) {
+				iphoneTreeView.expandGroup(4);
+			}
 		}
 		if (entity.clan.size()>0) {
-			phones.set(1, entity.clan);
+			phones.set(5, entity.clan);
+			if (entity.clan.size() <= 3) {
+				iphoneTreeView.expandGroup(5);
+			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -517,14 +455,24 @@ public class Index extends AppActivity {
 	private void getPhoneListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.PhoneList, appContext.getLoginUid());
 		PhoneListEntity entity = (PhoneListEntity) appContext.readObject(key);
-		if(entity == null){
-			return;
+		if(entity != null){
+			handlerPhoneSection(entity);
 		}
+		
+	}
+	
+	private void handlerPhoneSection(PhoneListEntity entity) {
 		if (entity.owned.size()>0) {
-			phones.set(2, entity.owned);
+			phones.set(0, entity.owned);
+			if (entity.owned.size() <= 3) {
+				iphoneTreeView.expandGroup(0);
+			}
 		}
 		if (entity.joined.size()>0) {
-			phones.set(3, entity.joined);
+			phones.set(1, entity.joined);
+			if (entity.joined.size() <= 3) {
+				iphoneTreeView.expandGroup(1);
+			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -532,15 +480,24 @@ public class Index extends AppActivity {
 	private void getActivityListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.ActivityList, appContext.getLoginUid());
 		ActivityListEntity entity = (ActivityListEntity) appContext.readObject(key);
-		if(entity == null){
-			return;
+		if(entity != null){
+			handlerActivitySection(entity);
 		}
-//		activities.clear();
+		
+	}
+	
+	private void handlerActivitySection(ActivityListEntity entity) {
 		if (entity.owned.size()>0) {
-			phones.set(4, entity.owned);
+			phones.set(2, entity.owned);
+			if (entity.owned.size() <= 3) {
+				iphoneTreeView.expandGroup(2);
+			}
 		}
 		if (entity.joined.size()>0) {
-			phones.set(5, entity.joined);
+			phones.set(3, entity.joined);
+			if (entity.joined.size() <= 3) {
+				iphoneTreeView.expandGroup(3);
+			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -685,13 +642,7 @@ public class Index extends AppActivity {
 				FamilyListEntity entity = (FamilyListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (entity.family.size() > 0) {
-						phones.set(0, entity.family);
-					}
-					if (entity.clan.size() > 0) {
-						phones.set(1, entity.clan);
-					}
-					mPhoneAdapter.notifyDataSetChanged();
+					handlerFamilySection(entity);
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
@@ -728,12 +679,7 @@ public class Index extends AppActivity {
 				PhoneListEntity entity = (PhoneListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (entity.owned.size() > 0) {
-						phones.set(2, entity.owned);
-					}
-					if (entity.joined.size() > 0) {
-						phones.set(3, entity.joined);
-					}
+					handlerPhoneSection(entity);
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
@@ -772,12 +718,7 @@ public class Index extends AppActivity {
 				ActivityListEntity entity = (ActivityListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (entity.owned.size()>0) {
-						phones.set(4, entity.owned);
-					}
-					if (entity.joined.size()>0) {
-						phones.set(5, entity.joined);
-					}
+					handlerActivitySection(entity);
 					mPhoneAdapter.notifyDataSetChanged();
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
@@ -1322,20 +1263,5 @@ public class Index extends AppActivity {
 			}
 		}).show();
 	}
-	
-//	public void forceLogout() {
-//		UIHelper.ToastMessage(this, "用户未登录,1秒后重新进入登录界面", Toast.LENGTH_SHORT);
-//		Handler jumpHandler = new Handler();
-//        jumpHandler.postDelayed(new Runnable() {
-//			public void run() {
-//				AppClient.Logout(appContext);
-//				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
-//				cookieStore.clear();
-//				AppManager.getAppManager().finishAllActivity();
-//				appContext.setUserLogout();
-//				Intent intent = new Intent(Index.this, LoginCode1.class);
-//				startActivity(intent);
-//			}
-//		}, 1000);
-//	}
+
 }

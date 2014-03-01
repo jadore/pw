@@ -310,8 +310,7 @@ public class QYWebView extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
-				Logger.i("aaa");
-				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected()) {
+				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected() && !QYWebView.this.isFinishing()) {
 					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
 					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 					webView.loadUrl(message);
@@ -325,7 +324,11 @@ public class QYWebView extends AppActivity  {
 
 			@Override
 			public void onSuccess(int type, Entity data, String key) {
+				if (QYWebView.this.isFinishing()) {
+					return;
+				}
 				WebContent wc = (WebContent) data;
+				
 				if (isLoad) {
 					webView.loadDataWithBaseURL(CommonValue.BASE_URL, wc.text, "text/html", "utf-8", url);
 				}

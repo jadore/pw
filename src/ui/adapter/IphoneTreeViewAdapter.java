@@ -22,26 +22,28 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 
-	private IphoneTreeView iphoneTreeView;
+	private ExpandableListView iphoneTreeView;
 	
 	private String[] groups = { 
-			CommonValue.FamilySectionType.FamilySectionType,
-			CommonValue.FamilySectionType.ClanSectionType,
 			CommonValue.PhoneSectionType .OwnedSectionType,
 			CommonValue.PhoneSectionType.JoinedSectionType,
 			CommonValue.ActivitySectionType.OwnedSectionType,
-			CommonValue.ActivitySectionType.JoinedSectionType
+			CommonValue.ActivitySectionType.JoinedSectionType,
+			CommonValue.FamilySectionType.FamilySectionType,
+			CommonValue.FamilySectionType.ClanSectionType
 	};
 	private HashMap<Integer, Integer> groupStatusMap;
 	private Context context;
 	private LayoutInflater inflater;
 	private List<List<PhoneIntroEntity>> phones;
-	public IphoneTreeViewAdapter(Context context, List<List<PhoneIntroEntity>> phones) {
+	public IphoneTreeViewAdapter(ExpandableListView iphoneTreeView, Context context, List<List<PhoneIntroEntity>> phones) {
+		this.iphoneTreeView = iphoneTreeView;
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.phones = phones;
@@ -152,24 +154,24 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 			cell = (CellHolder) convertView.getTag();
 		}
 		final PhoneIntroEntity model = (PhoneIntroEntity) getChild(groupPosition, childPosition);
-		if (groupPosition == 0 ) {
+		if (groupPosition == 4 ) {
 			cell.desView.setText(model.content);
 			cell.desView.setText(String.format("%s氏   人数:%s", model.family_name, model.member));
 		}
-		else if (groupPosition == 1 ) {
+		else if (groupPosition == 5 ) {
 			cell.desView.setText(model.content);
 			cell.desView.setText(model.family_intro);
 		}
-		else if (groupPosition == 2 ) {
+		else if (groupPosition == 0 ) {
 			cell.desView.setText(String.format("人数:%s   点击数:%s", model.member, model.hits));
 		}
-		else if (groupPosition == 3) {
+		else if (groupPosition == 1) {
 			cell.desView.setText(String.format("人数:%s   发起人:%s", model.member, model.creator));
 		}
-		else if (groupPosition == 4 ) {//activity created
+		else if (groupPosition == 2 ) {//activity created
 			cell.desView.setText(String.format("点击数:%s   参加人数:%s", model.hits, model.member));
 		}
-		else if (groupPosition == 5) {//activity took part
+		else if (groupPosition == 3) {//activity took part
 			cell.desView.setText(String.format("聚会时间:%s   参加人数:%s", model.begin_at, model.member));
 		}
 		cell.titleView.setText(model.title);
@@ -197,5 +199,5 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		return convertView;
 		
 	}
-
+	
 }
