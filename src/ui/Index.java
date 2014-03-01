@@ -246,7 +246,7 @@ public class Index extends AppActivity {
 					iphoneTreeView.collapseGroup(position);
 				}
 				else {
-					iphoneTreeView.expandGroup(position, false); 
+					iphoneTreeView.expandGroup(position); 
 				}
 				if (position == 0 || position == 1) {
 					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
