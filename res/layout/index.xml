@@ -81,8 +81,9 @@
             >
         	<Button 
         	    android:id="@+id/phoneButton"
-        	    android:layout_width="wrap_content"
+        	    android:layout_width="0dp"
 				android:layout_height="44dp"
+				android:layout_weight="1.0"
 				android:text="通讯录"
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
@@ -91,8 +92,9 @@
         	    />
         	<Button 
         	    android:id="@+id/activityButton"
-        	    android:layout_width="wrap_content"
+        	    android:layout_width="0dp"
 				android:layout_height="44dp"
+				android:layout_weight="1.0"
 				android:text="发现"
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
@@ -101,7 +103,8 @@
         	    />
         	<Button 
         	    android:id="@+id/cardButton"
-        	    android:layout_width="wrap_content"
+        	    android:layout_width="0dp"
+        	    android:layout_weight="1.0"
 				android:layout_height="44dp"
 				android:text="名片"
 				android:background="@drawable/friendcard_button"

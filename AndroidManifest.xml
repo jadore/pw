@@ -79,6 +79,12 @@
         </activity>
         
         <activity
+            android:name="ui.Register"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustPan" >
+        </activity>
+        
+        <activity
             android:name="ui.LoginCode1"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustUnspecified|stateAlwaysVisible" >

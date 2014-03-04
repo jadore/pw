@@ -50,6 +50,7 @@ public class CommonValue {
 	public interface LoginRequest {
 		int LoginMobile = 1;
 		int LoginWechat = 2;
+		int Register = 3;
 	}
 	
 	// options

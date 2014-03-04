@@ -3,6 +3,8 @@ package service;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.crashlytics.android.Crashlytics;
+
 import tools.AppManager;
 import tools.Logger;
 
@@ -19,27 +21,23 @@ public class SMSReceiver extends BroadcastReceiver {
     
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if (intent.getAction().equals(SMS_RECEIVED_ACTION))
-
-	       {
-
-	           SmsMessage[] messages = getMessagesFromIntent(intent);
-
-	           for (SmsMessage message : messages)
-
-	           {
-	        	  String responseString = message.getDisplayMessageBody();
-	        	  Logger.i(responseString);
-	              String reg = "【(\\d{6})】\\w+";
-	              Pattern pattern = Pattern.compile(reg);
+		if (intent.getAction().equals(SMS_RECEIVED_ACTION)) {
+			SmsMessage[] messages = getMessagesFromIntent(intent);
+	        for (SmsMessage message : messages) {
+	        	try {
+	        		String responseString = message.getDisplayMessageBody();
+		            String reg = "【(\\d{6})】\\w+";
+		            Pattern pattern = Pattern.compile(reg);
 	      			Matcher matcher = pattern.matcher(responseString);
 	      			if(matcher.find()){
 	      				String code = matcher.group(1);
 	      				updateCode(code);
 	      			}
-	           }
-
-	       }
+	        	 }catch (Exception e){
+	        		 Crashlytics.logException(e);
+	        	 }
+	        }
+		}
 	}
 
 	public final SmsMessage[] getMessagesFromIntent(Intent intent)

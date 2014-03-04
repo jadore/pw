@@ -184,19 +184,6 @@ public class Index extends AppActivity {
 		phoneButton = (Button) findViewById(R.id.phoneButton);
 		phoneButton.setSelected(true);
 		
-		int w = ImageUtils.getDisplayWidth(this);
-		LinearLayout.LayoutParams p1 = (LayoutParams) phoneButton.getLayoutParams();
-		p1.width = w/3;
-		phoneButton.setLayoutParams(p1);
-		LinearLayout.LayoutParams p2 = (LayoutParams) activityButton.getLayoutParams();
-		p2.width = w/3;
-		activityButton.setLayoutParams(p2);
-		LinearLayout.LayoutParams p3 = (LayoutParams) cardButton.getLayoutParams();
-		p3.width = w/3;
-		cardButton.setLayoutParams(p3);
-		
-		
-//		avatarImageView = (ImageView ) findViewById(R.id.avatarImageView);
 		mPager = (ViewPager) findViewById(R.id.viewPager);
 		mListViews = new ArrayList<View>();
 		LayoutInflater inflater = LayoutInflater.from(this);

@@ -43,6 +43,7 @@ public class LoginCode1 extends AppActivity{
 			AppManager.getAppManager().finishActivity(this);
 			break;
 		case CommonValue.LoginRequest.LoginWechat:
+		case CommonValue.LoginRequest.Register:
 			AppManager.getAppManager().finishActivity(this);
 			break;
 		}
@@ -75,6 +76,9 @@ public class LoginCode1 extends AppActivity{
 
 		case R.id.textView1:
 			this.wechat();
+			break;
+		case R.id.textView2:
+			register();
 			break;
 		}
 	}
@@ -144,6 +148,11 @@ public class LoginCode1 extends AppActivity{
 	private void wechat() {
 		Intent intent = new Intent(LoginCode1.this, LoginWechat.class);
 		startActivityForResult(intent, CommonValue.LoginRequest.LoginWechat);
+	}
+	
+	private void register() {
+		Intent intent = new Intent(LoginCode1.this, Register.class);
+		startActivityForResult(intent, CommonValue.LoginRequest.Register);
 	}
 	
 //	class CountDown extends CountDownTimer {

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:orientation="vertical" >
+    
+    <TextView
+        android:id="@+id/t1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="姓名(必填)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"/>
+
+    <EditText
+        android:id="@+id/editTextName"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:ems="11"
+        android:hint="姓名"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="text" 
+        android:onClick="ButtonClick"
+        android:clickable="true"
+        android:imeOptions="actionNext"
+        >
+        <requestFocus />
+    </EditText>
+    
+    <TextView
+        android:id="@+id/t2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="手机(必填)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"/>
+
+    <EditText
+        android:id="@+id/editTextPhone"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:ems="11"
+        android:hint="手机"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="phone" 
+        android:onClick="ButtonClick"
+        android:clickable="true"
+        android:imeOptions="actionNext">
+    </EditText>
+    
+    <TextView
+        android:id="@+id/t3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="密码(6-15位)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"/>
+
+    <EditText
+        android:id="@+id/editTextPass"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:maxLength="15"
+        android:hint="密码"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="textPassword"
+        android:onClick="ButtonClick"
+        android:clickable="true" 
+        android:imeOptions="actionNext">
+    </EditText>
+    
+    <TextView
+        android:id="@+id/t4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="公司(必填)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"
+        />
+
+    <EditText
+        android:id="@+id/editTextOrg"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:hint="公司"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="text" 
+        android:onClick="ButtonClick"
+        android:clickable="true"
+        android:imeOptions="actionNext">
+    </EditText>
+    
+    <TextView
+        android:id="@+id/t5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="职位(必填)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"/>
+
+    <EditText
+        android:id="@+id/editTextPos"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:hint="职位"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="text" 
+        android:onClick="ButtonClick"
+        android:clickable="true"
+        android:imeOptions="actionNext">
+    </EditText>
+    
+    <TextView
+        android:id="@+id/t6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="25dp"
+        android:text="邮箱(必填)"
+        android:textSize="@dimen/navbar_button_text_size" 
+        android:textColor="#222222"/>
+
+    <EditText
+        android:id="@+id/editTextEmail"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="5dp"
+        android:layout_height="45dp"
+        android:hint="邮箱"
+        android:textColorHint="#8f8f8f"
+        android:textColor="#222222"
+        android:textSize="@dimen/navbar_title_size" 
+        android:inputType="text" 
+        android:layout_marginBottom="220dp"
+        android:onClick="ButtonClick"
+        android:clickable="true"
+        android:imeOptions="actionDone"
+        >
+    </EditText>
+
+</LinearLayout>
