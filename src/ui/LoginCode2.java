@@ -189,7 +189,7 @@ public class LoginCode2 extends AppActivity{
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
-					enterIndex();
+					enterIndex(user);
 					break;
 				default:
 					UIHelper.ToastMessage(LoginCode2.this, user.getMessage(), Toast.LENGTH_SHORT);
@@ -211,11 +211,24 @@ public class LoginCode2 extends AppActivity{
 		});
 	}
 	
-	private void enterIndex() {
-		Intent intent = new Intent(this, Index.class);
-		startActivity(intent);
-		setResult(RESULT_OK);
-		AppManager.getAppManager().finishActivity(this);
+	private void enterIndex(UserEntity user) {
+		String reg = "手机用户.*";
+		Pattern p = Pattern.compile(reg);
+		Matcher m = p.matcher(user.nickname);
+		if (m.matches()) {
+			Intent intent = new Intent(this, Register.class);
+			intent.putExtra("mobile", user.username);
+			intent.putExtra("jump", true);
+	        startActivity(intent);
+	        setResult(RESULT_OK);
+			AppManager.getAppManager().finishActivity(this);
+		}
+		else {
+			Intent intent = new Intent(this, Index.class);
+			startActivity(intent);
+			setResult(RESULT_OK);
+			AppManager.getAppManager().finishActivity(this);
+		}
 	}
 	
 	class CountDown extends CountDownTimer {

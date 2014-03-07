@@ -13,10 +13,11 @@
         <TextView 
             android:layout_width="wrap_content"
       		android:layout_height="wrap_content"
-            android:text="手机号登录"
+            android:text="手机号码登录"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
             android:textSize="@dimen/navbar_title_size"
+            android:id="@+id/barTitle"
             />
         
         <Button
@@ -85,7 +86,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="14dp"
         android:padding="10dp"
-        android:text="注册" 
+        android:text="@string/register" 
         android:textColor="#0189bd"
         android:textSize="@dimen/navbar_button_text_size" 
         android:onClick="ButtonClick"

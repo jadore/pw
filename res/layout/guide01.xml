@@ -3,35 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" 
-    android:background="#e7eff4"
+    android:background="#1e69a3"
     >
     
-    <ImageView 
-        android:layout_width="249dp"
-        android:layout_height="73dp"
-        android:background="@drawable/guide1_1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
-        />
     
     <ImageView 
-        android:layout_centerHorizontal="true"
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/g1"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="48dp"
-        android:layout_width="244dp"
-        android:layout_height="266dp"
-        android:background="@drawable/guide1_2"
-        android:layout_gravity="center_horizontal"
         />
-    
-    <ImageView 
-        android:layout_width="102dp"
-        android:layout_height="26dp"
-        android:background="@drawable/guide1_3"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        />
-    
-
 </RelativeLayout>

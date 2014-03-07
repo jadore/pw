@@ -3,6 +3,8 @@ package ui;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.client.CookieStore;
 
@@ -520,6 +522,7 @@ public class Index extends AppActivity {
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
+					showReg(user);
 					getFamilyList();
 					getPhoneList();
 					getActivityList();
@@ -559,6 +562,18 @@ public class Index extends AppActivity {
 				Logger.i(e);
 			}
 		});
+	}
+	
+	private void showReg(UserEntity user) {
+		String reg = "手机用户.*";
+		Pattern p = Pattern.compile(reg);
+		Matcher m = p.matcher(user.nickname);
+		if (m.matches()) {
+			Intent intent = new Intent(this, Register.class);
+			intent.putExtra("mobile", user.username);
+			intent.putExtra("jump", false);
+	        startActivity(intent);
+		}
 	}
 	
 	private void showLogin() {
@@ -747,6 +762,9 @@ public class Index extends AppActivity {
 					cards.clear();
 					if (entity.owned.size()>0) {
 						cards.add(entity.owned);
+					}
+					else {
+						
 					}
 					addCardOp();
 					mCardAdapter.notifyDataSetChanged();

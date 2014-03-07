@@ -167,7 +167,7 @@
         android:textColorHint="#8f8f8f"
         android:textColor="#222222"
         android:textSize="@dimen/navbar_title_size" 
-        android:inputType="text" 
+        android:inputType="textEmailAddress" 
         android:layout_marginBottom="220dp"
         android:onClick="ButtonClick"
         android:clickable="true"

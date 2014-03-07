@@ -220,7 +220,7 @@ public class HomeContactActivity extends AppActivity {
 	}
 
 
-	private String[] lianxiren1 = new String[] { "拨打电话", "发送短信", "查看详细","删除" };
+	private String[] lianxiren1 = new String[] { "拨打电话", "发送短信", "查看详细" };
 
 	//群组联系人弹出页
 	private void showContactDialog(final String[] arg ,final ContactBean cb, final int position){
@@ -259,9 +259,9 @@ public class HomeContactActivity extends AppActivity {
 					startActivity(intent2);
 					break;
 
-				case 3:// 删除
-					showDelete(cb.getContactId(), position);
-					break;
+//				case 3:// 删除
+//					showDelete(cb.getContactId(), position);
+//					break;
 				}
 			}
 		}).show();

@@ -26,6 +26,7 @@ import bean.MessageUnReadEntity;
 import bean.PhoneListEntity;
 import bean.PhoneViewEntity;
 import bean.RecommendListEntity;
+import bean.RegUserEntity;
 import bean.Update;
 import bean.UserEntity;
 import bean.WebContent;
@@ -168,6 +169,31 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+			}
+		});
+	}
+	
+	public static void regUser(final MyApplication appContext, String phone, String password, String realname, String department, String position, String email, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		params.add("phone", phone);
+		params.add("password", password);
+		params.add("realname", realname);
+		params.add("department", department);
+		params.add("position", position);
+		params.add("email", email);
+		QYRestClient.post("user/reg"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try {
+					RegUserEntity entity = RegUserEntity.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(entity);
+				} catch (AppException e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
 	}

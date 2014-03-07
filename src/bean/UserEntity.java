@@ -15,6 +15,7 @@ public class UserEntity extends Entity{
 	public String headimgurl;
 	public String hash;
 	public String _sign;
+	public String username;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
 		UserEntity data = new UserEntity();
@@ -30,6 +31,9 @@ public class UserEntity extends Entity{
 				data.hash = info.getString("hash");
 				if (!info.isNull("_sign")) {
 					data._sign = info.getString("_sign");
+				}
+				if (!info.isNull("username")) {
+					data.username = info.getString("username");
 				}
 			}
 			else {

@@ -11,11 +11,15 @@ import java.util.regex.Pattern;
 
 import tools.AppManager;
 import tools.Logger;
+import tools.StringUtils;
 import ui.AppActivity;
 import ui.QYWebView;
 import ui.FriendCards;
 
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -34,7 +38,6 @@ import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -143,29 +146,29 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
   	private void initView(){
   		
 	  	MinputBtn = (Button)findViewById(R.id.input_button);
-		MinputBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-//				startActivity(new Intent(CaptureActivity.this,ManualInputPN.class));
-			}
-		});
+//		MinputBtn.setOnClickListener(new OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+////				startActivity(new Intent(CaptureActivity.this,ManualInputPN.class));
+//			}
+//		});
 
 		
 		homeBtn = (Button)findViewById(R.id.home_button);
 		flashBtn = (Button)findViewById(R.id.flashmode_button);
 		
-		homeBtn.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				finish();
-				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
-			}
-		});
-		flashBtn.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				lightState = !lightState;
-				cameraManager.setTorch(lightState);
-			}
-		});
+//		homeBtn.setOnClickListener(new OnClickListener() {
+//			public void onClick(View v) {
+//				finish();
+//				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+//			}
+//		});
+//		flashBtn.setOnClickListener(new OnClickListener() {
+//			public void onClick(View v) {
+//				lightState = !lightState;
+//				cameraManager.setTorch(lightState);
+//			}
+//		});
   	}
 
   @Override
@@ -323,6 +326,7 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
         }
         if ((source == IntentSource.NONE || source == IntentSource.ZXING_LINK) && lastResult != null) {
         	restartPreviewAfterDelay(0L);
+        	Logger.i("dd");
         	return true;
         }
         else {
@@ -480,17 +484,30 @@ public final class CaptureActivity extends AppActivity implements SurfaceHolder.
   // Put up our own UI for how to handle the decoded contents.
   private void handleDecodeInternally(Result rawResult, ResultHandler resultHandler, Bitmap barcode) {
 	  String content = rawResult.getText();
-	  
-	  if(content.indexOf("pb.wc") != -1){
+	  Logger.i(content);
+	  Logger.i(StringUtils.isURL(content)+"");
+	  if(StringUtils.isURL(content)){
 		  showCardView(content);
 	  }
-//		}else{
-//			Intent it = new Intent(CaptureActivity.this,LoveCode.class);
-//			it.putExtra("content", content);
-//			it.putExtra("keyType", "content");
-//			startActivity(it);
-//		}
+	  else{
+		  WarningDialog(content);
+	  }
   }
+  
+  private void WarningDialog(String message) {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setTitle("结果");
+		builder.setMessage(message);
+		builder.setPositiveButton("确定", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				restartPreviewAfterDelay(0L);
+			}
+		});
+
+	   builder.create().show();
+	}
   
   	private void showCardView(String url) {
 		Intent intent = new Intent(this, QYWebView.class);

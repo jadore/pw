@@ -12,6 +12,7 @@ import config.CommonValue;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -19,6 +20,7 @@ import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import tools.AppException;
 import tools.AppManager;
@@ -32,6 +34,8 @@ public class LoginCode1 extends AppActivity{
 	boolean canVertify ;
 	int leftSeconds;
 	private ProgressDialog loadingPd;
+	private TextView barTitle;
+	private TextView regTV;
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -58,6 +62,9 @@ public class LoginCode1 extends AppActivity{
 	}
 	
 	private void initUI() {
+		barTitle = (TextView) findViewById(R.id.barTitle);
+		regTV = (TextView) findViewById(R.id.textView2);
+		regTV.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
 		Button rightBarButton = (Button) findViewById(R.id.rightBarButton);
 		accretionArea(rightBarButton);
 		mobileET = (EditText) findViewById(R.id.editTextPhone);
@@ -151,8 +158,14 @@ public class LoginCode1 extends AppActivity{
 	}
 	
 	private void register() {
-		Intent intent = new Intent(LoginCode1.this, Register.class);
-		startActivityForResult(intent, CommonValue.LoginRequest.Register);
+		if (regTV.getText().toString().equals(getResources().getString(R.string.register))) {
+			regTV.setText(getResources().getString(R.string.mobile_login));
+			barTitle.setText("手机号码注册");
+		}
+		else {
+			regTV.setText(getResources().getString(R.string.register));
+			barTitle.setText("手机号码登录");
+		}
 	}
 	
 //	class CountDown extends CountDownTimer {

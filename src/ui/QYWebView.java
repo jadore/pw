@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +38,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.BroadcastReceiver;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -89,6 +92,7 @@ public class QYWebView extends AppActivity  {
 	private TextView newtv;
 	
 	private MobileReceiver mobileReceiver;
+	ClipboardManager cmb;
 	
 	@Override
 	public void onStart() {
@@ -115,6 +119,7 @@ public class QYWebView extends AppActivity  {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.create_view);
+		cmb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 		registerGetReceiver();
 		initUI();
 		initData();
@@ -199,7 +204,14 @@ public class QYWebView extends AppActivity  {
 					}
 				}
 				else if (url.startsWith("weixin:")) {
-					UIHelper.ToastMessage(context, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
+//					UIHelper.ToastMessage(context, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
+					String reg = "weixin://contacts/profile/(\\S+)";
+					Pattern pattern = Pattern.compile(reg);
+					Matcher matcher = pattern.matcher(url);
+					if (matcher.find()) {
+						cmb.setText(matcher.group(1));
+						WarningDialog("微信号已复制到剪切板");
+					}
 				}
 				else {
 					indicatorImageView.setVisibility(View.VISIBLE);
@@ -682,7 +694,6 @@ public class QYWebView extends AppActivity  {
 	protected void WarningDialog(String message) {
 		AlertDialog.Builder builder = new Builder(this);
 		builder.setMessage(message);
-		builder.setTitle("通讯录提示");
 		builder.setPositiveButton("确定", new OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
