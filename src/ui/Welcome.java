@@ -13,6 +13,7 @@ import bean.CardIntroEntity;
 import com.crashlytics.android.Crashlytics;
 
 import service.AddMobileService;
+import service.QYEnterService;
 import tools.AppManager;
 import tools.Logger;
 import tools.MD5Util;
@@ -60,7 +61,6 @@ public class Welcome extends AppActivity {
 			public void onAnimationStart(Animation animation) {}
 			
 		});
-		
 	}
 	
 	private void redirectTo(){     

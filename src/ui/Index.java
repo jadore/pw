@@ -7,6 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.CookieStore;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import baidupush.Utils;
 import bean.ActivityListEntity;
@@ -29,6 +32,8 @@ import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
 import com.loopj.android.http.PersistentCookieStore;
+import com.netease.pomelo.DataCallBack;
+import com.netease.pomelo.PomeloClient;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -523,6 +528,7 @@ public class Index extends AppActivity {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
 					showReg(user);
+					queryPolemoEntry(user.openid);
 					getFamilyList();
 					getPhoneList();
 					getActivityList();
@@ -1268,5 +1274,77 @@ public class Index extends AppActivity {
 			}
 		}).show();
 	}
+	
+	private String test_host = "192.168.1.147";
+	private int test_port = 3014;
+	private PomeloClient client;
+	private void queryPolemoEntry(final String openid) {
+		client = new PomeloClient(test_host, test_port);
+		client.init();
+		JSONObject msg = new JSONObject();
+		try {
+			msg.put("uid", openid);
+			client.request("gate.gateHandler.queryEntry", msg,
+					new DataCallBack() {
+						@Override
+						public void responseData(JSONObject msg) {
+							Logger.i(msg.toString());
+							client.disconnect();
+							try {
+								String ip = msg.getString("host");
+								enter(ip, msg.getInt("port"), openid);
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
 
+	private void enter(String host, int port, String openid) {
+		JSONObject msg = new JSONObject();
+		try {
+			msg.put("username", openid);
+			msg.put("rid", "1");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		client = new PomeloClient(host, port);
+		client.init();
+		client.request("connector.entryHandler.enter", msg, new DataCallBack() {
+			@Override
+			public void responseData(JSONObject msg) {
+				if (msg.has("error")) {
+					myHandler.sendMessage(myHandler.obtainMessage());
+					client.disconnect();
+					client = new PomeloClient(test_host, test_port);
+					client.init();
+					return;
+				}
+//				try {
+//					JSONArray jr = msg.getJSONArray("users");
+//					users = new String[jr.length() + 1];
+//					// * represent all users
+//					users[0] = "*";
+//					for (int i = 1; i <= jr.length(); i++) {
+//						users[i] = jr.getString(i - 1);
+//					}
+//				} catch (JSONException e) {
+//					e.printStackTrace();
+//					Logger.i(e);
+//				}
+				appContext.setPolemoClient(client);
+				
+			}
+		});
+	}
+	
+	Handler myHandler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			super.handleMessage(msg);
+//			errorTv.setText("please change your name to login.");
+		};
+	};
 }

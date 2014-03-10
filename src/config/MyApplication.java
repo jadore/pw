@@ -6,8 +6,10 @@ import java.util.Properties;
 import org.apache.http.client.CookieStore;
 
 import com.loopj.android.http.PersistentCookieStore;
+import com.netease.pomelo.PomeloClient;
 import com.nostra13.universalimageloader.utils.L;
 
+import service.QYEnterService;
 import service.T9Service;
 import tools.AppContext;
 import tools.AppException;
@@ -21,6 +23,7 @@ import bean.UserEntity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.view.WindowManager;
 
 public class MyApplication extends AppContext {
 	private static MyApplication mApplication;
@@ -32,6 +35,8 @@ public class MyApplication extends AppContext {
 	
 	private List<ContactBean> contactBeanList;
 	
+	private PomeloClient pomeloClient;
+		
 	public List<ContactBean> getContactBeanList() {
 		return contactBeanList;
 	}
@@ -47,6 +52,19 @@ public class MyApplication extends AppContext {
 		if (mNotificationManager == null)
 			mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		return mNotificationManager;
+	}
+	
+	private WindowManager.LayoutParams wmParams=new WindowManager.LayoutParams();
+	public WindowManager.LayoutParams getMywmParams(){
+		return wmParams;
+	}
+	
+	public void setPolemoClient(PomeloClient pomeloClient) {
+		this.pomeloClient = pomeloClient;
+	}
+	
+	public PomeloClient getPolemoClient() {
+		return this.pomeloClient;
 	}
 	
 	public void onCreate() {
@@ -65,6 +83,9 @@ public class MyApplication extends AppContext {
 		Intent intent = new Intent();
         intent.setAction("tools.NetworkState.Service");
         startService(intent);
+        
+        Intent service = new Intent(this, QYEnterService.class);
+		startService(service);
 	}
 	
 	/**
