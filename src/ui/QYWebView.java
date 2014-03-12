@@ -38,6 +38,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -92,7 +93,6 @@ public class QYWebView extends AppActivity  {
 	private TextView newtv;
 	
 	private MobileReceiver mobileReceiver;
-	ClipboardManager cmb;
 	
 	@Override
 	public void onStart() {
@@ -119,7 +119,6 @@ public class QYWebView extends AppActivity  {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.create_view);
-		cmb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 		registerGetReceiver();
 		initUI();
 		initData();
@@ -209,14 +208,28 @@ public class QYWebView extends AppActivity  {
 					Pattern pattern = Pattern.compile(reg);
 					Matcher matcher = pattern.matcher(url);
 					if (matcher.find()) {
-						cmb.setText(matcher.group(1));
-						WarningDialog("微信号已复制到剪切板");
+						try{
+							int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+                            if (currentapiVersion >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+                                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                                ClipData clip = ClipData.newPlainText("label", matcher.group(1));
+                                clipboard.setPrimaryClip(clip);
+                            } else {
+                                android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                                clipboard.setText(matcher.group(1));
+                            }
+//							cmb.setText(matcher.group(1));
+							WarningDialog("微信号已保存到剪切板");
+						}catch (Exception e) {
+							Crashlytics.logException(e);
+						}
+						
 					}
 				}
 				else {
 					indicatorImageView.setVisibility(View.VISIBLE);
 			    	indicatorImageView.startAnimation(indicatorAnimation);
-			    	if (!StringUtils.isEmpty(url) && !QYWebView.this.isFinishing()) {
+			    	if (StringUtils.notEmpty(url) && !QYWebView.this.isFinishing()) {
 						loadSecondURLScheme(url);
 					}
 				}
@@ -322,10 +335,13 @@ public class QYWebView extends AppActivity  {
 			
 			@Override
 			public void onFailure(String message) {
-				if (isLoad && !StringUtils.isEmpty(message) && appContext.isNetworkConnected() && !QYWebView.this.isFinishing()) {
+				if (isLoad && StringUtils.notEmpty(message) && appContext.isNetworkConnected() && !QYWebView.this.isFinishing()) {
 					UIHelper.ToastMessage(getApplicationContext(), "正在努力帮你加载内容，请稍等", Toast.LENGTH_SHORT);
-					webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-					webView.loadUrl(message);
+					if (webView != null) {
+						webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+						webView.loadUrl(message);
+					}
+					
 				}
 			}
 			
@@ -649,14 +665,14 @@ public class QYWebView extends AppActivity  {
 			oks.setTitle(title);
 			oks.setText("#群友通讯录#" +desc + "\n" + link);
 			oks.setUrl(link);
-			if (!StringUtils.isEmpty(filePath)) {
+			if (StringUtils.notEmpty(filePath)) {
 				oks.setImagePath(filePath);
 			}
 			else {
 				String cachePath = cn.sharesdk.framework.utils.R.getCachePath(this, null);
 				oks.setImagePath(cachePath + "logo.png");
 			}
-			if (!StringUtils.isEmpty(link)) {
+			if (StringUtils.notEmpty(link)) {
 				oks.setUrl(link);
 			}
 			oks.setSilent(silent);

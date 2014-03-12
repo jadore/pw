@@ -397,13 +397,13 @@ public class AppClient {
 	
 	public static void getChatFriendCard(Context context, final MyApplication appContext, final String page, final String keyword, String count, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
-		if (!StringUtils.isEmpty(page)) {
+		if (!StringUtils.notEmpty(page)) {
 			params.add("page", page);
 		}
-		if (!StringUtils.isEmpty(keyword)) {
+		if (StringUtils.notEmpty(keyword)) {
 			params.add("keyword", keyword);
 		}
-		if (!StringUtils.isEmpty(count)) {
+		if (StringUtils.notEmpty(count)) {
 			params.add("count", count);
 		}
 		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
@@ -412,7 +412,7 @@ public class AppClient {
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					Logger.i(keyword);
-					if (!StringUtils.isEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
+					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
 						Logger.i("a");
 						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
 					}

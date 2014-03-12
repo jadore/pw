@@ -80,14 +80,16 @@ public class MyApplication extends AppContext {
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);
 		
-		Intent intent = new Intent();
-        intent.setAction("tools.NetworkState.Service");
-        startService(intent);
-        
-        Intent service = new Intent(this, QYEnterService.class);
-		startService(service);
+//        Intent service = new Intent(this, QYEnterService.class);
+//		startService(service);
 	}
 	
+	
+	@Override
+	public void onTerminate() {
+		Logger.i("ter");
+		super.onTerminate();
+	}
 	/**
 	 * 用户是否登录
 	 * @return
@@ -95,7 +97,7 @@ public class MyApplication extends AppContext {
 	public boolean isLogin() {
 		try {
 			String loginStr = getProperty("user.login");
-			if (StringUtils.isEmpty(loginStr)) {
+			if (StringUtils.empty(loginStr)) {
 				login = false;
 			}
 			else {
@@ -175,7 +177,7 @@ public class MyApplication extends AppContext {
 	public boolean isNeedCheckLogin() {
 		try {
 			String loginStr = getProperty("user.needchecklogin");
-			if (StringUtils.isEmpty(loginStr)) {
+			if (StringUtils.empty(loginStr)) {
 				return false;
 			}
 			else {
@@ -206,7 +208,7 @@ public class MyApplication extends AppContext {
 	public String getNotiWhen() {
 		try {
 			String loginStr = getProperty("noti.when");
-			if (StringUtils.isEmpty(loginStr)) {
+			if (StringUtils.empty(loginStr)) {
 				return "0";
 			}
 			else {

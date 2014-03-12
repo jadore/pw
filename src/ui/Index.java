@@ -43,15 +43,18 @@ import config.CommonValue;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
@@ -76,6 +79,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
+import service.AIDLPolemoService;
+import service.IPolemoService;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
@@ -146,6 +151,15 @@ public class Index extends AppActivity {
 			title.setText("群友通讯录");
 		}
 	}
+	
+	@Override
+	protected void onDestroy() {
+//		if(conn != null) {
+//			unbindService(conn);
+//			conn = null;
+//		}
+		super.onDestroy();
+	}
 	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +176,7 @@ public class Index extends AppActivity {
 		    		return;
 		    	}
 				UpdateManager.getUpdateManager().checkAppUpdate(Index.this, false);
+				queryPolemoEntry();
 				checkLogin();
 			}
 		}, 500);
@@ -528,7 +543,6 @@ public class Index extends AppActivity {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
 					showReg(user);
-					queryPolemoEntry(user.openid);
 					getFamilyList();
 					getPhoneList();
 					getActivityList();
@@ -936,7 +950,7 @@ public class Index extends AppActivity {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle(title);
-			if (!StringUtils.isEmpty(filePath)) {
+			if (StringUtils.notEmpty(filePath)) {
 				oks.setImagePath(filePath);
 			}
 			else {
@@ -962,17 +976,17 @@ public class Index extends AppActivity {
 			|| phoneIntro.phoneSectionType.equals(CommonValue.PhoneSectionType.JoinedSectionType)
 			|| phoneIntro.phoneSectionType.equals(CommonValue.FamilySectionType.FamilySectionType)
 			|| phoneIntro.phoneSectionType.equals(CommonValue.FamilySectionType.ClanSectionType)) {
-			String text = (!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
+			String text = (StringUtils.notEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我在征集%s通讯录，点击下面的链接进入填写，填写后可申请查看群友的通讯录等，谢谢。", phoneIntro.title));
 			oks(phoneIntro.title, text, phoneIntro.link, filePath);
 		}
 		else {
-			String text = (!StringUtils.isEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s活动，点击参加。", phoneIntro.title));
+			String text = (StringUtils.notEmpty(phoneIntro.content)?phoneIntro.content:String.format("您好，我发起了%s活动，点击参加。", phoneIntro.title));
 			oks(phoneIntro.title, text, phoneIntro.link, filePath);
 		}
 	}
 	
 	public void showSharePre(final boolean silent, final String platform, final PhoneIntroEntity phoneIntro) {
-		if (StringUtils.isEmpty(phoneIntro.logo)) {
+		if (StringUtils.empty(phoneIntro.logo)) {
 			showShare(silent, platform, phoneIntro, "");
 			return;
 		}
@@ -1010,7 +1024,7 @@ public class Index extends AppActivity {
 	
 	public void cardShare(boolean silent, String platform, CardIntroEntity card, String filePath) {
 		try {
-			String text = (!StringUtils.isEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
+			String text = (StringUtils.notEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
 			oks(card.realname, text, card.link, filePath);
 		} catch (Exception e) {
 			Logger.i(e);
@@ -1018,7 +1032,7 @@ public class Index extends AppActivity {
 	}
 	
 	public void cardSharePre(final boolean silent, final String platform, final CardIntroEntity card) {
-		if (StringUtils.isEmpty(appContext.getLoginInfo().headimgurl)) {
+		if (StringUtils.empty(appContext.getLoginInfo().headimgurl)) {
 			cardShare(silent, platform, card, "");
 			return;
 		}
@@ -1275,76 +1289,94 @@ public class Index extends AppActivity {
 		}).show();
 	}
 	
-	private String test_host = "192.168.1.147";
-	private int test_port = 3014;
-	private PomeloClient client;
-	private void queryPolemoEntry(final String openid) {
-		client = new PomeloClient(test_host, test_port);
-		client.init();
-		JSONObject msg = new JSONObject();
-		try {
-			msg.put("uid", openid);
-			client.request("gate.gateHandler.queryEntry", msg,
-					new DataCallBack() {
-						@Override
-						public void responseData(JSONObject msg) {
-							Logger.i(msg.toString());
-							client.disconnect();
-							try {
-								String ip = msg.getString("host");
-								enter(ip, msg.getInt("port"), openid);
-							} catch (JSONException e) {
-								e.printStackTrace();
-							}
-						}
-					});
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void enter(String host, int port, String openid) {
-		JSONObject msg = new JSONObject();
-		try {
-			msg.put("username", openid);
-			msg.put("rid", "1");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		client = new PomeloClient(host, port);
-		client.init();
-		client.request("connector.entryHandler.enter", msg, new DataCallBack() {
-			@Override
-			public void responseData(JSONObject msg) {
-				if (msg.has("error")) {
-					myHandler.sendMessage(myHandler.obtainMessage());
-					client.disconnect();
-					client = new PomeloClient(test_host, test_port);
-					client.init();
-					return;
-				}
-//				try {
-//					JSONArray jr = msg.getJSONArray("users");
-//					users = new String[jr.length() + 1];
-//					// * represent all users
-//					users[0] = "*";
-//					for (int i = 1; i <= jr.length(); i++) {
-//						users[i] = jr.getString(i - 1);
-//					}
-//				} catch (JSONException e) {
-//					e.printStackTrace();
-//					Logger.i(e);
-//				}
-				appContext.setPolemoClient(client);
-				
-			}
-		});
+//	private String test_host = "192.168.1.147";
+//	private int test_port = 3014;
+//	private PomeloClient client;
+//	private AIDLPolemoService iPo;
+	private void queryPolemoEntry() {
+//		client = new PomeloClient(test_host, test_port);
+//		client.init();
+//		JSONObject msg = new JSONObject();
+//		try {
+//			msg.put("uid", openid);
+//			client.request("gate.gateHandler.queryEntry", msg,
+//					new DataCallBack() {
+//						@Override
+//						public void responseData(JSONObject msg) {
+//							Logger.i(msg.toString());
+//							client.disconnect();
+//							try {
+//								String ip = msg.getString("host");
+//								enter(ip, msg.getInt("port"), openid);
+//							} catch (JSONException e) {
+//								e.printStackTrace();
+//							}
+//						}
+//					});
+//		} catch (JSONException e) {
+//			e.printStackTrace();
+//		}
+		Intent intent = new Intent(this, IPolemoService.class);
+		intent.setAction(IPolemoService.ACTION_START);
+//		bindService(intent, conn, Context.BIND_AUTO_CREATE);
+		startService(intent);
 	}
 	
-	Handler myHandler = new Handler() {
-		public void handleMessage(android.os.Message msg) {
-			super.handleMessage(msg);
-//			errorTv.setText("please change your name to login.");
-		};
-	};
+//	private ServiceConnection conn = new ServiceConnection() {
+//		
+//		@Override
+//		public void onServiceDisconnected(ComponentName arg0) {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//		
+//		@Override
+//		public void onServiceConnected(ComponentName arg0, IBinder service) {
+//			iPo = AIDLPolemoService.Stub.asInterface(service);
+//		}
+//	};
+//
+//	private void enter(String host, int port, String openid) {
+//		JSONObject msg = new JSONObject();
+//		try {
+//			msg.put("username", openid);
+//			msg.put("rid", "1");
+//		} catch (JSONException e) {
+//			e.printStackTrace();
+//		}
+//		client = new PomeloClient(host, port);
+//		client.init();
+//		client.request("connector.entryHandler.enter", msg, new DataCallBack() {
+//			@Override
+//			public void responseData(JSONObject msg) {
+//				if (msg.has("error")) {
+//					myHandler.sendMessage(myHandler.obtainMessage());
+//					client.disconnect();
+//					client = new PomeloClient(test_host, test_port);
+//					client.init();
+//					return;
+//				}
+////				try {
+////					JSONArray jr = msg.getJSONArray("users");
+////					users = new String[jr.length() + 1];
+////					// * represent all users
+////					users[0] = "*";
+////					for (int i = 1; i <= jr.length(); i++) {
+////						users[i] = jr.getString(i - 1);
+////					}
+////				} catch (JSONException e) {
+////					e.printStackTrace();
+////					Logger.i(e);
+////				}
+//				appContext.setPolemoClient(client);
+//			}
+//		});
+//	}
+//	
+//	Handler myHandler = new Handler() {
+//		public void handleMessage(android.os.Message msg) {
+//			super.handleMessage(msg);
+////			errorTv.setText("please change your name to login.");
+//		};
+//	};
 }

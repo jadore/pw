@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import config.AppClient;
 import config.MyApplication;
@@ -42,5 +43,13 @@ public class AppActivity extends BaseActivity {
 				startActivity(intent);
 			}
 		}, 1000);
+	}
+	
+	public void closeInput() {
+		InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		if (inputMethodManager != null && this.getCurrentFocus() != null) {
+			inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus()
+					.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+		}
 	}
 }

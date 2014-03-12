@@ -1,8 +1,11 @@
 package ui.adapter;
 
+import im.ui.Chating;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import tools.Logger;
 import tools.StringUtils;
 import ui.CardView;
 import ui.QYWebView;
@@ -81,15 +84,15 @@ public class FriendCardAdapter extends BaseAdapter {
 		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
-		String currentStr = StringUtils.getAlpha(model.pinyin);
-		String previewStr = (position - 1) >= 0 ? StringUtils.getAlpha(cards.get(position - 1).pinyin) : " ";
+//		String currentStr = StringUtils.getAlpha(model.pinyin);
+//		String previewStr = (position - 1) >= 0 ? StringUtils.getAlpha(cards.get(position - 1).pinyin) : " ";
 //		if (!previewStr.equals(currentStr)) { 
 //			cell.alpha.setVisibility(View.VISIBLE);
 //			cell.alpha.setText(currentStr);
 //		} else {
 			cell.alpha.setVisibility(View.GONE);
 //		}
-		if (StringUtils.isEmpty(model.phone_display)) {
+		if (StringUtils.empty(model.phone_display)) {
 			cell.callButton.setVisibility(View.INVISIBLE);
 		}
 		else {
@@ -103,14 +106,18 @@ public class FriendCardAdapter extends BaseAdapter {
 		cell.callButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Uri uri = Uri.parse("tel:" + model.phone);
-				Intent it;
-				try {
-					it = new Intent(Intent.ACTION_VIEW, uri);
-				} catch (Exception e) {
-					it = new Intent(Intent.ACTION_DIAL, uri);
-				}
-				context.startActivity(it);
+//				Uri uri = Uri.parse("tel:" + model.phone);
+//				Intent it;
+//				try {
+//					it = new Intent(Intent.ACTION_VIEW, uri);
+//				} catch (Exception e) {
+//					it = new Intent(Intent.ACTION_DIAL, uri);
+//				}
+//				context.startActivity(it);
+				Intent intent = new Intent(context, Chating.class);
+				intent.putExtra("to", "afg");
+				context.startActivity(intent);
+//				Logger.i(model.openid);
 			}
 		});
 		convertView.setOnClickListener( new OnClickListener() {

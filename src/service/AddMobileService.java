@@ -422,6 +422,12 @@ public class AddMobileService extends IntentService{
 			ContentValues values = new ContentValues();
 	        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
 	        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
+	        if (StringUtils.empty(rawContactUri)) {
+	        	if (sendBC) {
+					sendBroadcast(CommonValue.ContactOperationResult.SAVE_FAILURE);
+				}
+	        	return;
+			}
 	        long rawContactId = ContentUris.parseId(rawContactUri);
 	        
 	        values.clear();
@@ -439,7 +445,7 @@ public class AddMobileService extends IntentService{
 	        this.getContentResolver().insert(
 	                android.provider.ContactsContract.Data.CONTENT_URI, values);
 
-	        if (!StringUtils.isEmpty(card.email)) {
+	        if (StringUtils.notEmpty(card.email)) {
 	            values.clear();
 	            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
 	            values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
@@ -452,7 +458,7 @@ public class AddMobileService extends IntentService{
 	            values.clear();
 	            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
 	            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
-	            if (!StringUtils.isEmpty( card.department)) {
+	            if (StringUtils.notEmpty( card.department)) {
 	            	values.put(Organization.COMPANY, card.department);
 				}
 	            else {

@@ -65,7 +65,21 @@
             android:name="service.QYEnterService"
 			android:enabled="true"
 			android:exported="true"
-            ></service>
+            >
+        </service>
+        
+        <activity
+            android:name="im.ui.Chating"
+            android:screenOrientation="portrait"
+             >
+        </activity>
+        
+        <service 
+            android:name="service.IPolemoService"
+			android:enabled="true"
+			android:exported="true"
+            >
+        </service>
         
         <activity
             android:name="ui.Welcome"

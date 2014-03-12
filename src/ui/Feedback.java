@@ -101,7 +101,7 @@ public class Feedback extends AppActivity{
     private View.OnClickListener clearwordsClickListener = new View.OnClickListener() {
 		public void onClick(View v) {	
 			String content = mContent.getText().toString();
-			if(!StringUtils.isEmpty(content)){
+			if(StringUtils.notEmpty(content)){
 				UIHelper.showClearWordsDialog(v.getContext(), mContent, mNumberwords);
 			}
 		}
@@ -125,7 +125,7 @@ public class Feedback extends AppActivity{
 			imm.hideSoftInputFromWindow(mContent.getWindowToken(), 0);
 			String content = mContent.getText().toString();
 			Logger.i(content);
-			if (StringUtils.isEmpty(content)) {
+			if (StringUtils.empty(content)) {
 				UIHelper.ToastMessage(getApplicationContext(), "请输入内容", Toast.LENGTH_SHORT);
 				return;
 			}

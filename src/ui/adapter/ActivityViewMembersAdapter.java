@@ -107,7 +107,7 @@ public class ActivityViewMembersAdapter extends SectionedBaseAdapter {
 		ImageLoader.getInstance().displayImage(model.headimgurl, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		realnameEncode(cell, model);
 		cell.desView.setVisibility(View.GONE);
-		if (!StringUtils.isEmpty(model.department)) {
+		if (StringUtils.notEmpty(model.department)) {
 			cell.desView.setVisibility(View.VISIBLE);
 			cell.desView.setText(String.format("%s %s", model.department, model.position));
 		}

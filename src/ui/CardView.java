@@ -117,7 +117,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	
 	private void setData(CardIntroEntity entity) {
 		card = entity;
-		if (!StringUtils.isEmpty(entity.openid)) {
+		if (StringUtils.notEmpty(entity.openid)) {
 			if (entity.openid.equals(appContext.getLoginUid())) {
 				saveMobileButton.setVisibility(View.GONE);
 				editMyMobileButton.setVisibility(View.VISIBLE);
@@ -135,7 +135,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			}
 		}
 		
-		if (!StringUtils.isEmpty(entity.isfriend)) {
+		if (StringUtils.notEmpty(entity.isfriend)) {
 			if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
 				exchangeButton.setVisibility(View.VISIBLE);
 			}
@@ -149,133 +149,133 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 		nameView.setText(entity.realname);
 		titleView.setText(entity.department +" " +entity.position);
 		summarys.clear();
-		if (!StringUtils.isEmpty(entity.wechat)) {
+		if (StringUtils.notEmpty(entity.wechat)) {
 			KeyValue value = new KeyValue();
 			value.key = "微信号";
 			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.wechat : "*******(交换名片可见)";
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.email)) {
+		if (StringUtils.notEmpty(entity.email)) {
 			KeyValue value = new KeyValue();
 			value.key = "邮箱";
 			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.email : "*******(交换名片可见)";
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.phone)) {
+		if (StringUtils.notEmpty(entity.phone)) {
 			KeyValue value = new KeyValue();
 			value.key = "手机";
 			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.phone : "*******(交换名片可见)";
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.birthday)) {
+		if (StringUtils.notEmpty(entity.birthday)) {
 			KeyValue value = new KeyValue();
 			value.key = "生日";
 			value.value = entity.birthday;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.address)) {
+		if (StringUtils.notEmpty(entity.address)) {
 			KeyValue value = new KeyValue();
 			value.key = "地址";
 			value.value = entity.address;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.intro)) {
+		if (StringUtils.notEmpty(entity.intro)) {
 			KeyValue value = new KeyValue();
 			value.key = "个人介绍";
 			value.value = entity.intro;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.supply)) {
+		if (StringUtils.notEmpty(entity.supply)) {
 			KeyValue value = new KeyValue();
 			value.key = "供需关系";
 			value.value = entity.supply;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.needs)) {
+		if (StringUtils.notEmpty(entity.needs)) {
 			KeyValue value = new KeyValue();
 			value.key = "需求关系";
 			value.value = entity.needs;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.hometown)) {
+		if (StringUtils.notEmpty(entity.hometown)) {
 			KeyValue value = new KeyValue();
 			value.key = "籍贯";
 			value.value = entity.hometown;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.interest)) {
+		if (StringUtils.notEmpty(entity.interest)) {
 			KeyValue value = new KeyValue();
 			value.key = "兴趣";
 			value.value = entity.interest;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.school)) {
+		if (StringUtils.notEmpty(entity.school)) {
 			KeyValue value = new KeyValue();
 			value.key = "学校";
 			value.value = entity.school;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.homepage)) {
+		if (StringUtils.notEmpty(entity.homepage)) {
 			KeyValue value = new KeyValue();
 			value.key = "个人主页";
 			value.value = entity.homepage;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.company_site)) {
+		if (StringUtils.notEmpty(entity.company_site)) {
 			KeyValue value = new KeyValue();
 			value.key = "公司网站";
 			value.value = entity.company_site;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.qq)) {
+		if (StringUtils.notEmpty(entity.qq)) {
 			KeyValue value = new KeyValue();
 			value.key = "QQ";
 			value.value = entity.qq;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.weibo)) {
+		if (StringUtils.notEmpty(entity.weibo)) {
 			KeyValue value = new KeyValue();
 			value.key = "新浪微博";
 			value.value = entity.weibo;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.tencent)) {
+		if (StringUtils.notEmpty(entity.tencent)) {
 			KeyValue value = new KeyValue();
 			value.key = "腾讯微博";
 			value.value = entity.tencent;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.renren)) {
+		if (StringUtils.notEmpty(entity.renren)) {
 			KeyValue value = new KeyValue();
 			value.key = "人人";
 			value.value = entity.renren;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.zhihu)) {
+		if (StringUtils.notEmpty(entity.zhihu)) {
 			KeyValue value = new KeyValue();
 			value.key = "知乎";
 			value.value = entity.zhihu;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.qzone)) {
+		if (StringUtils.notEmpty(entity.qzone)) {
 			KeyValue value = new KeyValue();
 			value.key = "QQ空间";
 			value.value = entity.qzone;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.facebook)) {
+		if (StringUtils.notEmpty(entity.facebook)) {
 			KeyValue value = new KeyValue();
 			value.key = "FACEBOOK";
 			value.value = entity.facebook;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.twitter)) {
+		if (StringUtils.notEmpty(entity.twitter)) {
 			KeyValue value = new KeyValue();
 			value.key = "Twitter";
 			value.value = entity.twitter;
 			summarys.add(value);
 		}
-		if (!StringUtils.isEmpty(entity.intentionen)) {
+		if (StringUtils.notEmpty(entity.intentionen)) {
 			KeyValue value = new KeyValue();
 			value.key = "希望接受的名片";
 			value.value = entity.intentionen;
@@ -440,7 +440,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
         this.getContentResolver().insert(
                 android.provider.ContactsContract.Data.CONTENT_URI, values);
 
-        if (!StringUtils.isEmpty(card.email)) {
+        if (StringUtils.notEmpty(card.email)) {
             values.clear();
             values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
             values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
@@ -450,7 +450,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
                     android.provider.ContactsContract.Data.CONTENT_URI, values);
 		}
         
-        if (!StringUtils.isEmpty(card.department)) {
+        if (StringUtils.notEmpty(card.department)) {
             values.clear();
             values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
             values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);

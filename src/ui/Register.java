@@ -344,7 +344,6 @@ public class Register extends AppActivity implements OnFocusChangeListener{
 				dialog.dismiss();
 			}
 		});
-
 	   builder.create().show();
 	}
 	

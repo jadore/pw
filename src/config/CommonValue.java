@@ -212,4 +212,7 @@ public class CommonValue {
 		
 		
 	}
+	
+	//im
+	public static final String NEW_MESSAGE_ACTION = "chat.newmessage";
 }
