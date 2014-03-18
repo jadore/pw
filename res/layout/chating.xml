@@ -4,20 +4,48 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+    <RelativeLayout 
+        android:layout_height="44dp"
+        android:layout_width="match_parent"
+        android:background="@color/nav_color"
+        android:id="@+id/navLayout"
+        >
+        <Button
+            android:id="@+id/leftBarButton"
+            android:layout_width="90dp"
+            android:layout_height="44dp"
+            android:drawableLeft="@drawable/btn_back_normal"
+            android:background="@null"
+            android:layout_centerVertical="true"
+            android:text="返回"
+            android:textColor="@color/white"
+            android:textSize="@dimen/navbar_button_text_size"
+            android:drawablePadding="-20dp"
+            android:paddingLeft="12dp"
+            android:onClick="ButtonClick"
+            />
+        
+        <TextView 
+            android:id="@+id/titleBarView"
+            android:layout_width="wrap_content"
+      		android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textSize="@dimen/navbar_title_size"
+            />
+        
+        <ImageView
+            android:layout_centerVertical="true"
+            android:id="@+id/xindicator"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_toRightOf="@+id/titleBarView"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            android:background="@drawable/round_1"/>
+    </RelativeLayout>
 
-        <ProgressBar
-            android:id="@+id/formclient_pb"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="10.0dip"
-            android:max="100"
-            android:visibility="gone" />
-    </LinearLayout>
-
-    <ListView
+    <widget.XListView
         android:id="@+id/chat_list"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
@@ -27,6 +55,7 @@
         android:divider="@null"
         android:listSelector="@android:color/transparent"
         android:transcriptMode="normal"
+        android:fadingEdge="none"
         />
 
     <LinearLayout
@@ -37,11 +66,13 @@
         <EditText
             android:id="@+id/chat_content"
             android:layout_width="wrap_content"
-            android:layout_height="45dip"
+            android:layout_height="wrap_content"
             android:layout_weight="1.0"
             android:hint="请输入内容"
-            android:inputType="textWebEditText"
+            android:inputType="textMultiLine"
             android:clickable="true"
+            android:textSize="17dp"
+            android:maxLines="4"
             android:text="" />
 
         <Button

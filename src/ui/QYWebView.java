@@ -1,5 +1,7 @@
 package ui;
 
+import im.ui.Chating;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -493,6 +495,12 @@ public class QYWebView extends AppActivity  {
 	    	msg.what = CommonValue.CreateViewJSType.webNotSign;
 	    	mJSHandler.sendMessage(msg);
 	    }
+	    public void showChat(String c) {
+	    	Message msg = new Message();
+	    	msg.obj = c;
+	    	msg.what = CommonValue.CreateViewJSType.showChat;
+	    	mJSHandler.sendMessage(msg);
+	    }
     }
 	
 	Handler mJSHandler = new Handler(){
@@ -553,9 +561,22 @@ public class QYWebView extends AppActivity  {
 			case CommonValue.CreateViewJSType.webNotSign:
 				reLogin();
 				break;
+			case CommonValue.CreateViewJSType.showChat:
+				code = (String) msg.obj;
+				enterChat(code);
+				break;
 			}
 		};
 	};
+	
+	private void enterChat(String roomId) {
+		if (this.isFinishing()) {
+			return;
+		}
+		Intent intent = new Intent(context, Chating.class);
+		intent.putExtra("roomId", roomId);
+		context.startActivity(intent);
+	}
 	
 	private void reLogin() {
 		if (this.isFinishing()) {
@@ -708,6 +729,9 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	protected void WarningDialog(String message) {
+		if (QYWebView.this.isFinishing()) {
+			return;
+		}
 		AlertDialog.Builder builder = new Builder(this);
 		builder.setMessage(message);
 		builder.setPositiveButton("确定", new OnClickListener() {
@@ -868,4 +892,5 @@ public class QYWebView extends AppActivity  {
 		} 
 	}
 
+	
 }

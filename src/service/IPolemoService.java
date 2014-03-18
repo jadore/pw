@@ -43,7 +43,7 @@ import android.os.Message;
  * @author donal
  *
  */
-public class IPolemoService extends Service{
+public class IPolemoService extends Service {
 	private static final String TAG = "IPO";
 	private static final String PREF_STARTED = "IPO_STATEED";
 	
@@ -74,21 +74,23 @@ public class IPolemoService extends Service{
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Logger.i("start");
-		if (intent.getAction().equals(ACTION_STOP) == true) {
-			stop();
-			stopSelf();
-		} else if (intent.getAction().equals(ACTION_START) == true || intent == null) {
-			start();
-		} else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
-			if (MyApplication.getInstance().isNetworkConnected()) {
-				try {
-					reconnectIfNecessary();
-				} catch (Exception e) {
-					e.printStackTrace();
+		if (intent != null) {
+			if (intent.getAction().equals(ACTION_STOP) == true) {
+				stop();
+				stopSelf();
+			} else if (intent.getAction().equals(ACTION_START) == true ) {
+				start();
+			} else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
+				if (MyApplication.getInstance().isNetworkConnected()) {
+					try {
+						reconnectIfNecessary();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
-		flags = START_STICKY;
+//		flags = START_STICKY;
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
@@ -162,6 +164,9 @@ public class IPolemoService extends Service{
 		PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
 		AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
 		alarmMgr.set(AlarmManager.RTC_WAKEUP, now + interval, pi);
+	}
+	
+	private synchronized void sccketListener() {
 	}
 	
 	private synchronized void queryEntry() {
@@ -266,6 +271,14 @@ public class IPolemoService extends Service{
 				JSONObject msg = event.getMessage();
 				try {
 					Logger.i(msg.toString());
+					if (msg.isNull("body")) {
+						return;
+					}
+					JSONObject msgBody = msg.getJSONObject("body");
+					String openId = msgBody.getString("user");
+					if (openId.equals(MyApplication.getInstance().getLoginUid())) {
+						//下线了，重连
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -281,50 +294,46 @@ public class IPolemoService extends Service{
 						return;
 					}
 					JSONObject msgBody = msg.getJSONObject("body");
-					String target = msgBody.getString("target");
 					String msgContent = msgBody.getString("msg");
-					String from = msgBody.getString("from");
-					Logger.i(msg.toString());
+					String sender = msgBody.getString("sender");
+					String roomId = msgBody.getString("room_id");
 					
 					IMMessage immsg = new IMMessage();
-					// String time = (String)
-					// message.getProperty(IMMessage.KEY_TIME);
 					String time = (System.currentTimeMillis()/1000)+"";//DateUtil.date2Str(Calendar.getInstance(), Constant.MS_FORMART);
-					immsg.setTime(time);
-					immsg.setContent(msgContent);
-					immsg.setType(IMMessage.SUCCESS);
-					immsg.setFromSubJid(from);
-					NoticeManager noticeManager = NoticeManager.getInstance(IPolemoService.this);
-					Notice notice = new Notice();
-					notice.setTitle("会话信息");
-					notice.setNoticeType(Notice.CHAT_MSG);
-					notice.setContent(msgContent);
-					notice.setFrom(from);
-					notice.setStatus(Notice.UNREAD);
-					notice.setNoticeTime(time);
+					immsg.msgTime = (time);
+					immsg.content = (msgContent);
+					immsg.openId = (sender);
+					immsg.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming;
+					immsg.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusReceiving;
+					immsg.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
+					immsg.roomId = roomId;
+//					NoticeManager noticeManager = NoticeManager.getInstance(IPolemoService.this);
+//					Notice notice = new Notice();
+//					notice.setTitle("会话信息");
+//					notice.setNoticeType(Notice.CHAT_MSG);
+//					notice.setContent(msgContent);
+//					notice.setFrom(from);
+//					notice.setStatus(Notice.UNREAD);
+//					notice.setNoticeTime(time);
 
-					IMMessage newMessage = new IMMessage();
-					newMessage.setMsgType(0);
-					newMessage.setFromSubJid(from);
-					newMessage.setContent(msgContent);
-					newMessage.setTime(time);
-					MessageManager.getInstance(IPolemoService.this).saveIMMessage(newMessage);
+					
+					MessageManager.getInstance(IPolemoService.this).saveIMMessage(immsg);
 					long noticeId = -1;
 
-					noticeId = noticeManager.saveNotice(notice);
-					if (noticeId != -1) {
+//					noticeId = noticeManager.saveNotice(notice);
+//					if (noticeId != -1) {
 						Intent intent = new Intent(CommonValue.NEW_MESSAGE_ACTION);
 						intent.putExtra(IMMessage.IMMESSAGE_KEY, immsg);
-						intent.putExtra("notice", notice);
+//						intent.putExtra("notice", notice);
 						sendBroadcast(intent);
 						setNotiType(R.drawable.ic_launcher,
 								"新消息",
-								notice.getContent(), Index.class, from);
+								immsg.content, Index.class, sender);
 
-					}
+//					}
 					
 				} catch (Exception e) {
-					e.printStackTrace();
+					Logger.i(e);
 				}
 			}
 

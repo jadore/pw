@@ -106,18 +106,14 @@ public class FriendCardAdapter extends BaseAdapter {
 		cell.callButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-//				Uri uri = Uri.parse("tel:" + model.phone);
-//				Intent it;
-//				try {
-//					it = new Intent(Intent.ACTION_VIEW, uri);
-//				} catch (Exception e) {
-//					it = new Intent(Intent.ACTION_DIAL, uri);
-//				}
-//				context.startActivity(it);
-				Intent intent = new Intent(context, Chating.class);
-				intent.putExtra("to", "afg");
-				context.startActivity(intent);
-//				Logger.i(model.openid);
+				Uri uri = Uri.parse("tel:" + model.phone);
+				Intent it;
+				try {
+					it = new Intent(Intent.ACTION_VIEW, uri);
+				} catch (Exception e) {
+					it = new Intent(Intent.ACTION_DIAL, uri);
+				}
+				context.startActivity(it);
 			}
 		});
 		convertView.setOnClickListener( new OnClickListener() {

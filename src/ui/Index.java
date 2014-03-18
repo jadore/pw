@@ -149,6 +149,9 @@ public class Index extends AppActivity {
 		}
 		else {
 			title.setText("群友通讯录");
+			if (appContext.isLogin()) {
+				queryPolemoEntry();
+			}
 		}
 	}
 	
@@ -176,7 +179,6 @@ public class Index extends AppActivity {
 		    		return;
 		    	}
 				UpdateManager.getUpdateManager().checkAppUpdate(Index.this, false);
-				queryPolemoEntry();
 				checkLogin();
 			}
 		}, 500);
@@ -1318,7 +1320,6 @@ public class Index extends AppActivity {
 //		}
 		Intent intent = new Intent(this, IPolemoService.class);
 		intent.setAction(IPolemoService.ACTION_START);
-//		bindService(intent, conn, Context.BIND_AUTO_CREATE);
 		startService(intent);
 	}
 	

@@ -11,9 +11,13 @@ import java.util.List;
 
 import com.vikaa.mycontact.R;
 
+import tools.AppManager;
 import tools.DateUtil;
 import tools.Logger;
 import tools.StringUtils;
+import tools.UIHelper;
+import widget.XListView;
+import widget.XListView.IXListViewListener;
 
 
 
@@ -25,9 +29,13 @@ import db.manager.NoticeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AbsListView;
@@ -47,30 +55,46 @@ import android.widget.Toast;
  * @author donal
  *
  */
-public class Chating extends AChating{
+public class Chating extends AChating implements IXListViewListener{
 	private MessageListAdapter adapter = null;
 	private EditText messageInput = null;
 	private Button messageSendBtn = null;
-	private ListView listView;
+	private XListView listView;
 	private int recordCount;
 //	private UserInfo user;// 聊天人
 	private String to_name;
 	private Notice notice;
 	
 	private int firstVisibleItem;
-	private int currentPage = 1;
 	private int objc;
+	
+	private int lvDataState;
+	private int currentPage = 1;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.chating);
 		init();
-//		user = FriendManager.getInstance(context).getFriend(to.split("@")[0]);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		//set read
+		super.onDestroy();
 	}
 	
 	private void init() {
-
-		listView = (ListView) findViewById(R.id.chat_list);
+		listView = (XListView) findViewById(R.id.chat_list);
+		listView.setPullLoadEnable(false);
+		listView.setPullRefreshEnable(false);
+		listView.setXListViewListener(this, 0);
+		listView.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				closeInput();
+				return false;
+			}
+		});
 		listView.setCacheColorHint(0);
 		adapter = new MessageListAdapter(Chating.this, getMessages(),
 				listView);
@@ -84,16 +108,13 @@ public class Chating extends AChating{
 				case SCROLL_STATE_FLING:
 					break;
 				case SCROLL_STATE_IDLE:
-					if (firstVisibleItem == 0) {
-						int num = addNewMessage(++currentPage);
-						if (num > 0) {
-							adapter.refreshList(getMessages());
-							listView.setSelection(num-1);
-						}
+					if (firstVisibleItem == 0 && lvDataState == UIHelper.LISTVIEW_DATA_MORE) {
+						lvDataState = UIHelper.LISTVIEW_DATA_LOADING;
+						listView.startRefresh();
 					}
 					break;
 				case SCROLL_STATE_TOUCH_SCROLL:
-					closeInput();
+					
 					break;
 				}
 			}
@@ -128,7 +149,6 @@ public class Chating extends AChating{
 					} catch (Exception e) {
 						messageInput.setText(message);
 					}
-					closeInput();
 				}
 				listView.setSelection(getMessages().size()-1);
 			}
@@ -147,17 +167,26 @@ public class Chating extends AChating{
 
 	@Override
 	protected void refreshMessage(List<IMMessage> messages) {
+		
 		adapter.refreshList(messages);
+		listView.setSelection(messages.size()-1);
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
 		recordCount = MessageManager.getInstance(context)
-				.getChatCountWithSb(to);
+				.getChatCountWithSb(roomId);
+		if (getMessages().size() >= 10) {
+			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+		}
+		else {
+			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+		}
 		adapter.refreshList(getMessages());
-		listView.setSelection(getMessages().size()-1);
+		if(getMessages().size() > 0){
+			listView.setSelection(getMessages().size()-1);
+		}
 	}
 	
 	private class MessageListAdapter extends BaseAdapter {
@@ -199,7 +228,7 @@ public class Chating extends AChating{
 		public View getView(int position, View convertView, ViewGroup parent) {
 			inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			IMMessage message = items.get(position);
-			if (message.getMsgType() == 0) {
+			if (message.msgType == IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming) {
 				convertView = this.inflater.inflate(R.layout.chating_in, null);
 			} else {
 				convertView = this.inflater.inflate(R.layout.chating_out, null);
@@ -210,7 +239,7 @@ public class Chating extends AChating{
 			TextView msgView = (TextView) convertView.findViewById(R.id.row_msg);
 			
 			useridView.setVisibility(View.GONE);
-			String content = message.getContent();
+			String content = message.content;
 //			if (message.getMsgType() == 0) {
 //				imageLoader.displayImage(CommonValue.BASE_URL+user.userHead, avatar, CommonValue.DisplayOptions.default_options);
 //			} else {
@@ -222,14 +251,14 @@ public class Chating extends AChating{
 //			} catch (Exception e) {
 				msgView.setText(content);
 //			}
-			String currentTime = message.getTime();
-			String previewTime = (position - 1) >= 0 ? items.get(position-1).getTime() : "0";
+			String currentTime = message.msgTime;
+			String previewTime = (position - 1) >= 0 ? items.get(position-1).msgTime : "0";
 			try {
 				long time1 = Long.valueOf(currentTime);
 				long time2 = Long.valueOf(previewTime);
 				if ((time1-time2) >= 5 * 60 ) {
 					dateView.setVisibility(View.VISIBLE);
-					dateView.setText(DateUtil.wechat_time(message.getTime()));
+					dateView.setText(DateUtil.wechat_time(message.msgTime));
 				}
 				else {
 					dateView.setVisibility(View.GONE);
@@ -244,7 +273,51 @@ public class Chating extends AChating{
 	
 	@Override
 	public void onBackPressed() {
-		NoticeManager.getInstance(context).updateStatusByFrom(to, Notice.READ);
+//		NoticeManager.getInstance(context).updateStatusByFrom(roomId, Notice.READ);
 		super.onBackPressed();
+	}
+	
+	public void ButtonClick(View v) {
+		switch (v.getId()) {
+		case R.id.leftBarButton:
+			AppManager.getAppManager().finishActivity(this);
+			break;
+		default:
+			break;
+		}
+	}
+
+	@Override
+	public void onRefresh(int id) {
+		Handler mHandler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                getHistory();
+            }
+        };
+        mHandler.sendEmptyMessageDelayed(0, 500);
+	}
+
+	@Override
+	public void onLoadMore(int id) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void getHistory() {
+		int num = addNewMessage(++currentPage);
+		if (num == 10) {
+	        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+	    }
+	    else {
+	    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+	    }
+		if (num > 0) {
+			adapter.refreshList(getMessages());
+			listView.setSelection(num);
+		}
+		listView.stopRefresh();
+		listView.setPullRefreshEnable(false);
 	}
 }

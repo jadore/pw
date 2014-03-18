@@ -44,15 +44,15 @@ import db.manager.NoticeManager;
  */
 public abstract class AChating extends AppActivity{
 	private List<IMMessage> message_pool = null;
-	protected String to;
+	protected String roomId;
 	private static int pageSize = 10;
 	private List<Notice> noticeList;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		to = getIntent().getStringExtra("to");
-		if (to == null)
+		roomId = getIntent().getStringExtra("roomId");
+		if (roomId == null)
 			return;
 	}
 	
@@ -65,13 +65,14 @@ public abstract class AChating extends AppActivity{
 	@Override
 	protected void onResume() {
 		message_pool = MessageManager.getInstance(context)
-				.getMessageListByFrom(to, 1, pageSize);
+				.getMessageListByFrom(roomId, 1, pageSize);
 		if (null != message_pool && message_pool.size() > 0)
 			Collections.sort(message_pool);
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
 		registerReceiver(receiver, filter);
-		NoticeManager.getInstance(context).updateStatusByFrom(to, Notice.READ);
+//		NoticeManager.getInstance(context).updateStatusByFrom(roomId, Notice.READ);
+		
 		super.onResume();
 
 	}
@@ -83,8 +84,13 @@ public abstract class AChating extends AppActivity{
 			String action = intent.getAction();
 			Notice notice = (Notice) intent.getSerializableExtra("notice");
 			if (CommonValue.NEW_MESSAGE_ACTION.equals(action)) {
-				IMMessage message = intent
-						.getParcelableExtra(IMMessage.IMMESSAGE_KEY);
+				IMMessage message = (IMMessage) intent.getSerializableExtra(IMMessage.IMMESSAGE_KEY);
+				//adjust roomId
+				Logger.i(message.roomId);
+				if (!roomId.equals(message.roomId)) {
+					return;
+				}
+				Logger.i(message.roomId);
 				message_pool.add(message);
 				receiveNewMessage(message);
 				refreshMessage(message_pool);
@@ -111,17 +117,16 @@ public abstract class AChating extends AppActivity{
 		JSONObject msg = new JSONObject();
 		try {
 			msg.put("content", messageContent);
-			msg.put("target", to);
-			msg.put("rid", "wechatim");
-			msg.put("from", MyApplication.getInstance().getLoginUid());
+			msg.put("roomId", roomId);
 			MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
 				@Override
 				public void responseData(JSONObject msg) {
+					Logger.i(msg.toString());
 					Message mes = new Message();
-					if (!to.equals("*") && !to.equals(MyApplication.getInstance().getLoginUid())) {
+//					if (!to.equals("*") && !to.equals(MyApplication.getInstance().getLoginUid())) {
 						mes.obj = messageContent;
 						msgHandler.sendMessage(mes);
-					}
+//					}
 				}
 			});
 		} catch (JSONException e) {
@@ -134,10 +139,13 @@ public abstract class AChating extends AppActivity{
 			super.handleMessage(msg);
 			String time = (System.currentTimeMillis()/1000)+"";
 			IMMessage newMessage = new IMMessage();
-			newMessage.setMsgType(1);
-			newMessage.setFromSubJid(to);
-			newMessage.setContent((String)msg.obj);
-			newMessage.setTime(time);
+			newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
+			newMessage.roomId = roomId;
+			newMessage.content = ((String)msg.obj);
+			newMessage.msgTime = time;
+			newMessage.openId = appContext.getLoginUid();
+			newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusNormal;
+			newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
 			message_pool.add(newMessage);
 			Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
 			refreshMessage(message_pool);
@@ -146,7 +154,7 @@ public abstract class AChating extends AppActivity{
 	
 	protected Boolean addNewMessage() {
 		List<IMMessage> newMsgList = MessageManager.getInstance(context)
-				.getMessageListByFrom(to, message_pool.size(), pageSize);
+				.getMessageListByFrom(roomId, message_pool.size(), pageSize);
 		if (newMsgList != null && newMsgList.size() > 0) {
 			message_pool.addAll(newMsgList);
 			Collections.sort(message_pool);
@@ -157,7 +165,7 @@ public abstract class AChating extends AppActivity{
 	
 	protected int addNewMessage(int currentPage) {
 		List<IMMessage> newMsgList = MessageManager.getInstance(context)
-				.getMessageListByFrom(to, currentPage, pageSize);
+				.getMessageListByFrom(roomId, currentPage, pageSize);
 		if (newMsgList != null && newMsgList.size() > 0) {
 			message_pool.addAll(newMsgList);
 			Collections.sort(message_pool);
