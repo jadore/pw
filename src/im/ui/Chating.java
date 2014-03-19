@@ -51,9 +51,11 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -192,6 +194,8 @@ public class Chating extends AChating implements IXListViewListener{
 		super.onResume();
 //		recordCount = MessageManager.getInstance(context)
 //				.getChatCountWithSb(roomId);
+		lvDataState = UIHelper.LISTVIEW_DATA_LOADING;
+		listView.startRefresh();
 	}
 	
 	private class MessageListAdapter extends BaseAdapter {
@@ -206,6 +210,7 @@ public class Chating extends AChating implements IXListViewListener{
 			this.context = context;
 			this.items = items;
 			this.adapterList = adapterList;
+			inflater = LayoutInflater.from(context);
 		}
 
 		public void refreshList(List<IMMessage> items) {
@@ -231,44 +236,56 @@ public class Chating extends AChating implements IXListViewListener{
 		
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			ViewHoler cell = null;
+			if (convertView == null) {
+				cell = new ViewHoler();
+				convertView = inflater.inflate(R.layout.listviewcell_chat_normal, null);
+				cell.timeTV = (TextView) convertView.findViewById(R.id.textview_time);
+				cell.leftLayout = (RelativeLayout) convertView.findViewById(R.id.layout_left);
+				cell.leftAvatar = (ImageView) convertView.findViewById(R.id.image_portrait_l);
+				cell.leftNickname = (TextView) convertView.findViewById(R.id.textview_name_l);
+				cell.leftText = (TextView) convertView.findViewById(R.id.textview_content);
+						
+				cell.rightLayout = (RelativeLayout) convertView.findViewById(R.id.layout_right);
+				cell.rightAvatar = (ImageView) convertView.findViewById(R.id.image_portrait_r);
+				cell.rightNickname = (TextView) convertView.findViewById(R.id.textview_name_r);
+				cell.rightText = (TextView) convertView.findViewById(R.id.textview_content_r);
+				convertView.setTag(cell);
+			}
+			else {
+				cell = (ViewHoler) convertView.getTag();
+			}
 			IMMessage message = items.get(position);
 			if (message.msgType == IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming) {
-				convertView = this.inflater.inflate(R.layout.chating_in, null);
+				cell.leftLayout.setVisibility(View.VISIBLE);
+				cell.rightLayout.setVisibility(View.GONE);
+				getChatterFromCache(message.openId, cell.leftAvatar);
+				cell.leftText.setText(message.content);
+				
 			} else {
-				convertView = this.inflater.inflate(R.layout.chating_out, null);
+				cell.leftLayout.setVisibility(View.GONE);
+				cell.rightLayout.setVisibility(View.VISIBLE);
+				imageLoader.displayImage(appContext.getUserAvatar(), cell.rightAvatar, CommonValue.DisplayOptions.default_options);
+				cell.rightText.setText(message.content);
 			}
-			ImageView avatar = (ImageView) convertView.findViewById(R.id.avatar);
-			TextView useridView = (TextView) convertView.findViewById(R.id.row_userid);
-			TextView dateView = (TextView) convertView.findViewById(R.id.row_date);
-			TextView msgView = (TextView) convertView.findViewById(R.id.row_msg);
-			
-			useridView.setVisibility(View.GONE);
-			String content = message.content;
-			if (message.msgType == IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming) {
-				getChatterFromCache(message.openId, avatar);
-			} else {
-				imageLoader.displayImage(appContext.getUserAvatar(), avatar, CommonValue.DisplayOptions.default_options);
-			}
-			msgView.setText(content);
-//			String currentTime = message.msgTime;
-//			String previewTime = (position - 1) >= 0 ? items.get(position-1).msgTime : "0";
-//			try {
-//				long time1 = Long.valueOf(currentTime);
-//				long time2 = Long.valueOf(previewTime);
-//				if ((time1-time2) >= 5 * 60 ) {
-//					dateView.setVisibility(View.VISIBLE);
-//					dateView.setText(DateUtil.wechat_time(message.msgTime));
-//				}
-//				else {
-					dateView.setVisibility(View.GONE);
-//				}
-//			} catch (Exception e) {
-//				Logger.i(e);
-//			}
 			return convertView;
 		}
 
+		class ViewHoler {
+			TextView timeTV;
+			
+			RelativeLayout leftLayout;
+			ImageView leftAvatar;
+			TextView leftNickname;
+			TextView leftText;
+			
+			RelativeLayout rightLayout;
+			ImageView rightAvatar;
+			TextView rightNickname;
+			TextView rightText;
+			
+			
+		}
 	}
 	
 	@Override
@@ -307,32 +324,36 @@ public class Chating extends AChating implements IXListViewListener{
 	
 	private void getHistory() {
 		List<IMMessage> msgs= getMessages();
+		String maxId;
 		if (msgs.size() > 0) {
-			String maxId = msgs.get(0).chatId;
-			MessageManager.getInstance(context).
-				getMessageListByFrom(roomId, 
-									maxId, 
-									new MessageManagerCallback() {
-					
-										@Override
-										public void getMessages(List<IMMessage> data) {
-											if (data.size() == 30) {
-										        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-										    }
-										    else {
-										    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-										    }
-											if (data.size() > 0) {
-												Chating.this.getMessages().addAll(data);
-												Collections.sort(Chating.this.getMessages());
-												adapter.refreshList(Chating.this.getMessages());
-												listView.setSelection(data.size());
-											}
-											listView.stopRefresh();
-											listView.setPullRefreshEnable(false);
-										}
-									});
+			maxId = msgs.get(0).chatId;
 		}
+		else {
+			maxId = "0";
+		}
+		MessageManager.getInstance(context).
+		getMessageListByFrom(roomId, 
+							maxId, 
+							new MessageManagerCallback() {
+			
+								@Override
+								public void getMessages(List<IMMessage> data) {
+									if (data.size() == 30) {
+								        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+								    }
+								    else {
+								    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+								    }
+									if (data.size() > 0) {
+										Chating.this.getMessages().addAll(data);
+										Collections.sort(Chating.this.getMessages());
+										adapter.refreshList(Chating.this.getMessages());
+										listView.setSelection(data.size());
+									}
+									listView.stopRefresh();
+									listView.setPullRefreshEnable(false);
+								}
+							});
 	}
 	
 	private void getChatterFromCache(String openId, ImageView avatar) {

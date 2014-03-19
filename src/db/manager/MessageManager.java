@@ -3,6 +3,7 @@ package db.manager;
 
 import im.bean.HistoryChatBean;
 import im.bean.IMMessage;
+import im.bean.IMMessage.JSBubbleMessageStatus;
 import im.bean.Notice;
 
 import java.util.List;
@@ -160,6 +161,32 @@ public class MessageManager {
 			sql = "select * from im_msg where room_id=? and chat_id<? and chat_id!=-1 order by msg_time desc limit ? ";
 			args = new String[] { "" + roomId, "" + maxId, "" + 30 };
 		}
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		List<IMMessage> list = st.queryForList(
+				new RowMapper<IMMessage>() {
+					@Override
+					public IMMessage mapRow(Cursor cursor, int index) {
+						IMMessage msg = new IMMessage();
+						msg.content = (cursor.getString(cursor.getColumnIndex("msg_content")));
+						msg.openId = (cursor.getString(cursor.getColumnIndex("openid")));
+						msg.msgType = (cursor.getInt(cursor.getColumnIndex("msg_type")));
+						msg.msgTime = (cursor.getString(cursor.getColumnIndex("msg_time")));
+						msg.mediaType = (cursor.getInt(cursor.getColumnIndex("media_type")));
+						msg.msgStatus = (cursor.getInt(cursor.getColumnIndex("msg_status")));
+						msg.postAt = (cursor.getString(cursor.getColumnIndex("post_at")));
+						msg.chatId = (cursor.getString(cursor.getColumnIndex("chat_id")));
+						msg.roomId = (cursor.getString(cursor.getColumnIndex("room_id")));
+						return msg;
+					}
+				},
+				sql,
+				args);
+		return list;
+	}
+	
+	public List<IMMessage> getSendingMessages() {
+		String sql = "select * from im_msg where msg_type=? and openid=? order by msg_time desc;";
+		String[] args = new String[] { "" + JSBubbleMessageStatus.JSBubbleMessageStatusDelivering, "" + MyApplication.getInstance().getLoginUid()};
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<IMMessage> list = st.queryForList(
 				new RowMapper<IMMessage>() {

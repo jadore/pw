@@ -8,6 +8,7 @@ import im.bean.IMMessage;
 import im.bean.IMMessage.JSBubbleMessageStatus;
 import im.bean.Notice;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,7 @@ import db.manager.NoticeManager;
  *
  */
 public abstract class AChating extends AppActivity{
-	private List<IMMessage> message_pool = null;
+	private List<IMMessage> message_pool = new ArrayList<IMMessage>();
 	protected String roomId;
 	private static int pageSize = 10;
 	private List<Notice> noticeList;
@@ -66,16 +67,16 @@ public abstract class AChating extends AppActivity{
 
 	@Override
 	protected void onResume() {
-		MessageManager.getInstance(context).getMessageListByFrom(roomId, "0", new MessageManagerCallback() {
-			@Override
-			public void getMessages(List<IMMessage> data) {
-				message_pool = data;
-				if (null != message_pool && message_pool.size() > 0) {
-					Collections.sort(message_pool);
-				}
-				refreshMessage(message_pool);
-			}
-		});
+//		MessageManager.getInstance(context).getMessageListByFrom(roomId, "0", new MessageManagerCallback() {
+//			@Override
+//			public void getMessages(List<IMMessage> data) {
+//				message_pool = data;
+//				if (null != message_pool && message_pool.size() > 0) {
+//					Collections.sort(message_pool);
+//				}
+//				refreshMessage(message_pool);
+//			}
+//		});
 //		message_pool = MessageManager.getInstance(context).getMessageListByFrom(roomId, 1, pageSize);
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
