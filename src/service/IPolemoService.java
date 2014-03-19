@@ -297,7 +297,8 @@ public class IPolemoService extends Service {
 					String msgContent = msgBody.getString("msg");
 					String sender = msgBody.getString("sender");
 					String roomId = msgBody.getString("room_id");
-					
+					String postAt = msgBody.getString("post_at");
+					String chatId = msgBody.getString("chat_id");
 					IMMessage immsg = new IMMessage();
 					String time = (System.currentTimeMillis()/1000)+"";//DateUtil.date2Str(Calendar.getInstance(), Constant.MS_FORMART);
 					immsg.msgTime = (time);
@@ -307,6 +308,8 @@ public class IPolemoService extends Service {
 					immsg.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusReceiving;
 					immsg.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
 					immsg.roomId = roomId;
+					immsg.postAt = postAt;
+					immsg.chatId = chatId;
 //					NoticeManager noticeManager = NoticeManager.getInstance(IPolemoService.this);
 //					Notice notice = new Notice();
 //					notice.setTitle("会话信息");

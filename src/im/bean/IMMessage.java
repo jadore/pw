@@ -38,6 +38,10 @@ public class IMMessage implements Comparable<IMMessage>, Serializable{
 	public int msgStatus;
 	public int mediaType;
 	
+	//cursor
+	public String chatId;
+	public String postAt;
+	
 	@Override
 	public int compareTo(IMMessage oth) {
 		if (null == this.msgTime || null == oth.msgTime) {

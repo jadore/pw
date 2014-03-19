@@ -162,6 +162,10 @@ public class MyApplication extends AppContext {
 		return (getProperty("user.name"));
 	}
 	
+	public String getUserAvatar() {		
+		return (getProperty("user.face"));
+	}
+	
 	/**
 	 * 退出登录
 	 */

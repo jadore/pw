@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import org.apache.http.Header;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -17,6 +18,8 @@ import bean.ActivityListEntity;
 import bean.ActivityViewEntity;
 import bean.CardIntroEntity;
 import bean.CardListEntity;
+import bean.ChatHistoryListEntity;
+import bean.ChatterEntity;
 import bean.CodeEntity;
 import bean.Entity;
 import bean.FamilyListEntity;
@@ -186,6 +189,27 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try {
 					RegUserEntity entity = RegUserEntity.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(entity);
+				} catch (AppException e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
+	public static void getChaterBy(final MyApplication appContext, final String openId, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		params.add("openid", openId);
+		QYRestClient.post("user/info"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try {
+					ChatterEntity entity = ChatterEntity.parse(DecodeUtil.decode(new String(content)));
+					saveCache(appContext, CommonValue.CacheKey.ChatterInfo+"-"+openId, entity);
 					callback.onSuccess(entity);
 				} catch (AppException e) {
 					callback.onError(e);
@@ -411,9 +435,7 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					Logger.i(keyword);
 					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
-						Logger.i("a");
 						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
 					}
 					callback.onSuccess(data);
@@ -722,6 +744,27 @@ public class AppClient {
 				if (appContext.isNetworkConnected()) {
 					callback.onFailure(e.getMessage());
 				}
+			}
+		});
+	}
+	
+	public static void getChatHistory(String roomId, String maxId, final ClientCallback callback) {
+		RequestParams param = new RequestParams();
+		param.add("hash", roomId);
+		param.add("maxid", maxId);
+		QYRestClient.post("chat/load"+"?_sign="+MyApplication.getInstance().getLoginSign(), param, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					ChatHistoryListEntity entity = ChatHistoryListEntity.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(entity);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("");
 			}
 		});
 	}

@@ -5,6 +5,7 @@ package im.ui;
 
 
 import im.bean.IMMessage;
+import im.bean.IMMessage.JSBubbleMessageStatus;
 import im.bean.Notice;
 
 import java.util.Calendar;
@@ -34,6 +35,7 @@ import android.os.Message;
 import config.CommonValue;
 import config.MyApplication;
 import db.manager.MessageManager;
+import db.manager.MessageManager.MessageManagerCallback;
 import db.manager.NoticeManager;
 
 /**
@@ -64,10 +66,17 @@ public abstract class AChating extends AppActivity{
 
 	@Override
 	protected void onResume() {
-		message_pool = MessageManager.getInstance(context)
-				.getMessageListByFrom(roomId, 1, pageSize);
-		if (null != message_pool && message_pool.size() > 0)
-			Collections.sort(message_pool);
+		MessageManager.getInstance(context).getMessageListByFrom(roomId, "0", new MessageManagerCallback() {
+			@Override
+			public void getMessages(List<IMMessage> data) {
+				message_pool = data;
+				if (null != message_pool && message_pool.size() > 0) {
+					Collections.sort(message_pool);
+				}
+				refreshMessage(message_pool);
+			}
+		});
+//		message_pool = MessageManager.getInstance(context).getMessageListByFrom(roomId, 1, pageSize);
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
 		registerReceiver(receiver, filter);
@@ -114,19 +123,33 @@ public abstract class AChating extends AppActivity{
 		if (StringUtils.empty(messageContent)) {
 			return;
 		}
+		String time = (System.currentTimeMillis()/1000)+"";
+		IMMessage newMessage = new IMMessage();
+		newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
+		newMessage.roomId = roomId;
+		newMessage.content = messageContent;
+		newMessage.msgTime = time;
+		newMessage.postAt = time;
+		newMessage.openId = appContext.getLoginUid();
+		newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusDelivering;
+		newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
+		newMessage.chatId = "-1";
+		Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
+		message_pool.add(newMessage);
+		refreshMessage(message_pool);
+		
 		JSONObject msg = new JSONObject();
 		try {
 			msg.put("content", messageContent);
 			msg.put("roomId", roomId);
+			msg.put("msgId", time);
 			MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
 				@Override
 				public void responseData(JSONObject msg) {
 					Logger.i(msg.toString());
 					Message mes = new Message();
-//					if (!to.equals("*") && !to.equals(MyApplication.getInstance().getLoginUid())) {
-						mes.obj = messageContent;
-						msgHandler.sendMessage(mes);
-//					}
+					mes.obj = msg;
+					msgHandler.sendMessage(mes);
 				}
 			});
 		} catch (JSONException e) {
@@ -136,43 +159,66 @@ public abstract class AChating extends AppActivity{
 	
 	Handler msgHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
-			super.handleMessage(msg);
-			String time = (System.currentTimeMillis()/1000)+"";
-			IMMessage newMessage = new IMMessage();
-			newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
-			newMessage.roomId = roomId;
-			newMessage.content = ((String)msg.obj);
-			newMessage.msgTime = time;
-			newMessage.openId = appContext.getLoginUid();
-			newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusNormal;
-			newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
-			message_pool.add(newMessage);
-			Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
-			refreshMessage(message_pool);
+			JSONObject obj = (JSONObject) msg.obj; 
+			try {
+				String chatId = obj.getString("chat_id");
+				String msgId = obj.getString("msg_id");
+				String roomId = obj.getString("room_id");
+				String openId = obj.getString("sender");
+				String postAt = obj.getString("post_at");
+				for (IMMessage immsg : message_pool) {
+					if (immsg.msgStatus == JSBubbleMessageStatus.JSBubbleMessageStatusDelivering && immsg.msgTime.equals(msgId)) {
+						immsg.msgStatus = JSBubbleMessageStatus.JSBubbleMessageStatusReaded;
+						immsg.msgTime = postAt;
+						immsg.postAt = postAt;
+						immsg.chatId = chatId;
+						//update db
+						Logger.i(""+MessageManager.getInstance(context).updateSendingMessageWhere(roomId, openId, msgId, immsg));
+						
+					}
+				}
+				refreshMessage(message_pool);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			//update the status
+			
+//			IMMessage newMessage = new IMMessage();
+//			newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
+//			newMessage.roomId = roomId;
+//			newMessage.content = ((String)msg.obj);
+//			newMessage.msgTime = time;
+//			newMessage.openId = appContext.getLoginUid();
+//			newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusNormal;
+//			newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
+//			message_pool.add(newMessage);
+//			Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
+//			refreshMessage(message_pool);
 		};
 	};
 	
-	protected Boolean addNewMessage() {
-		List<IMMessage> newMsgList = MessageManager.getInstance(context)
-				.getMessageListByFrom(roomId, message_pool.size(), pageSize);
-		if (newMsgList != null && newMsgList.size() > 0) {
-			message_pool.addAll(newMsgList);
-			Collections.sort(message_pool);
-			return true;
-		}
-		return false;
-	}
-	
-	protected int addNewMessage(int currentPage) {
-		List<IMMessage> newMsgList = MessageManager.getInstance(context)
-				.getMessageListByFrom(roomId, currentPage, pageSize);
-		if (newMsgList != null && newMsgList.size() > 0) {
-			message_pool.addAll(newMsgList);
-			Collections.sort(message_pool);
-			return newMsgList.size();
-		}
-		return 0;
-	}
+//	protected Boolean addNewMessage() {
+//		List<IMMessage> newMsgList = MessageManager.getInstance(context)
+//				.getMessageListByFrom(roomId, message_pool.size(), pageSize);
+//		if (newMsgList != null && newMsgList.size() > 0) {
+//			message_pool.addAll(newMsgList);
+//			Collections.sort(message_pool);
+//			return true;
+//		}
+//		return false;
+//	}
+//	
+//	protected int addNewMessage(int currentPage) {
+//		List<IMMessage> newMsgList = MessageManager.getInstance(context)
+//				.getMessageListByFrom(roomId, currentPage, pageSize);
+//		if (newMsgList != null && newMsgList.size() > 0) {
+//			message_pool.addAll(newMsgList);
+//			Collections.sort(message_pool);
+//			return newMsgList.size();
+//		}
+//		return 0;
+//	}
 
 	protected void resh() {
 		refreshMessage(message_pool);

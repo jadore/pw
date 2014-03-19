@@ -84,14 +84,7 @@ public class FriendCardAdapter extends BaseAdapter {
 		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
-//		String currentStr = StringUtils.getAlpha(model.pinyin);
-//		String previewStr = (position - 1) >= 0 ? StringUtils.getAlpha(cards.get(position - 1).pinyin) : " ";
-//		if (!previewStr.equals(currentStr)) { 
-//			cell.alpha.setVisibility(View.VISIBLE);
-//			cell.alpha.setText(currentStr);
-//		} else {
-			cell.alpha.setVisibility(View.GONE);
-//		}
+		cell.alpha.setVisibility(View.GONE);
 		if (StringUtils.empty(model.phone_display)) {
 			cell.callButton.setVisibility(View.INVISIBLE);
 		}

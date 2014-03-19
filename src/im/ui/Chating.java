@@ -7,7 +7,12 @@ package im.ui;
 import im.bean.IMMessage;
 import im.bean.Notice;
 
+import java.util.Collections;
 import java.util.List;
+
+import bean.ChatterEntity;
+import bean.Entity;
+import bean.FamilyListEntity;
 
 import com.vikaa.mycontact.R;
 
@@ -21,8 +26,11 @@ import widget.XListView.IXListViewListener;
 
 
 
+import config.AppClient;
+import config.AppClient.ClientCallback;
 import config.CommonValue;
 import db.manager.MessageManager;
+import db.manager.MessageManager.MessageManagerCallback;
 import db.manager.NoticeManager;
 
 
@@ -167,26 +175,23 @@ public class Chating extends AChating implements IXListViewListener{
 
 	@Override
 	protected void refreshMessage(List<IMMessage> messages) {
-		
-		adapter.refreshList(messages);
-		listView.setSelection(messages.size()-1);
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		recordCount = MessageManager.getInstance(context)
-				.getChatCountWithSb(roomId);
-		if (getMessages().size() >= 10) {
+		if (messages.size() >= 30) {
 			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
 		}
 		else {
 			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 		}
-		adapter.refreshList(getMessages());
-		if(getMessages().size() > 0){
-			listView.setSelection(getMessages().size()-1);
+		adapter.refreshList(messages);
+		if(messages.size() > 0){
+			listView.setSelection(messages.size()-1);
 		}
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+//		recordCount = MessageManager.getInstance(context)
+//				.getChatCountWithSb(roomId);
 	}
 	
 	private class MessageListAdapter extends BaseAdapter {
@@ -240,32 +245,27 @@ public class Chating extends AChating implements IXListViewListener{
 			
 			useridView.setVisibility(View.GONE);
 			String content = message.content;
-//			if (message.getMsgType() == 0) {
-//				imageLoader.displayImage(CommonValue.BASE_URL+user.userHead, avatar, CommonValue.DisplayOptions.default_options);
-//			} else {
-//				imageLoader.displayImage(CommonValue.BASE_URL+appContext.getLoginUserHead(), avatar, CommonValue.DisplayOptions.default_options);
-//			}
-//			try {
-//				JsonMessage msg = JsonMessage.parse(content);
-//				msgView.setText(msg.text);
-//			} catch (Exception e) {
-				msgView.setText(content);
-//			}
-			String currentTime = message.msgTime;
-			String previewTime = (position - 1) >= 0 ? items.get(position-1).msgTime : "0";
-			try {
-				long time1 = Long.valueOf(currentTime);
-				long time2 = Long.valueOf(previewTime);
-				if ((time1-time2) >= 5 * 60 ) {
-					dateView.setVisibility(View.VISIBLE);
-					dateView.setText(DateUtil.wechat_time(message.msgTime));
-				}
-				else {
-					dateView.setVisibility(View.GONE);
-				}
-			} catch (Exception e) {
-				Logger.i(e);
+			if (message.msgType == IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming) {
+				getChatterFromCache(message.openId, avatar);
+			} else {
+				imageLoader.displayImage(appContext.getUserAvatar(), avatar, CommonValue.DisplayOptions.default_options);
 			}
+			msgView.setText(content);
+//			String currentTime = message.msgTime;
+//			String previewTime = (position - 1) >= 0 ? items.get(position-1).msgTime : "0";
+//			try {
+//				long time1 = Long.valueOf(currentTime);
+//				long time2 = Long.valueOf(previewTime);
+//				if ((time1-time2) >= 5 * 60 ) {
+//					dateView.setVisibility(View.VISIBLE);
+//					dateView.setText(DateUtil.wechat_time(message.msgTime));
+//				}
+//				else {
+					dateView.setVisibility(View.GONE);
+//				}
+//			} catch (Exception e) {
+//				Logger.i(e);
+//			}
 			return convertView;
 		}
 
@@ -306,18 +306,68 @@ public class Chating extends AChating implements IXListViewListener{
 	}
 	
 	private void getHistory() {
-		int num = addNewMessage(++currentPage);
-		if (num == 10) {
-	        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-	    }
-	    else {
-	    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-	    }
-		if (num > 0) {
-			adapter.refreshList(getMessages());
-			listView.setSelection(num);
+		List<IMMessage> msgs= getMessages();
+		if (msgs.size() > 0) {
+			String maxId = msgs.get(0).chatId;
+			MessageManager.getInstance(context).
+				getMessageListByFrom(roomId, 
+									maxId, 
+									new MessageManagerCallback() {
+					
+										@Override
+										public void getMessages(List<IMMessage> data) {
+											if (data.size() == 30) {
+										        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+										    }
+										    else {
+										    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+										    }
+											if (data.size() > 0) {
+												Chating.this.getMessages().addAll(data);
+												Collections.sort(Chating.this.getMessages());
+												adapter.refreshList(Chating.this.getMessages());
+												listView.setSelection(data.size());
+											}
+											listView.stopRefresh();
+											listView.setPullRefreshEnable(false);
+										}
+									});
 		}
-		listView.stopRefresh();
-		listView.setPullRefreshEnable(false);
+	}
+	
+	private void getChatterFromCache(String openId, ImageView avatar) {
+		String key = String.format("%s-%s", CommonValue.CacheKey.ChatterInfo+"-"+openId, appContext.getLoginUid());
+		ChatterEntity entity = (ChatterEntity) appContext.readObject(key);
+		if(entity != null){
+			if (StringUtils.notEmpty(entity.avatar)) {
+				imageLoader.displayImage(entity.avatar, avatar, CommonValue.DisplayOptions.default_options);
+			}
+		}
+		else {
+			getChatter(openId, avatar);
+		}
+	}
+	
+	private synchronized void getChatter(String openId, final ImageView avatar) {
+		AppClient.getChaterBy(appContext, openId, new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				ChatterEntity chatter = (ChatterEntity) data;
+				if (StringUtils.notEmpty(chatter.avatar)) {
+					imageLoader.displayImage(chatter.avatar, avatar, CommonValue.DisplayOptions.default_options);
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				
+			}
+		});
 	}
 }

@@ -7,6 +7,13 @@ import im.bean.Notice;
 
 import java.util.List;
 
+import com.vikaa.baseapp.R.string;
+
+import bean.ChatHistoryListEntity;
+import bean.Entity;
+
+import config.AppClient;
+import config.AppClient.ClientCallback;
 import config.MyApplication;
 
 import tools.Logger;
@@ -43,6 +50,10 @@ public class MessageManager {
 
 		return messageManager;
 	}
+	
+	public interface MessageManagerCallback{
+	    abstract void getMessages(List<IMMessage> data);
+	}
 
 	/**
 	 * 
@@ -60,6 +71,8 @@ public class MessageManager {
 		contentValues.put("room_id", msg.roomId);
 		contentValues.put("msg_status", msg.msgStatus);
 		contentValues.put("media_type", msg.mediaType);
+		contentValues.put("chat_id", msg.chatId);
+		contentValues.put("post_at", msg.postAt);
 		return st.insert("im_msg", contentValues);
 	}
 
@@ -75,6 +88,23 @@ public class MessageManager {
 		contentValues.put("msg_status", status);
 		st.updateById("im_msg", id, contentValues);
 	}
+	
+	public int updateChatIdBy(IMMessage immsg) {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		ContentValues contentValues = new ContentValues();
+		contentValues.put("chat_id", immsg.chatId);
+		return st.update("im_msg", contentValues, "room_id=? and openid=? and post_at=?", new String[]{immsg.roomId, immsg.openId, immsg.postAt});
+	}
+	
+	public int updateSendingMessageWhere(String roomId, String openId, String msgId, IMMessage immsg) {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		ContentValues contentValues = new ContentValues();
+		contentValues.put("chat_id", immsg.chatId);
+		contentValues.put("msg_time", immsg.msgTime);
+		contentValues.put("msg_status", immsg.msgStatus);
+		contentValues.put("post_at", immsg.postAt);
+		return st.update("im_msg", contentValues, "room_id=? and openid=? and msg_time=?", new String[]{roomId, openId, msgId});
+	}
 
 	/**
 	 * 
@@ -86,12 +116,50 @@ public class MessageManager {
 	 *            要查的记录条数
 	 * @return
 	 */
-	public List<IMMessage> getMessageListByFrom(String roomId, int pageNum,
-			int pageSize) {
-		if (StringUtils.empty(roomId)) {
-			return null;
+	public void getMessageListByFrom(final String roomId, final String maxId, final MessageManagerCallback callback) {
+		//先访问服务器
+		AppClient.getChatHistory(roomId, maxId, new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				ChatHistoryListEntity entity = (ChatHistoryListEntity) data;
+				Logger.i(entity.messages.size()+"");
+				//save into db
+				for (IMMessage im : entity.messages) {
+					int rows = updateChatIdBy(im);
+					if (rows<=0) {
+						saveIMMessage(im);
+					}
+				}
+				//本地取,ui显示
+				callback.getMessages(getMessageListByFrom(roomId, maxId));
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				callback.getMessages(getMessageListByFrom(roomId, maxId));
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				callback.getMessages(getMessageListByFrom(roomId, maxId));
+			}
+		});
+		
+	}
+
+	private List<IMMessage> getMessageListByFrom(String roomId, String maxId) {
+		//读本地
+		String sql;
+		String[] args; 
+		if (maxId.equals("0")) {
+			sql = "select * from im_msg where room_id=? and chat_id!=-1 order by msg_time desc limit ? ";
+			args = new String[] { "" + roomId, "" + 30 };
 		}
-		int fromIndex = (pageNum - 1) * pageSize;
+		else {
+			sql = "select * from im_msg where room_id=? and chat_id<? and chat_id!=-1 order by msg_time desc limit ? ";
+			args = new String[] { "" + roomId, "" + maxId, "" + 30 };
+		}
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<IMMessage> list = st.queryForList(
 				new RowMapper<IMMessage>() {
@@ -104,13 +172,15 @@ public class MessageManager {
 						msg.msgTime = (cursor.getString(cursor.getColumnIndex("msg_time")));
 						msg.mediaType = (cursor.getInt(cursor.getColumnIndex("media_type")));
 						msg.msgStatus = (cursor.getInt(cursor.getColumnIndex("msg_status")));
+						msg.postAt = (cursor.getString(cursor.getColumnIndex("post_at")));
+						msg.chatId = (cursor.getString(cursor.getColumnIndex("chat_id")));
+						msg.roomId = (cursor.getString(cursor.getColumnIndex("room_id")));
 						return msg;
 					}
 				},
-				"select * from im_msg where room_id=? order by msg_time desc limit ? , ? ",
-				new String[] { "" + roomId, "" + fromIndex, "" + pageSize });
+				sql,
+				args);
 		return list;
-
 	}
 
 	/**

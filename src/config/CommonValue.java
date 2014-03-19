@@ -45,6 +45,8 @@ public class CommonValue {
 		String FriendCardList = "FriendCardList";
 		String FriendCardList1 = "FriendCardList1";
 		String MessageList = "MessageList";
+		
+		String ChatterInfo = "ChatterInfo";
 	}
 	
 	public interface LoginRequest {
