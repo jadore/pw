@@ -6,7 +6,6 @@ package im.ui;
 
 import im.bean.IMMessage;
 import im.bean.IMMessage.JSBubbleMessageStatus;
-import im.bean.Notice;
 
 import java.util.Collections;
 import java.util.List;

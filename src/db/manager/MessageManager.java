@@ -1,10 +1,9 @@
 package db.manager;
 
 
-import im.bean.HistoryChatBean;
+import im.bean.Conversation;
 import im.bean.IMMessage;
 import im.bean.IMMessage.JSBubbleMessageStatus;
-import im.bean.Notice;
 
 import java.util.List;
 
@@ -220,7 +219,7 @@ public class MessageManager {
 	 * 
 	 * @return
 	 */
-	public int getChatCountWithSb(String roomId) {
+	public int getChatCountWithRoomId(String roomId) {
 		if (StringUtils.empty(roomId)) {
 			return 0;
 		}
@@ -236,7 +235,7 @@ public class MessageManager {
 	 * 
 	 * @param fromUser
 	 */
-	public int delChatHisWithSb(String roomId) {
+	public int delChatHisWithRoomId(String roomId) {
 		if (StringUtils.empty(roomId)) {
 			return 0;
 		}
@@ -245,43 +244,33 @@ public class MessageManager {
 				new String[] { "" + roomId });
 	}
 
-//	/**
-//	 * 
-//	 * 获取最近聊天人聊天最后一条消息和未读消息总数
-//	 * 
-//	 * @return
-//	 */
-//	public List<HistoryChatBean> getRecentContactsWithLastMsg() {
-//		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-//		List<HistoryChatBean> list = st
-//				.queryForList(
-//						new RowMapper<HistoryChatBean>() {
-//
-//							@Override
-//							public HistoryChatBean mapRow(Cursor cursor, int index) {
-//								HistoryChatBean notice = new HistoryChatBean();
-//								notice.setId(cursor.getString(cursor
-//										.getColumnIndex("_id")));
-//								notice.setContent(cursor.getString(cursor
-//										.getColumnIndex("content")));
-//								notice.setFrom(cursor.getString(cursor
-//										.getColumnIndex("msg_from")));
-//								notice.setNoticeTime(cursor.getString(cursor
-//										.getColumnIndex("msg_time")));
-//								return notice;
-//							}
-//						},
-//						"select m.[_id],m.[msg_content],m.[msg_time],m.msg_incoming from im_msg  m join (select msg_incoming, max(msg_time) as time from im_msg group by msg_incoming) as tem  on  tem.time=m.msg_time and tem.msg_incoming=m.msg_incoming order by msg_time desc",
-//						null);
-//		for (HistoryChatBean b : list) {
-//			int count = st
-//					.getCount(
-//							"select _id from im_notice where status=? and type=? and notice_from=?",
-//							new String[] { "" + Notice.UNREAD,
-//									"" + Notice.CHAT_MSG, b.getFrom() });
-//			b.setNoticeSum(count);
-//		}
-//		return list;
-//	}
+	/**
+	 * 
+	 * 获取最近聊天人聊天最后一条消息和未读消息总数
+	 * 
+	 * @return
+	 */
+	public List<Conversation> getRecentContactsWithLastMsg() {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		List<Conversation> list = st
+				.queryForList(
+						new RowMapper<Conversation>() {
 
+							@Override
+							public Conversation mapRow(Cursor cursor, int index) {
+								Conversation notice = new Conversation();
+								notice.content = (cursor.getString(cursor.getColumnIndex("msg_content")));
+								notice.openId = (cursor.getString(cursor.getColumnIndex("msg_from")));
+								notice.noticeTime = (cursor.getString(cursor.getColumnIndex("max(msg_time)")));
+								notice.noticeSum = (cursor.getInt(cursor.getColumnIndex("count(msg_content)")));
+								notice.noticeType = (cursor.getInt(cursor.getColumnIndex("msg_type")));
+								notice.noticeStatus = (cursor.getInt(cursor.getColumnIndex("msg_status")));
+								notice.noticeMediaType = (cursor.getInt(cursor.getColumnIndex("media_type")));
+								return notice;
+							}
+						},
+						"select *, max(msg_time), count(msg_content) from im_msg where msg_status=1 group by room_id",
+						null);
+		return list;
+	}
 }

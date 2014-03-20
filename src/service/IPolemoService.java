@@ -4,7 +4,6 @@
 package service;
 
 import im.bean.IMMessage;
-import im.bean.Notice;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,7 +20,6 @@ import com.vikaa.mycontact.R;
 import config.CommonValue;
 import config.MyApplication;
 import db.manager.MessageManager;
-import db.manager.NoticeManager;
 
 import android.app.AlarmManager;
 import android.app.Notification;
