@@ -106,16 +106,23 @@
            android:layout_marginRight="5dp"
            android:layout_below="@id/textview_name_r"
            android:layout_toLeftOf="@id/image_portrait_r"
-           android:background="@drawable/outgoing" >
+           android:background="@drawable/outgoing">
            <!-- <com.CyberWise.cwechat.layout.ProgressView
 	           android:id="@+id/view_progress_r"
 	           
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"/> -->
 	           <include layout="@layout/item_chat_right"
-	               android:id="@+id/item_r"
 	               />
        </FrameLayout>
+       <ImageView
+            android:id="@+id/view_progress_r"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_toLeftOf="@+id/layout_progress_r"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="-16dp"
+            android:src="@drawable/round_1"/>
        <!-- <View
            android:id="@+id/btn_fail_r"
            android:layout_width="30dp"

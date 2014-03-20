@@ -283,8 +283,7 @@ public class Chating extends AChating implements IXListViewListener{
 			ImageView rightAvatar;
 			TextView rightNickname;
 			TextView rightText;
-			
-			
+			TextView rightProgress;
 		}
 	}
 	
