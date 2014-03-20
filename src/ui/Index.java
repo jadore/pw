@@ -32,8 +32,6 @@ import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
 import com.loopj.android.http.PersistentCookieStore;
-import com.netease.pomelo.DataCallBack;
-import com.netease.pomelo.PomeloClient;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;

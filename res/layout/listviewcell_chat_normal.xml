@@ -102,7 +102,7 @@
            android:layout_height="wrap_content"
            android:paddingLeft="10dp"
            android:paddingRight="20dp"
-           android:layout_marginLeft="30dp"
+           android:layout_marginLeft="35dp"
            android:layout_marginRight="5dp"
            android:layout_below="@id/textview_name_r"
            android:layout_toLeftOf="@id/image_portrait_r"
@@ -115,14 +115,16 @@
 	           <include layout="@layout/item_chat_right"
 	               />
        </FrameLayout>
-       <ImageView
+       <ProgressBar
             android:id="@+id/view_progress_r"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:layout_toLeftOf="@+id/layout_progress_r"
+            android:layout_marginRight="-30dp"
+            android:visibility="gone"
             android:layout_centerVertical="true"
-            android:layout_marginRight="-16dp"
-            android:src="@drawable/round_1"/>
+            android:indeterminateDrawable="@drawable/view_progress"
+            />
        <!-- <View
            android:id="@+id/btn_fail_r"
            android:layout_width="30dp"
@@ -133,6 +135,8 @@
            android:layout_marginRight="5dp"
            android:layout_toLeftOf="@id/layout_progress_r"/> -->
     </RelativeLayout>
+    
+    
 	
    
 </RelativeLayout>

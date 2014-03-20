@@ -8,13 +8,14 @@ import im.bean.Notice;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import pomelo.DataCallBack;
+import pomelo.DataEvent;
+import pomelo.DataListener;
+import pomelo.PomeloClient;
+
 import tools.Logger;
 import tools.StringUtils;
 import ui.Index;
-import com.netease.pomelo.DataCallBack;
-import com.netease.pomelo.DataEvent;
-import com.netease.pomelo.DataListener;
-import com.netease.pomelo.PomeloClient;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
@@ -44,12 +45,14 @@ import android.os.Message;
  *
  */
 public class IPolemoService extends Service {
-	private static final String TAG = "IPO";
-	private static final String PREF_STARTED = "IPO_STATEED";
+	public static final String TAG = "IPO";
+	public static final String PREF_STARTED = "IPO_STATEED";
+	public static final String PREF_CONNECTED = "IPO_CONNECTED";
 	
 	public static final String	ACTION_START = TAG + ".START";
 	public static final String	ACTION_STOP = TAG + ".STOP";
 	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
+	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
 	
 	private String test_host = "192.168.1.147";
 	private int test_port = 3014;
@@ -58,10 +61,12 @@ public class IPolemoService extends Service {
 	private SharedPreferences mPrefs;
 	private boolean mStarted;
 	
+	private boolean mConnected;
+	
 	private long mStartTime;
 	public static final String PREF_RETRY = "retryInterval";
-	private static final long INITIAL_RETRY_INTERVAL = 1000 * 15;
-	private static final long MAXIMUM_RETRY_INTERVAL = 1000 * 60 * 30;
+	private static final long  INITIAL_RETRY_INTERVAL = 1000 * 60;
+	private static final long  MAXIMUM_RETRY_INTERVAL = 1000 * 60 * 30;
 	
 	private NotificationManager notificationManager;
 	
@@ -78,9 +83,11 @@ public class IPolemoService extends Service {
 			if (intent.getAction().equals(ACTION_STOP) == true) {
 				stop();
 				stopSelf();
-			} else if (intent.getAction().equals(ACTION_START) == true ) {
+			} 
+			else if (intent != null && intent.getAction().equals(ACTION_START) == true ) {
 				start();
-			} else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
+			} 
+			else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
 				if (MyApplication.getInstance().isNetworkConnected()) {
 					try {
 						reconnectIfNecessary();
@@ -88,6 +95,9 @@ public class IPolemoService extends Service {
 						e.printStackTrace();
 					}
 				}
+			}
+			else if (intent.getAction().equals(ACTION_SCHEDULE) == true) {
+				scheduleReconnect(mStartTime);
 			}
 		}
 //		flags = START_STICKY;
@@ -108,6 +118,10 @@ public class IPolemoService extends Service {
 	
 	private boolean wasStarted() {
 		return mPrefs.getBoolean(PREF_STARTED, false);
+	}
+	
+	private boolean wasConnected() {
+		return mPrefs.getBoolean(PREF_CONNECTED, false);
 	}
 	
 	private synchronized void start() {
@@ -133,7 +147,7 @@ public class IPolemoService extends Service {
 	
 	private synchronized void connect() {
 		String openid = MyApplication.getInstance().getLoginUid();
-		if (StringUtils.empty(openid)) {
+		if (StringUtils.empty(openid) ) {
 			return;
 		}
 		else {
@@ -143,16 +157,19 @@ public class IPolemoService extends Service {
 	}
 	
 	public void scheduleReconnect(long startTime) {
+		if (wasConnected()) {
+			return;
+		}
 		long interval = mPrefs.getLong(PREF_RETRY, INITIAL_RETRY_INTERVAL);
 
 		long now = System.currentTimeMillis();
 		long elapsed = now - startTime;
 
-//		if (elapsed < interval) {
-//			interval = Math.min(interval * 4, MAXIMUM_RETRY_INTERVAL);
-//		} else {
+		if (elapsed < interval) {
+			interval = Math.min(interval * 4, MAXIMUM_RETRY_INTERVAL);
+		} else {
 			interval = INITIAL_RETRY_INTERVAL;
-//		}
+		}
 		
 		Logger.i("Rescheduling connection in " + interval + "ms.");
 
@@ -278,6 +295,9 @@ public class IPolemoService extends Service {
 					String openId = msgBody.getString("user");
 					if (openId.equals(MyApplication.getInstance().getLoginUid())) {
 						//下线了，重连
+						SharedPreferences sharedPre = MyApplication.getInstance().getSharedPreferences(
+								IPolemoService.TAG, Context.MODE_PRIVATE);
+						sharedPre.edit().putBoolean(IPolemoService.PREF_CONNECTED, false).commit();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -382,7 +402,8 @@ public class IPolemoService extends Service {
 	};
 	
 	private synchronized void reconnectIfNecessary() {		
-		if (mStarted == true && client == null) {
+		if (!wasConnected()) {
+			client = null;
 			connect();
 		}
 	}

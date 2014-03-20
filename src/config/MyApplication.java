@@ -5,8 +5,9 @@ import java.util.Properties;
 
 import org.apache.http.client.CookieStore;
 
+import pomelo.PomeloClient;
+
 import com.loopj.android.http.PersistentCookieStore;
-import com.netease.pomelo.PomeloClient;
 import com.nostra13.universalimageloader.utils.L;
 
 import service.QYEnterService;

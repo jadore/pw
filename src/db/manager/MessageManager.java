@@ -107,24 +107,23 @@ public class MessageManager {
 		return st.update("im_msg", contentValues, "room_id=? and openid=? and msg_time=?", new String[]{roomId, openId, msgId});
 	}
 
-	/**
-	 * 
-	 * 查找与某人的聊天记录聊天记录
-	 * 
-	 * @param pageNum
-	 *            第几页
-	 * @param pageSize
-	 *            要查的记录条数
-	 * @return
-	 */
-	public void getMessageListByFrom(final String roomId, final String maxId, final MessageManagerCallback callback) {
+	
+	public void getFirstMessageListByFrom(final String roomId, final MessageManagerCallback callback) {
+		final String maxId = "0";
+		List<IMMessage> list = getMessageListByFrom(roomId, maxId);
+		if (callback != null) {
+			callback.getMessages(list);
+		}
+		getMessageListByFrom(roomId, maxId, callback);
+	}
+	
+	public synchronized void getMessageListByFrom(final String roomId, final String maxId, final MessageManagerCallback callback) {
 		//先访问服务器
 		AppClient.getChatHistory(roomId, maxId, new ClientCallback() {
 			
 			@Override
 			public void onSuccess(Entity data) {
 				ChatHistoryListEntity entity = (ChatHistoryListEntity) data;
-				Logger.i(entity.messages.size()+"");
 				//save into db
 				for (IMMessage im : entity.messages) {
 					int rows = updateChatIdBy(im);
@@ -133,7 +132,10 @@ public class MessageManager {
 					}
 				}
 				//本地取,ui显示
-				callback.getMessages(getMessageListByFrom(roomId, maxId));
+				List<IMMessage> list = getMessageListByFrom(roomId, maxId);
+				if (callback != null) {
+					callback.getMessages(list);
+				}
 			}
 			
 			@Override
@@ -146,7 +148,6 @@ public class MessageManager {
 				callback.getMessages(getMessageListByFrom(roomId, maxId));
 			}
 		});
-		
 	}
 
 	private List<IMMessage> getMessageListByFrom(String roomId, String maxId) {
@@ -154,8 +155,8 @@ public class MessageManager {
 		String sql;
 		String[] args; 
 		if (maxId.equals("0")) {
-			sql = "select * from im_msg where room_id=? and chat_id!=-1 order by msg_time desc limit ? ";
-			args = new String[] { "" + roomId, "" + 30 };
+			sql = "select * from im_msg where room_id=? and chat_id!=-1 and msg_status!=? order by msg_time desc limit ? ";
+			args = new String[] { "" + roomId, ""+JSBubbleMessageStatus.JSBubbleMessageStatusDelivering, "" + 30 };
 		}
 		else {
 			sql = "select * from im_msg where room_id=? and chat_id<? and chat_id!=-1 order by msg_time desc limit ? ";
@@ -181,12 +182,15 @@ public class MessageManager {
 				},
 				sql,
 				args);
+		if (maxId.equals("0")) {
+			list.addAll(getSendingMessages(roomId));
+		}
 		return list;
 	}
 	
-	public List<IMMessage> getSendingMessages() {
-		String sql = "select * from im_msg where msg_type=? and openid=? order by msg_time desc;";
-		String[] args = new String[] { "" + JSBubbleMessageStatus.JSBubbleMessageStatusDelivering, "" + MyApplication.getInstance().getLoginUid()};
+	public List<IMMessage> getSendingMessages(String roomId) {
+		String sql = "select * from im_msg where msg_status=? and room_id=? order by msg_time desc";
+		String[] args = new String[] { "" + JSBubbleMessageStatus.JSBubbleMessageStatusDelivering, roomId};
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<IMMessage> list = st.queryForList(
 				new RowMapper<IMMessage>() {

@@ -6,23 +6,21 @@ package im.ui;
 
 import im.bean.IMMessage;
 import im.bean.IMMessage.JSBubbleMessageStatus;
-import im.bean.Notice;
-
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import pomelo.DataCallBack;
+import pomelo.PomeloClient;
 
-import com.google.gson.Gson;
-import com.netease.pomelo.DataCallBack;
 
-
+import service.IPolemoService;
+import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
+import tools.UIHelper;
 import ui.AppActivity;
 
 import android.content.BroadcastReceiver;
@@ -32,12 +30,11 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.widget.Toast;
 
 import config.CommonValue;
 import config.MyApplication;
 import db.manager.MessageManager;
-import db.manager.MessageManager.MessageManagerCallback;
-import db.manager.NoticeManager;
 
 /**
  * wechat
@@ -48,8 +45,6 @@ import db.manager.NoticeManager;
 public abstract class AChating extends AppActivity{
 	private List<IMMessage> message_pool = new ArrayList<IMMessage>();
 	protected String roomId;
-	private static int pageSize = 10;
-	private List<Notice> noticeList;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,24 +62,10 @@ public abstract class AChating extends AppActivity{
 
 	@Override
 	protected void onResume() {
-//		MessageManager.getInstance(context).getMessageListByFrom(roomId, "0", new MessageManagerCallback() {
-//			@Override
-//			public void getMessages(List<IMMessage> data) {
-//				message_pool = data;
-//				if (null != message_pool && message_pool.size() > 0) {
-//					Collections.sort(message_pool);
-//				}
-//				refreshMessage(message_pool);
-//			}
-//		});
-//		message_pool = MessageManager.getInstance(context).getMessageListByFrom(roomId, 1, pageSize);
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
 		registerReceiver(receiver, filter);
-//		NoticeManager.getInstance(context).updateStatusByFrom(roomId, Notice.READ);
-		
 		super.onResume();
-
 	}
 	
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -92,7 +73,6 @@ public abstract class AChating extends AppActivity{
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			Notice notice = (Notice) intent.getSerializableExtra("notice");
 			if (CommonValue.NEW_MESSAGE_ACTION.equals(action)) {
 				IMMessage message = (IMMessage) intent.getSerializableExtra(IMMessage.IMMESSAGE_KEY);
 				//adjust roomId
@@ -104,13 +84,10 @@ public abstract class AChating extends AppActivity{
 				message_pool.add(message);
 				receiveNewMessage(message);
 				refreshMessage(message_pool);
-				receiveNotice(notice);
 			}
 		}
 
 	};
-	
-	protected abstract void receiveNotice(Notice notice);
 	
 	protected abstract void receiveNewMessage(IMMessage message);
 
@@ -124,6 +101,7 @@ public abstract class AChating extends AppActivity{
 		if (StringUtils.empty(messageContent)) {
 			return;
 		}
+		
 		String time = (System.currentTimeMillis()/1000)+"";
 		IMMessage newMessage = new IMMessage();
 		newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
@@ -135,15 +113,84 @@ public abstract class AChating extends AppActivity{
 		newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusDelivering;
 		newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
 		newMessage.chatId = "-1";
-		Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
+		MessageManager.getInstance(context).saveIMMessage(newMessage);
 		message_pool.add(newMessage);
 		refreshMessage(message_pool);
-		
+		PomeloClient client = MyApplication.getInstance().getPolemoClient();
+		if (client == null) {
+			scheduleReconnect();
+			return;
+		}
+		if (!client.isConnected()) {
+			scheduleReconnect();
+			return;
+		}	
 		JSONObject msg = new JSONObject();
 		try {
 			msg.put("content", messageContent);
 			msg.put("roomId", roomId);
 			msg.put("msgId", time);
+			client.request("chat.chatHandler.send", msg, new DataCallBack() {
+				@Override
+				public void responseData(JSONObject msg) {
+					Logger.i(msg.toString());
+					Message mes = new Message();
+					mes.obj = msg;
+					msgHandler.sendMessage(mes);
+				}
+			});
+		} catch (JSONException e) {
+			Logger.i(e);
+		}
+	}
+	
+	protected synchronized void sendMessages() throws Exception {
+		PomeloClient client = MyApplication.getInstance().getPolemoClient();
+		if (client == null) {
+			scheduleReconnect();
+			return;
+		}
+		if (!client.isConnected()) {
+			scheduleReconnect();
+			return;
+		}
+		List<IMMessage> messages = MessageManager.getInstance(appContext).getSendingMessages(roomId);
+		for (IMMessage imMessage : messages) {
+			JSONObject msg = new JSONObject();
+			try {
+				msg.put("content", imMessage.content);
+				msg.put("roomId", roomId);
+				msg.put("msgId", imMessage.msgTime);
+				MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
+					@Override
+					public void responseData(JSONObject msg) {
+						Logger.i(msg.toString());
+						Message mes = new Message();
+						mes.obj = msg;
+						msgHandler.sendMessage(mes);
+					}
+				});
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	protected synchronized void sendMessage(IMMessage immsg) throws Exception {
+		PomeloClient client = MyApplication.getInstance().getPolemoClient();
+		if (client == null) {
+			scheduleReconnect();
+			return;
+		}
+		if (!client.isConnected()) {
+			scheduleReconnect();
+			return;
+		}
+		JSONObject msg = new JSONObject();
+		try {
+			msg.put("content", immsg.content);
+			msg.put("roomId", roomId);
+			msg.put("msgId", immsg.msgTime);
 			MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
 				@Override
 				public void responseData(JSONObject msg) {
@@ -155,6 +202,14 @@ public abstract class AChating extends AppActivity{
 			});
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void scheduleReconnect() {
+		if (AppManager.getAppManager().currentActivity() != null) {
+			Intent intent = new Intent(AppManager.getAppManager().currentActivity(), IPolemoService.class);
+			intent.setAction(IPolemoService.ACTION_SCHEDULE);
+			AppManager.getAppManager().currentActivity().startService(intent);
 		}
 	}
 	
@@ -182,20 +237,6 @@ public abstract class AChating extends AppActivity{
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-			
-			//update the status
-			
-//			IMMessage newMessage = new IMMessage();
-//			newMessage.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeOutgoing;
-//			newMessage.roomId = roomId;
-//			newMessage.content = ((String)msg.obj);
-//			newMessage.msgTime = time;
-//			newMessage.openId = appContext.getLoginUid();
-//			newMessage.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusNormal;
-//			newMessage.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
-//			message_pool.add(newMessage);
-//			Logger.i(MessageManager.getInstance(context).saveIMMessage(newMessage)+"");
-//			refreshMessage(message_pool);
 		};
 	};
 	
