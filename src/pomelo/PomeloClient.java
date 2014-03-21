@@ -18,6 +18,7 @@ import config.MyApplication;
 import service.IPolemoService;
 import tools.AppManager;
 import tools.Logger;
+import im.bean.IMMessage;
 import io.socket.IOAcknowledge;
 import io.socket.IOCallback;
 import io.socket.SocketIO;
@@ -90,11 +91,10 @@ public class PomeloClient {
 				sharedPre.edit().putBoolean(IPolemoService.PREF_CONNECTED, false).commit();	
 				Logger.i("connection is terminated.");
 				emit("disconnect", null);
-				if (AppManager.getAppManager().currentActivity() != null) {
-					Intent intent = new Intent(AppManager.getAppManager().currentActivity(), IPolemoService.class);
-					intent.setAction(IPolemoService.ACTION_SCHEDULE);
-					AppManager.getAppManager().currentActivity().startService(intent);
-				}
+//				if (AppManager.getAppManager().currentActivity() != null) {
+//					Intent intent = new Intent(CommonValue.RECONNECT_ACTION);
+//					AppManager.getAppManager().currentActivity().sendBroadcast(intent);
+//				}
 				
 				socket = null;
 				socketIOException.printStackTrace();
@@ -124,6 +124,9 @@ public class PomeloClient {
 	 *            reqest message
 	 */
 	private void sendMessage(int reqId, String route, JSONObject msg) {
+		if (socket == null) {
+			return;
+		}
 		socket.send(Protocol.encode(reqId, route, msg));
 	}
 

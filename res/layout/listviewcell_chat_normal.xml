@@ -17,19 +17,18 @@
         android:paddingRight="5dp"
         android:layout_centerHorizontal="true"/>
     
-     <View 
+     <!-- <View 
         android:id="@+id/check_box"
        	android:layout_width="35dp"
    		android:layout_height="35dp"
    		android:layout_centerVertical="true"
-   		android:visibility="gone"
-   		/>
+   		android:visibility="visible"
+   		/> -->
     <RelativeLayout 
        android:id="@+id/layout_left"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_below="@id/textview_time"
-       android:layout_toRightOf="@id/check_box"
        >
        
        <ImageView
@@ -49,8 +48,8 @@
            android:visibility="gone"
            android:layout_toRightOf="@id/image_portrait_l"/>
            
-       <FrameLayout
-           android:id="@+id/layout_progress_l"
+       <RelativeLayout
+           android:id="@+id/layout_content_l"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:paddingLeft="20dp"
@@ -61,14 +60,14 @@
            android:layout_toRightOf="@id/image_portrait_l"
            android:background="@drawable/incoming"
             >
-           <!-- <com.CyberWise.cwechat.layout.ProgressView
-	           android:id="@+id/view_progress_l"
-	           
-	           android:layout_width="wrap_content"
-	           android:layout_height="wrap_content"/> -->
-	           <include layout="@layout/item_chat"
-	               android:id="@+id/item_l"/>
-       </FrameLayout>
+            <TextView
+      			android:id="@+id/textview_content_l"
+      			android:layout_width="wrap_content"
+      			android:layout_height="wrap_content"
+		        android:textSize="18dp"
+		        android:layout_gravity="center_horizontal"
+		        android:textColor="#000000"/>
+       </RelativeLayout>
        
     </RelativeLayout>
     
@@ -96,8 +95,8 @@
            android:visibility="gone"
            android:layout_toLeftOf="@id/image_portrait_r"/>
 
-       <FrameLayout
-           android:id="@+id/layout_progress_r"
+       <RelativeLayout
+           android:id="@+id/layout_content_r"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:paddingLeft="10dp"
@@ -107,33 +106,24 @@
            android:layout_below="@id/textview_name_r"
            android:layout_toLeftOf="@id/image_portrait_r"
            android:background="@drawable/outgoing">
-           <!-- <com.CyberWise.cwechat.layout.ProgressView
-	           android:id="@+id/view_progress_r"
-	           
-	           android:layout_width="wrap_content"
-	           android:layout_height="wrap_content"/> -->
-	           <include layout="@layout/item_chat_right"
-	               />
-       </FrameLayout>
+           <TextView
+		       android:id="@+id/textview_content_r"
+		       android:layout_width="wrap_content"
+		       android:layout_height="wrap_content"
+		       android:textSize="18dp"
+		       android:layout_gravity="center_horizontal"
+		       android:textColor="#000000"/>
+       </RelativeLayout>
        <ProgressBar
             android:id="@+id/view_progress_r"
             android:layout_width="26dp"
             android:layout_height="26dp"
-            android:layout_toLeftOf="@+id/layout_progress_r"
+            android:layout_toLeftOf="@+id/layout_content_r"
             android:layout_marginRight="-30dp"
             android:visibility="gone"
             android:layout_centerVertical="true"
             android:indeterminateDrawable="@drawable/view_progress"
             />
-       <!-- <View
-           android:id="@+id/btn_fail_r"
-           android:layout_width="30dp"
-           android:layout_height="30dp"
-           android:background="@drawable/fail"
-           android:layout_centerVertical="true"
-           android:visibility="gone"
-           android:layout_marginRight="5dp"
-           android:layout_toLeftOf="@id/layout_progress_r"/> -->
     </RelativeLayout>
     
     

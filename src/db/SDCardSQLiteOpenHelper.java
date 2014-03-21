@@ -1,7 +1,12 @@
 package db;
 
+import static android.os.Environment.MEDIA_MOUNTED;
+
 import java.io.File;
 
+import tools.Logger;
+
+import com.nostra13.universalimageloader.utils.L;
 import com.vikaa.mycontact.R;
 
 
@@ -216,19 +221,29 @@ public abstract class SDCardSQLiteOpenHelper {
 	}
 
 	public File getDatabasePath(String name) {
-		String EXTERN_PATH = null;
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED) == true) {
-			String dbPath = mContext.getString(R.string.dir)
-					+ mContext.getString(R.string.db_dir) + "/";
-			EXTERN_PATH = android.os.Environment.getExternalStorageDirectory()
-					.getAbsolutePath() + dbPath;
-			File f = new File(EXTERN_PATH);
-			if (!f.exists()) {
-				f.mkdirs();
-			}
+//		String EXTERN_PATH = null;
+//		if (Environment.getExternalStorageState().equals(
+//				Environment.MEDIA_MOUNTED) == true) {
+//			String dbPath = mContext.getString(R.string.dir)
+//					+ mContext.getString(R.string.db_dir) + "/";
+//			EXTERN_PATH = android.os.Environment.getExternalStorageDirectory()
+//					.getAbsolutePath() + dbPath;
+//			File f = new File(EXTERN_PATH);
+//			if (!f.exists()) {
+//				f.mkdirs();
+//			}
+//		}
+//		return new File(EXTERN_PATH + name);
+		File appCacheDir = null;
+		if (appCacheDir == null) {
+			appCacheDir = mContext.getCacheDir();
 		}
-		return new File(EXTERN_PATH + name);
+		if (appCacheDir == null) {
+			String cacheDirPath = "/data/data/" + mContext.getPackageName() + "/cache/";
+			Logger.i("Can't define system cache directory! will be used.");
+			appCacheDir = new File(cacheDirPath);
+		}
+		return new File(appCacheDir.getAbsolutePath() + "/" + name);
 	}
 
 	/**

@@ -43,29 +43,24 @@ import db.manager.MessageManager;
  *
  */
 public abstract class AChating extends AppActivity{
-	private List<IMMessage> message_pool = new ArrayList<IMMessage>();
+	protected List<IMMessage> message_pool = new ArrayList<IMMessage>();
 	protected String roomId;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
+		registerReceiver(receiver, filter);
 		roomId = getIntent().getStringExtra("roomId");
 		if (roomId == null)
 			return;
 	}
 	
 	@Override
-	protected void onPause() {
+	protected void onDestroy() {
 		unregisterReceiver(receiver);
-		super.onPause();
-	}
-
-	@Override
-	protected void onResume() {
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
-		registerReceiver(receiver, filter);
-		super.onResume();
+		super.onDestroy();
 	}
 	
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -80,7 +75,6 @@ public abstract class AChating extends AppActivity{
 				if (!roomId.equals(message.roomId)) {
 					return;
 				}
-				Logger.i(message.roomId);
 				message_pool.add(message);
 				receiveNewMessage(message);
 				refreshMessage(message_pool);
@@ -206,10 +200,12 @@ public abstract class AChating extends AppActivity{
 	}
 	
 	private void scheduleReconnect() {
-		if (AppManager.getAppManager().currentActivity() != null) {
-			Intent intent = new Intent(AppManager.getAppManager().currentActivity(), IPolemoService.class);
-			intent.setAction(IPolemoService.ACTION_SCHEDULE);
-			AppManager.getAppManager().currentActivity().startService(intent);
+		if (!this.isFinishing()) {
+//			Intent intent = new Intent(AppManager.getAppManager().currentActivity(), IPolemoService.class);
+//			intent.setAction(IPolemoService.ACTION_START);
+//			AppManager.getAppManager().currentActivity().startService(intent);
+			Intent intent = new Intent(CommonValue.RECONNECT_ACTION);
+			sendBroadcast(intent);
 		}
 	}
 	
@@ -229,7 +225,7 @@ public abstract class AChating extends AppActivity{
 						immsg.postAt = postAt;
 						immsg.chatId = chatId;
 						//update db
-						Logger.i(""+MessageManager.getInstance(context).updateSendingMessageWhere(roomId, openId, msgId, immsg));
+						MessageManager.getInstance(context).updateSendingMessageWhere(roomId, openId, msgId, immsg);
 						
 					}
 				}

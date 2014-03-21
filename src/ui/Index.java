@@ -39,8 +39,10 @@ import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import config.CommonValue;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -130,6 +132,9 @@ public class Index extends AppActivity {
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
+	    if (appContext.isLogin()) {
+			queryPolemoEntry();
+		}
 	}
 
 	  @Override
@@ -147,9 +152,6 @@ public class Index extends AppActivity {
 		}
 		else {
 			title.setText("群友通讯录");
-			if (appContext.isLogin()) {
-				queryPolemoEntry();
-			}
 		}
 	}
 	
@@ -1289,93 +1291,22 @@ public class Index extends AppActivity {
 		}).show();
 	}
 	
-//	private String test_host = "192.168.1.147";
-//	private int test_port = 3014;
-//	private PomeloClient client;
-//	private AIDLPolemoService iPo;
 	private void queryPolemoEntry() {
-//		client = new PomeloClient(test_host, test_port);
-//		client.init();
-//		JSONObject msg = new JSONObject();
-//		try {
-//			msg.put("uid", openid);
-//			client.request("gate.gateHandler.queryEntry", msg,
-//					new DataCallBack() {
-//						@Override
-//						public void responseData(JSONObject msg) {
-//							Logger.i(msg.toString());
-//							client.disconnect();
-//							try {
-//								String ip = msg.getString("host");
-//								enter(ip, msg.getInt("port"), openid);
-//							} catch (JSONException e) {
-//								e.printStackTrace();
-//							}
-//						}
-//					});
-//		} catch (JSONException e) {
-//			e.printStackTrace();
-//		}
+		if (isServiceRunning()) {
+			return;
+		}
 		Intent intent = new Intent(this, IPolemoService.class);
 		intent.setAction(IPolemoService.ACTION_START);
 		startService(intent);
 	}
 	
-//	private ServiceConnection conn = new ServiceConnection() {
-//		
-//		@Override
-//		public void onServiceDisconnected(ComponentName arg0) {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//		
-//		@Override
-//		public void onServiceConnected(ComponentName arg0, IBinder service) {
-//			iPo = AIDLPolemoService.Stub.asInterface(service);
-//		}
-//	};
-//
-//	private void enter(String host, int port, String openid) {
-//		JSONObject msg = new JSONObject();
-//		try {
-//			msg.put("username", openid);
-//			msg.put("rid", "1");
-//		} catch (JSONException e) {
-//			e.printStackTrace();
-//		}
-//		client = new PomeloClient(host, port);
-//		client.init();
-//		client.request("connector.entryHandler.enter", msg, new DataCallBack() {
-//			@Override
-//			public void responseData(JSONObject msg) {
-//				if (msg.has("error")) {
-//					myHandler.sendMessage(myHandler.obtainMessage());
-//					client.disconnect();
-//					client = new PomeloClient(test_host, test_port);
-//					client.init();
-//					return;
-//				}
-////				try {
-////					JSONArray jr = msg.getJSONArray("users");
-////					users = new String[jr.length() + 1];
-////					// * represent all users
-////					users[0] = "*";
-////					for (int i = 1; i <= jr.length(); i++) {
-////						users[i] = jr.getString(i - 1);
-////					}
-////				} catch (JSONException e) {
-////					e.printStackTrace();
-////					Logger.i(e);
-////				}
-//				appContext.setPolemoClient(client);
-//			}
-//		});
-//	}
-//	
-//	Handler myHandler = new Handler() {
-//		public void handleMessage(android.os.Message msg) {
-//			super.handleMessage(msg);
-////			errorTv.setText("please change your name to login.");
-//		};
-//	};
+	private boolean isServiceRunning() {
+	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	        if ("service.IPolemoService".equals(service.service.getClassName())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
 }

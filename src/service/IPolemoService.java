@@ -3,7 +3,12 @@
  */
 package service;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import im.bean.IMMessage;
+import im.ui.Chating;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +17,7 @@ import pomelo.DataEvent;
 import pomelo.DataListener;
 import pomelo.PomeloClient;
 
+import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import ui.Index;
@@ -50,7 +56,7 @@ public class IPolemoService extends Service {
 	public static final String	ACTION_START = TAG + ".START";
 	public static final String	ACTION_STOP = TAG + ".STOP";
 	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
-	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
+//	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
 	
 	private String test_host = "192.168.1.147";
 	private int test_port = 3014;
@@ -68,10 +74,16 @@ public class IPolemoService extends Service {
 	
 	private NotificationManager notificationManager;
 	
+	private Timer mTimer; 
+	private ReConnectTimer lockTask;
+	
 	public void onCreate() {
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		mPrefs = getSharedPreferences(TAG, MODE_PRIVATE);
 		mStartTime = System.currentTimeMillis();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(CommonValue.RECONNECT_ACTION);
+		registerReceiver(receiver, filter);
 	};
 	
 	@Override
@@ -94,9 +106,9 @@ public class IPolemoService extends Service {
 					}
 				}
 			}
-			else if (intent.getAction().equals(ACTION_SCHEDULE) == true) {
-				scheduleReconnect(mStartTime);
-			}
+//			else if (intent.getAction().equals(ACTION_SCHEDULE) == true) {
+//				scheduleReconnect(mStartTime);
+//			}
 		}
 //		flags = START_STICKY;
 		return super.onStartCommand(intent, flags, startId);
@@ -104,6 +116,7 @@ public class IPolemoService extends Service {
 	
 	@Override
 	public void onDestroy() {
+		unregisterReceiver(receiver);
 		unregisterReceiver(mConnectivityChanged);	
 		super.onDestroy();
 	}
@@ -181,9 +194,6 @@ public class IPolemoService extends Service {
 		alarmMgr.set(AlarmManager.RTC_WAKEUP, now + interval, pi);
 	}
 	
-	private synchronized void sccketListener() {
-	}
-	
 	private synchronized void queryEntry() {
 		client = new PomeloClient(test_host, test_port);
 		client.init();
@@ -253,14 +263,17 @@ public class IPolemoService extends Service {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case 0:
-				scheduleReconnect(mStartTime);
+//				scheduleReconnect(mStartTime);
+				 
 				break;
 
 			case 1:
+				endReconnectTask();
 				startChatListener();
 				break;
 				
 			case 2:
+				endReconnectTask();
 				break;
 			}
 			
@@ -289,14 +302,8 @@ public class IPolemoService extends Service {
 					if (msg.isNull("body")) {
 						return;
 					}
-					JSONObject msgBody = msg.getJSONObject("body");
-					String openId = msgBody.getString("user");
-					if (openId.equals(MyApplication.getInstance().getLoginUid())) {
-						//下线了，重连
-						SharedPreferences sharedPre = MyApplication.getInstance().getSharedPreferences(
-								IPolemoService.TAG, Context.MODE_PRIVATE);
-						sharedPre.edit().putBoolean(IPolemoService.PREF_CONNECTED, false).commit();
-					}
+//					JSONObject msgBody = msg.getJSONObject("body");
+//					String openId = msgBody.getString("user");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -328,30 +335,16 @@ public class IPolemoService extends Service {
 					immsg.roomId = roomId;
 					immsg.postAt = postAt;
 					immsg.chatId = chatId;
-//					NoticeManager noticeManager = NoticeManager.getInstance(IPolemoService.this);
-//					Notice notice = new Notice();
-//					notice.setTitle("会话信息");
-//					notice.setNoticeType(Notice.CHAT_MSG);
-//					notice.setContent(msgContent);
-//					notice.setFrom(from);
-//					notice.setStatus(Notice.UNREAD);
-//					notice.setNoticeTime(time);
-
 					
-					MessageManager.getInstance(IPolemoService.this).saveIMMessage(immsg);
-					long noticeId = -1;
-
-//					noticeId = noticeManager.saveNotice(notice);
-//					if (noticeId != -1) {
+					long rows = MessageManager.getInstance(IPolemoService.this).saveIMMessage(immsg);
+					if (rows != -1) {
 						Intent intent = new Intent(CommonValue.NEW_MESSAGE_ACTION);
 						intent.putExtra(IMMessage.IMMESSAGE_KEY, immsg);
-//						intent.putExtra("notice", notice);
 						sendBroadcast(intent);
 						setNotiType(R.drawable.ic_launcher,
 								"新消息",
-								immsg.content, Index.class, sender);
-
-//					}
+								immsg.content, Chating.class, roomId);
+					}
 					
 				} catch (Exception e) {
 					Logger.i(e);
@@ -362,13 +355,15 @@ public class IPolemoService extends Service {
 	}
 	
 	private void setNotiType(int iconId, String contentTitle,
-			String contentText, Class activity, String from) {
+			String contentText, Class activity, String roomId) {
 		Intent notifyIntent = new Intent(this, activity);
-		notifyIntent.putExtra("to", from);
+		notifyIntent.putExtra("roomId", roomId);
 		PendingIntent appIntent = PendingIntent.getActivity(this, 0,
 				notifyIntent, 0);
 		Notification myNoti = new Notification();
 		myNoti.flags = Notification.FLAG_AUTO_CANCEL;
+		myNoti.defaults |= Notification.DEFAULT_SOUND;
+		myNoti.defaults |= Notification.DEFAULT_VIBRATE;
 		myNoti.icon = iconId;
 		myNoti.tickerText = contentTitle;
 		myNoti.setLatestEventInfo(this, contentTitle, contentText, appIntent);
@@ -376,14 +371,6 @@ public class IPolemoService extends Service {
 	}
 	
 
-//	private AIDLPolemoService.Stub stub = new AIDLPolemoService.Stub() {
-//		
-//		@Override
-//		public void send(String target, String message) throws RemoteException {
-//			
-//		}
-//	};
-	
 	private BroadcastReceiver mConnectivityChanged = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -419,5 +406,51 @@ public class IPolemoService extends Service {
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
+	
+	public void reconnectTask(){
+		if (mTimer == null) {  
+            mTimer = new Timer();  
+        }
+		if (lockTask == null) {  
+			lockTask = new ReConnectTimer();  
+		}
+		if(mTimer != null && lockTask != null ) {
+			mTimer.schedule(lockTask, 0L, 60*1000L);  
+		}
+	}
+	
+	public void endReconnectTask() {
+		if (mTimer != null) {  
+            mTimer.cancel();  
+            mTimer = null;  
+        }  
+        if (lockTask != null) {  
+        	lockTask.cancel();  
+        	lockTask = null;  
+        }  
+	}
+	
+	class ReConnectTimer extends TimerTask {
+		@Override
+		public void run() {
+			connect();
+		}
+	}
+	
+	private BroadcastReceiver receiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (CommonValue.RECONNECT_ACTION.equals(action)) {
+				try {
+					reconnectTask();
+				}
+				catch (Exception e){
+					Logger.i(e);
+				}
+			}
+		}
+	};
 
 }

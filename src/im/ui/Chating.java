@@ -60,7 +60,7 @@ import android.widget.Toast;
  *
  */
 public class Chating extends AChating implements IXListViewListener{
-	private MessageListAdapter adapter = null;
+	private IMMessageAdapter adapter = null;
 	private EditText messageInput = null;
 	private Button messageSendBtn = null;
 	private XListView listView;
@@ -76,27 +76,13 @@ public class Chating extends AChating implements IXListViewListener{
 		init();
 	}
 	
-	@Override
-	protected void onDestroy() {
-		//set read
-		super.onDestroy();
-	}
-	
 	private void init() {
 		listView = (XListView) findViewById(R.id.chat_list);
 		listView.setPullLoadEnable(false);
 		listView.setPullRefreshEnable(false);
 		listView.setXListViewListener(this, 0);
-		listView.setOnTouchListener(new OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				closeInput();
-				return false;
-			}
-		});
 		listView.setCacheColorHint(0);
-		adapter = new MessageListAdapter(Chating.this, getMessages(),
-				listView);
+		adapter = new IMMessageAdapter(this, message_pool, imageLoader);
 		listView.setAdapter(adapter);
 		
 		listView.setOnScrollListener(new OnScrollListener() {
@@ -180,7 +166,7 @@ public class Chating extends AChating implements IXListViewListener{
 		else {
 			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 		}
-		adapter.refreshList(messages);
+		adapter.notifyDataSetChanged();
 		if(messages.size() > 0){
 			listView.setSelection(messages.size()-1);
 		}
@@ -189,139 +175,11 @@ public class Chating extends AChating implements IXListViewListener{
 	@Override
 	protected void onResume() {
 		super.onResume();
-//		recordCount = MessageManager.getInstance(context)
-//				.getChatCountWithSb(roomId);
 		
-	}
-	
-	private class MessageListAdapter extends BaseAdapter {
-
-		private List<IMMessage> items;
-		private Context context;
-		private ListView adapterList;
-		private LayoutInflater inflater;
-
-		public MessageListAdapter(Context context, List<IMMessage> items,
-				ListView adapterList) {
-			this.context = context;
-			this.items = items;
-			this.adapterList = adapterList;
-			inflater = LayoutInflater.from(context);
-		}
-
-		public void refreshList(List<IMMessage> items) {
-			this.items = items;
-			this.notifyDataSetChanged();
-			
-		}
-
-		@Override
-		public int getCount() {
-			return items == null ? 0 : items.size();
-		}
-
-		@Override
-		public Object getItem(int position) {
-			return items.get(position);
-		}
-
-		@Override
-		public long getItemId(int position) {
-			return position;
-		}
-		
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			ViewHoler cell = null;
-			if (convertView == null) {
-				cell = new ViewHoler();
-				convertView = inflater.inflate(R.layout.listviewcell_chat_normal, null);
-				cell.timeTV = (TextView) convertView.findViewById(R.id.textview_time);
-				cell.leftLayout = (RelativeLayout) convertView.findViewById(R.id.layout_left);
-				cell.leftAvatar = (ImageView) convertView.findViewById(R.id.image_portrait_l);
-				cell.leftNickname = (TextView) convertView.findViewById(R.id.textview_name_l);
-				cell.leftText = (TextView) convertView.findViewById(R.id.textview_content);
-						
-				cell.rightLayout = (RelativeLayout) convertView.findViewById(R.id.layout_right);
-				cell.rightFrame = (FrameLayout) convertView.findViewById(R.id.layout_progress_r);
-				cell.rightAvatar = (ImageView) convertView.findViewById(R.id.image_portrait_r);
-				cell.rightNickname = (TextView) convertView.findViewById(R.id.textview_name_r);
-				cell.rightText = (TextView) convertView.findViewById(R.id.textview_content_r);
-				cell.rightProgress = (ProgressBar) convertView.findViewById(R.id.view_progress_r);
-				convertView.setTag(cell);
-			}
-			else {
-				cell = (ViewHoler) convertView.getTag();
-			}
-			final IMMessage message = items.get(position);
-			if (message.msgType == IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming) {
-				cell.leftLayout.setVisibility(View.VISIBLE);
-				cell.rightLayout.setVisibility(View.GONE);
-				getChatterFromCache(message.openId, cell.leftAvatar);
-				cell.leftText.setText(message.content);
-				
-			} else {
-				cell.leftLayout.setVisibility(View.GONE);
-				cell.rightLayout.setVisibility(View.VISIBLE);
-				imageLoader.displayImage(appContext.getUserAvatar(), cell.rightAvatar, CommonValue.DisplayOptions.default_options);
-				cell.rightText.setText(message.content);
-				if (message.msgStatus == JSBubbleMessageStatus.JSBubbleMessageStatusDelivering) {
-					cell.rightProgress.setVisibility(View.VISIBLE);
-				}
-				else {
-					cell.rightProgress.setVisibility(View.INVISIBLE);
-				}
-			}
-			cell.rightFrame.setOnLongClickListener(new OnLongClickListener() {
-				
-				@Override
-				public boolean onLongClick(View v) {
-					if (message.msgStatus == JSBubbleMessageStatus.JSBubbleMessageStatusDelivering) {
-						show1OptionsDialog(new String[]{"重新发送"}, message);
-					}
-					return false;
-				}
-			});
-			return convertView;
-		}
-
-		class ViewHoler {
-			TextView timeTV;
-			
-			RelativeLayout leftLayout;
-			ImageView leftAvatar;
-			TextView leftNickname;
-			TextView leftText;
-			
-			RelativeLayout rightLayout;
-			FrameLayout rightFrame;
-			ImageView rightAvatar;
-			TextView rightNickname;
-			TextView rightText;
-			ProgressBar rightProgress;
-		}
-		
-		private void show1OptionsDialog(final String[] arg ,final IMMessage model){
-			new AlertDialog.Builder(context).setItems(arg,
-					new DialogInterface.OnClickListener(){
-				public void onClick(DialogInterface dialog, int which){
-					switch(which){
-					case 0:
-						try {
-							((Chating)context).sendMessage(model);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						break;
-					}
-				}
-			}).show();
-		}
 	}
 	
 	@Override
 	public void onBackPressed() {
-//		NoticeManager.getInstance(context).updateStatusByFrom(roomId, Notice.READ);
 		super.onBackPressed();
 	}
 	
@@ -349,7 +207,6 @@ public class Chating extends AChating implements IXListViewListener{
 
 	@Override
 	public void onLoadMore(int id) {
-		// TODO Auto-generated method stub
 		
 	}
 	
@@ -375,9 +232,9 @@ public class Chating extends AChating implements IXListViewListener{
 									    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 									    }
 										if (data.size() > 0) {
-											Chating.this.getMessages().addAll(data);
-											Collections.sort(Chating.this.getMessages());
-											adapter.refreshList(Chating.this.getMessages());
+											message_pool.addAll(data);
+											Collections.sort(message_pool);
+											adapter.notifyDataSetChanged();
 											listView.setSelection(data.size());
 										}
 										listView.stopRefresh();
@@ -391,11 +248,10 @@ public class Chating extends AChating implements IXListViewListener{
 				@Override
 				public void getMessages(List<IMMessage> data) {
 			        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-			        Chating.this.getMessages().clear();
 					if (data.size() > 0) {
-						Chating.this.getMessages().addAll(data);
-						Collections.sort(Chating.this.getMessages());
-						adapter.refreshList(Chating.this.getMessages());
+						message_pool.addAll(data);
+						Collections.sort(message_pool);
+						adapter.notifyDataSetChanged();
 						listView.setSelection(data.size());
 					}
 					listView.stopRefresh();
@@ -404,41 +260,5 @@ public class Chating extends AChating implements IXListViewListener{
 			});
 		}
 		
-	}
-	
-	private void getChatterFromCache(String openId, ImageView avatar) {
-		String key = String.format("%s-%s", CommonValue.CacheKey.ChatterInfo+"-"+openId, appContext.getLoginUid());
-		ChatterEntity entity = (ChatterEntity) appContext.readObject(key);
-		if(entity != null){
-			if (StringUtils.notEmpty(entity.avatar)) {
-				imageLoader.displayImage(entity.avatar, avatar, CommonValue.DisplayOptions.default_options);
-			}
-		}
-		else {
-			getChatter(openId, avatar);
-		}
-	}
-	
-	private synchronized void getChatter(String openId, final ImageView avatar) {
-		AppClient.getChaterBy(appContext, openId, new ClientCallback() {
-			
-			@Override
-			public void onSuccess(Entity data) {
-				ChatterEntity chatter = (ChatterEntity) data;
-				if (StringUtils.notEmpty(chatter.avatar)) {
-					imageLoader.displayImage(chatter.avatar, avatar, CommonValue.DisplayOptions.default_options);
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				
-			}
-		});
 	}
 }

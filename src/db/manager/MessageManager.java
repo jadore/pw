@@ -113,7 +113,7 @@ public class MessageManager {
 		if (callback != null) {
 			callback.getMessages(list);
 		}
-		getMessageListByFrom(roomId, maxId, callback);
+		getMessageListByFrom(roomId, maxId, null);
 	}
 	
 	public synchronized void getMessageListByFrom(final String roomId, final String maxId, final MessageManagerCallback callback) {
@@ -139,12 +139,16 @@ public class MessageManager {
 			
 			@Override
 			public void onFailure(String message) {
-				callback.getMessages(getMessageListByFrom(roomId, maxId));
+				if (callback != null) {
+					callback.getMessages(getMessageListByFrom(roomId, maxId));
+				}
 			}
 			
 			@Override
 			public void onError(Exception e) {
-				callback.getMessages(getMessageListByFrom(roomId, maxId));
+				if (callback != null) {
+					callback.getMessages(getMessageListByFrom(roomId, maxId));
+				}
 			}
 		});
 	}

@@ -75,7 +75,7 @@ public class MyApplication extends AppContext {
 		startService(startService);
 		ImageCacheUtil.init(this);
 		Thread.setDefaultUncaughtExceptionHandler(AppException.getAppExceptionHandler());
-		L.disableLogging();
+		L.enableLogging();
 		Logger.setDebug(true);
 		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		CookieStore cookieStore = new PersistentCookieStore(this);  
@@ -119,6 +119,7 @@ public class MyApplication extends AppContext {
 	public void saveLoginInfo(final UserEntity user) {
 		this.loginUid = user.openid;
 		this.login = true;
+		Logger.i(user.headimgurl);
 		setProperties(new Properties(){
 			{
 				setProperty("user.login","1");
