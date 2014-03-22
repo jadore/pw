@@ -17,7 +17,9 @@ import pomelo.DataEvent;
 import pomelo.DataListener;
 import pomelo.PomeloClient;
 
+import tools.AppException;
 import tools.AppManager;
+import tools.DecodeUtil;
 import tools.Logger;
 import tools.StringUtils;
 import ui.Index;
@@ -38,6 +40,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -55,7 +58,7 @@ public class IPolemoService extends Service {
 	
 	public static final String	ACTION_START = TAG + ".START";
 	public static final String	ACTION_STOP = TAG + ".STOP";
-	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
+//	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
 //	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
 	
 	private String test_host = "192.168.1.147";
@@ -84,11 +87,11 @@ public class IPolemoService extends Service {
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.RECONNECT_ACTION);
 		registerReceiver(receiver, filter);
+		registerReceiver(mConnectivityChanged, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 	};
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Logger.i("start");
 		if (intent != null) {
 			if (intent.getAction().equals(ACTION_STOP) == true) {
 				stop();
@@ -97,20 +100,7 @@ public class IPolemoService extends Service {
 			else if (intent != null && intent.getAction().equals(ACTION_START) == true ) {
 				start();
 			} 
-			else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
-				if (MyApplication.getInstance().isNetworkConnected()) {
-					try {
-						reconnectIfNecessary();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-//			else if (intent.getAction().equals(ACTION_SCHEDULE) == true) {
-//				scheduleReconnect(mStartTime);
-//			}
 		}
-//		flags = START_STICKY;
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
@@ -136,20 +126,13 @@ public class IPolemoService extends Service {
 	}
 	
 	private synchronized void start() {
-//		if (mStarted) {
-//			return;
-//		}
 		Logger.i("start");
 		connect();
-		registerReceiver(mConnectivityChanged, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));	
+			
 	}
 	
 	private synchronized void stop() {
-//		if (mStarted == false) {
-//			return;
-//		}
 		setStarted(false);
-		cancelReconnect();
 		if (client != null) {
 			client.disconnect();
 			client = null;
@@ -162,36 +145,8 @@ public class IPolemoService extends Service {
 			return;
 		}
 		else {
-//			setStarted(true);
 			queryEntry();
 		}
-	}
-	
-	public void scheduleReconnect(long startTime) {
-		if (wasConnected()) {
-			return;
-		}
-		long interval = mPrefs.getLong(PREF_RETRY, INITIAL_RETRY_INTERVAL);
-
-		long now = System.currentTimeMillis();
-		long elapsed = now - startTime;
-
-		if (elapsed < interval) {
-			interval = Math.min(interval * 4, MAXIMUM_RETRY_INTERVAL);
-		} else {
-			interval = INITIAL_RETRY_INTERVAL;
-		}
-		
-		Logger.i("Rescheduling connection in " + interval + "ms.");
-
-		mPrefs.edit().putLong(PREF_RETRY, interval).commit();
-
-		Intent i = new Intent();
-		i.setClass(this, IPolemoService.class);
-		i.setAction(ACTION_RECONNECT);
-		PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
-		AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
-		alarmMgr.set(AlarmManager.RTC_WAKEUP, now + interval, pi);
 	}
 	
 	private synchronized void queryEntry() {
@@ -199,24 +154,26 @@ public class IPolemoService extends Service {
 		client.init();
 		JSONObject msg = new JSONObject();
 		try {
-			msg.put("openid", MyApplication.getInstance().getLoginUid());
+			final String hash = (MyApplication.getInstance().getLoginUid());
+			msg.put("openid", hash);
 			client.request("gate.gateHandler.queryEntry", msg, new DataCallBack() {
 				@Override
 				public void responseData(JSONObject msg) {
 					Logger.i(msg.toString());
 					setStarted(true);
 					client.disconnect();
+					client = null;
 					try {
 						String ip = msg.getString("host");
-						enter(ip, msg.getInt("port"), MyApplication.getInstance().getLoginUid());
-					} catch (JSONException e) {
+						enter(ip, msg.getInt("port"), hash);
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			});
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		} 
 		Logger.i("queryentry");
 	}
 	
@@ -263,13 +220,13 @@ public class IPolemoService extends Service {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case 0:
-//				scheduleReconnect(mStartTime);
 				 
 				break;
 
 			case 1:
 				endReconnectTask();
-				startChatListener();
+//				startChatListener();
+				//send broadcast to 
 				break;
 				
 			case 2:
@@ -282,77 +239,93 @@ public class IPolemoService extends Service {
 	};
 	
 	private void startChatListener() {
-		client.on("onAddUser", new DataListener() {
-			@Override
-			public void receiveData(DataEvent event) {
-				JSONObject msg = event.getMessage();
-				try {
-					Logger.i(msg.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		client.on("onLeaveUser", new DataListener() {
-			@Override
-			public void receiveData(DataEvent event) {
-				JSONObject msg = event.getMessage();
-				try {
-					Logger.i(msg.toString());
-					if (msg.isNull("body")) {
-						return;
-					}
-//					JSONObject msgBody = msg.getJSONObject("body");
-//					String openId = msgBody.getString("user");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		
-		client.on("onChat", new DataListener() {
-			@Override
-			public void receiveData(DataEvent event) {
-				JSONObject msg = event.getMessage();
-				try {
-					if (msg.isNull("body")) {
-						return;
-					}
-					JSONObject msgBody = msg.getJSONObject("body");
-					String msgContent = msgBody.getString("msg");
-					String sender = msgBody.getString("sender");
-					String roomId = msgBody.getString("room_id");
-					String postAt = msgBody.getString("post_at");
-					String chatId = msgBody.getString("chat_id");
-					IMMessage immsg = new IMMessage();
-					String time = (System.currentTimeMillis()/1000)+"";//DateUtil.date2Str(Calendar.getInstance(), Constant.MS_FORMART);
-					immsg.msgTime = (time);
-					immsg.content = (msgContent);
-					immsg.openId = (sender);
-					immsg.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming;
-					immsg.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusReceiving;
-					immsg.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
-					immsg.roomId = roomId;
-					immsg.postAt = postAt;
-					immsg.chatId = chatId;
-					
-					long rows = MessageManager.getInstance(IPolemoService.this).saveIMMessage(immsg);
-					if (rows != -1) {
-						Intent intent = new Intent(CommonValue.NEW_MESSAGE_ACTION);
-						intent.putExtra(IMMessage.IMMESSAGE_KEY, immsg);
-						sendBroadcast(intent);
-						setNotiType(R.drawable.ic_launcher,
-								"新消息",
-								immsg.content, Chating.class, roomId);
-					}
-					
-				} catch (Exception e) {
-					Logger.i(e);
-				}
-			}
 
-		});
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				client.on("onAddUser", new DataListener() {
+					@Override
+					public void receiveData(DataEvent event) {
+						JSONObject msg = event.getMessage();
+						try {
+							Logger.i(msg.toString());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+				client.on("onLeaveUser", new DataListener() {
+					@Override
+					public void receiveData(DataEvent event) {
+						JSONObject msg = event.getMessage();
+						try {
+							Logger.i(msg.toString());
+							if (msg.isNull("body")) {
+								return;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+				client.on("onChat", new DataListener() {
+					@Override
+					public void receiveData(DataEvent event) {
+						JSONObject msg = event.getMessage();
+						Message m = new Message();
+						try {
+							if (msg.isNull("body")) {
+								return;
+							}
+							JSONObject msgBody = msg.getJSONObject("body");
+							String msgContent = msgBody.getString("msg");
+							String sender = msgBody.getString("sender");
+							String roomId = msgBody.getString("room_id");
+							String postAt = msgBody.getString("post_at");
+							String chatId = msgBody.getString("chat_id");
+							IMMessage immsg = new IMMessage();
+							immsg.msgTime = (postAt);
+							immsg.content = (msgContent);
+							immsg.openId = (sender);
+							immsg.msgType = IMMessage.JSBubbleMessageType.JSBubbleMessageTypeIncoming;
+							immsg.msgStatus = IMMessage.JSBubbleMessageStatus.JSBubbleMessageStatusReceiving;
+							immsg.mediaType = IMMessage.JSBubbleMediaType.JSBubbleMediaTypeText;
+							immsg.roomId = roomId;
+							immsg.postAt = postAt;
+							immsg.chatId = chatId;
+							m.what = 1;
+							m.obj = immsg;
+							ChatHandler.sendMessage(m);
+							
+						} catch (Exception e) {
+							Logger.i(e);
+						}
+					}
+
+				});
+			}
+		}).start();
 	}
+	
+	Handler ChatHandler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case 1:
+				IMMessage immsg = (IMMessage) msg.obj;
+				Logger.i(immsg.content);
+				long rows = MessageManager.getInstance(IPolemoService.this).saveIMMessage(immsg);
+				if (rows != -1) {
+					Intent intent = new Intent(CommonValue.NEW_MESSAGE_ACTION);
+					intent.putExtra(IMMessage.IMMESSAGE_KEY, immsg);
+					sendBroadcast(intent);
+					setNotiType(R.drawable.ic_launcher,
+							"新消息",
+							immsg.content, Chating.class, immsg.roomId);
+				}
+				break;
+			}
+		};
+	};
 	
 	private void setNotiType(int iconId, String contentTitle,
 			String contentText, Class activity, String roomId) {
@@ -378,29 +351,32 @@ public class IPolemoService extends Service {
 			if (hasConnectivity) {
 				reconnectIfNecessary();
 			} 
-			else if (client != null) {
-				client.disconnect();
-				cancelReconnect();
-				client = null;
-			}
+//			else if (client != null) {
+//				client.disconnect();
+//				client = null;
+//				cancelReconnect();
+//			}
 		}
 	};
 	
 	private synchronized void reconnectIfNecessary() {		
 		if (!wasConnected()) {
-			client = null;
+			if (client != null) {
+				client.disconnect();
+				client = null;
+			}
 			connect();
 		}
 	}
 	
-	private void cancelReconnect() {
-		Intent i = new Intent();
-		i.setClass(this, IPolemoService.class);
-		i.setAction(ACTION_RECONNECT);
-		PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
-		AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
-		alarmMgr.cancel(pi);
-	}
+//	private void cancelReconnect() {
+//		Intent i = new Intent();
+//		i.setClass(this, IPolemoService.class);
+//		i.setAction(ACTION_RECONNECT);
+//		PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
+//		AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
+//		alarmMgr.cancel(pi);
+//	}
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -444,6 +420,10 @@ public class IPolemoService extends Service {
 			String action = intent.getAction();
 			if (CommonValue.RECONNECT_ACTION.equals(action)) {
 				try {
+					if (client != null) {
+						client.disconnect();
+					}
+					client = null;
 					reconnectTask();
 				}
 				catch (Exception e){
@@ -452,5 +432,4 @@ public class IPolemoService extends Service {
 			}
 		}
 	};
-
 }

@@ -35,8 +35,12 @@ public class PomeloClient {
 
 	public PomeloClient(String url, int port) {
 		initSocket(url, port);
-		cbs = new HashMap<Integer, DataCallBack>();
-		listeners = new HashMap<String, List<DataListener>>();
+		if (cbs == null) {
+			cbs = new HashMap<Integer, DataCallBack>();
+		}
+		if (listeners == null) {
+			listeners = new HashMap<String, List<DataListener>>();
+		}
 	}
 
 	/**
@@ -53,7 +57,12 @@ public class PomeloClient {
 		buff.append(":");
 		buff.append(port);
 		try {
-			socket = new SocketIO(buff.toString());
+			if (socket == null) {
+				socket = new SocketIO(buff.toString());
+			}
+			else {
+				Logger.i("dd");
+			}
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("please check your url format.");
 		}
@@ -196,7 +205,10 @@ public class PomeloClient {
 	 * Disconnect the connection with the server.
 	 */
 	public void disconnect() {
-		socket.disconnect();
+		if (socket != null) {
+			socket.disconnect();
+		}
+		socket = null;
 	}
 
 	/**
