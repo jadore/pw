@@ -52,7 +52,7 @@
            android:id="@+id/layout_content_l"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:paddingLeft="20dp"
+           android:paddingLeft="12dp"
            android:paddingRight="10dp"
            android:layout_marginRight="60dp"
            android:layout_marginLeft="5dp"
@@ -100,7 +100,7 @@
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:paddingLeft="10dp"
-           android:paddingRight="20dp"
+           android:paddingRight="12dp"
            android:layout_marginLeft="35dp"
            android:layout_marginRight="5dp"
            android:layout_below="@id/textview_name_r"
@@ -125,8 +125,5 @@
             android:indeterminateDrawable="@drawable/view_progress"
             />
     </RelativeLayout>
-    
-    
-	
    
 </RelativeLayout>

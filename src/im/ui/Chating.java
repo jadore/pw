@@ -216,6 +216,9 @@ public class Chating extends AChating implements IXListViewListener{
 		if (msgs.size() > 0) {
 			maxId = msgs.get(0).chatId;
 			if (maxId.equals("-1") || StringUtils.empty(maxId)) {
+				lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+				listView.stopRefresh();
+				listView.setPullRefreshEnable(false);
 				return;
 			}
 			MessageManager.getInstance(context).
@@ -232,8 +235,7 @@ public class Chating extends AChating implements IXListViewListener{
 									    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 									    }
 										if (data.size() > 0) {
-											message_pool.addAll(data);
-											Collections.sort(message_pool);
+											message_pool.addAll(0, data);
 											adapter.notifyDataSetChanged();
 											listView.setSelection(data.size());
 										}
@@ -247,10 +249,14 @@ public class Chating extends AChating implements IXListViewListener{
 				
 				@Override
 				public void getMessages(List<IMMessage> data) {
-			        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+					if (data.size() >= 30) {
+				        lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+				    }
+				    else {
+				    	lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+				    }
 					if (data.size() > 0) {
 						message_pool.addAll(data);
-						Collections.sort(message_pool);
 						adapter.notifyDataSetChanged();
 						listView.setSelection(data.size());
 					}

@@ -5,6 +5,7 @@ import im.bean.Conversation;
 import im.bean.IMMessage;
 import im.bean.IMMessage.JSBubbleMessageStatus;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.vikaa.baseapp.R.string;
@@ -105,15 +106,29 @@ public class MessageManager {
 		contentValues.put("post_at", immsg.postAt);
 		return st.update("im_msg", contentValues, "room_id=? and openid=? and msg_time=?", new String[]{roomId, openId, msgId});
 	}
-
+	
+	public int updateSendingMessageWhere(String roomId, String openId, String msgId, String chatId, String postAt) {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		ContentValues contentValues = new ContentValues();
+		contentValues.put("chat_id", chatId);
+		contentValues.put("msg_time", postAt);
+		contentValues.put("msg_status", JSBubbleMessageStatus.JSBubbleMessageStatusReaded);
+		contentValues.put("post_at", postAt);
+		return st.update("im_msg", contentValues, "room_id=? and openid=? and msg_time=?", new String[]{roomId, openId, msgId});
+	}
 	
 	public void getFirstMessageListByFrom(final String roomId, final MessageManagerCallback callback) {
 		final String maxId = "0";
 		List<IMMessage> list = getMessageListByFrom(roomId, maxId);
 		if (callback != null) {
 			callback.getMessages(list);
+			if (list.size()>0) {
+				getMessageListByFrom(roomId, maxId, null);
+			}
+			else {
+				getMessageListByFrom(roomId, maxId, callback);
+			}
 		}
-		getMessageListByFrom(roomId, maxId, null);
 	}
 	
 	public synchronized void getMessageListByFrom(final String roomId, final String maxId, final MessageManagerCallback callback) {
@@ -131,8 +146,8 @@ public class MessageManager {
 					}
 				}
 				//本地取,ui显示
-				List<IMMessage> list = getMessageListByFrom(roomId, maxId);
 				if (callback != null) {
+					List<IMMessage> list = getMessageListByFrom(roomId, maxId);
 					callback.getMessages(list);
 				}
 			}
@@ -185,6 +200,7 @@ public class MessageManager {
 				},
 				sql,
 				args);
+		Collections.sort(list);
 		if (maxId.equals("0")) {
 			list.addAll(getSendingMessages(roomId));
 		}
@@ -192,9 +208,14 @@ public class MessageManager {
 	}
 	
 	public List<IMMessage> getSendingMessages(String roomId) {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+//		ContentValues contentValues = new ContentValues();
+//		String time = (System.currentTimeMillis()/1000)+"";
+//		contentValues.put("msg_time", time);
+//		contentValues.put("post_at", time);
+//		st.update("im_msg", contentValues, "chat_id=-1 and msg_status=?", new String[]{JSBubbleMessageStatus.JSBubbleMessageStatusDelivering+""});
 		String sql = "select * from im_msg where msg_status=? and room_id=? order by msg_time desc";
 		String[] args = new String[] { "" + JSBubbleMessageStatus.JSBubbleMessageStatusDelivering, roomId};
-		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<IMMessage> list = st.queryForList(
 				new RowMapper<IMMessage>() {
 					@Override
@@ -214,26 +235,59 @@ public class MessageManager {
 				},
 				sql,
 				args);
+		Collections.sort(list);
+		return list;
+	}
+	
+	public List<IMMessage> getSendingMessages() {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+//		ContentValues contentValues = new ContentValues();
+//		String time = (System.currentTimeMillis()/1000)+"";
+//		contentValues.put("msg_time", time);
+//		contentValues.put("post_at", time);
+//		st.update("im_msg", contentValues, "chat_id=-1 and msg_status=?", new String[]{JSBubbleMessageStatus.JSBubbleMessageStatusDelivering+""});
+		String sql = "select * from im_msg where msg_status=? order by msg_time desc";
+		String[] args = new String[] { "" + JSBubbleMessageStatus.JSBubbleMessageStatusDelivering};
+		List<IMMessage> list = st.queryForList(
+				new RowMapper<IMMessage>() {
+					@Override
+					public IMMessage mapRow(Cursor cursor, int index) {
+						IMMessage msg = new IMMessage();
+						msg.content = (cursor.getString(cursor.getColumnIndex("msg_content")));
+						msg.openId = (cursor.getString(cursor.getColumnIndex("openid")));
+						msg.msgType = (cursor.getInt(cursor.getColumnIndex("msg_type")));
+						msg.msgTime = (cursor.getString(cursor.getColumnIndex("msg_time")));
+						msg.mediaType = (cursor.getInt(cursor.getColumnIndex("media_type")));
+						msg.msgStatus = (cursor.getInt(cursor.getColumnIndex("msg_status")));
+						msg.postAt = (cursor.getString(cursor.getColumnIndex("post_at")));
+						msg.chatId = (cursor.getString(cursor.getColumnIndex("chat_id")));
+						msg.roomId = (cursor.getString(cursor.getColumnIndex("room_id")));
+						return msg;
+					}
+				},
+				sql,
+				args);
+		Collections.sort(list);
 		return list;
 	}
 
-	/**
-	 * 
-	 * 查找roomId的聊天记录总数
-	 * 
-	 * @return
-	 */
-	public int getChatCountWithRoomId(String roomId) {
-		if (StringUtils.empty(roomId)) {
-			return 0;
-		}
-		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		return st
-				.getCount(
-						"select * from im_msg where room_id=?",
-						new String[] { "" + roomId });
-
-	}
+//	/**
+//	 * 
+//	 * 查找roomId的聊天记录总数
+//	 * 
+//	 * @return
+//	 */
+//	public int getChatCountWithRoomId(String roomId) {
+//		if (StringUtils.empty(roomId)) {
+//			return 0;
+//		}
+//		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+//		return st
+//				.getCount(
+//						"select * from im_msg where room_id=?",
+//						new String[] { "" + roomId });
+//
+//	}
 
 	/**
 	 * 

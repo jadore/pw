@@ -3,10 +3,12 @@
  */
 package service;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import im.bean.IMMessage;
+import im.bean.IMMessage.JSBubbleMessageStatus;
 import im.ui.Chating;
 
 import org.json.JSONException;
@@ -58,8 +60,8 @@ public class IPolemoService extends Service {
 	
 	public static final String	ACTION_START = TAG + ".START";
 	public static final String	ACTION_STOP = TAG + ".STOP";
-//	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
-//	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
+	public static final String	ACTION_RECONNECT = TAG + ".RECONNECT";
+	public static final String  ACTION_SCHEDULE = TAG + ".SCHEDULE";
 	
 	private String test_host = "192.168.1.147";
 	private int test_port = 3014;
@@ -100,6 +102,23 @@ public class IPolemoService extends Service {
 			else if (intent != null && intent.getAction().equals(ACTION_START) == true ) {
 				start();
 			} 
+			else if (intent.getAction().equals(ACTION_RECONNECT) == true) {
+				if (MyApplication.getInstance().isNetworkConnected()) {
+					try {
+//						reconnectIfNecessary();
+						if (client != null) {
+							client.disconnect();
+						}
+						client = null;
+						reconnectTask();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			else if (intent.getAction().equals(ACTION_SCHEDULE) == true) {
+				scheduleReconnect(mStartTime);
+			}
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
@@ -137,6 +156,33 @@ public class IPolemoService extends Service {
 			client.disconnect();
 			client = null;
 		}
+	}
+	
+	public void scheduleReconnect(long startTime) {
+		if (wasConnected()) {
+			return;
+		}
+		long interval = mPrefs.getLong(PREF_RETRY, INITIAL_RETRY_INTERVAL);
+
+		long now = System.currentTimeMillis();
+		long elapsed = now - startTime;
+
+		if (elapsed < interval) {
+			interval = Math.min(interval * 4, MAXIMUM_RETRY_INTERVAL);
+		} else {
+			interval = INITIAL_RETRY_INTERVAL;
+		}
+		
+		Logger.i("Rescheduling connection in " + interval + "ms.");
+
+		mPrefs.edit().putLong(PREF_RETRY, interval).commit();
+
+		Intent i = new Intent();
+		i.setClass(this, IPolemoService.class);
+		i.setAction(ACTION_RECONNECT);
+		PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
+		AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
+		alarmMgr.set(AlarmManager.RTC_WAKEUP, now + interval, pi);
 	}
 	
 	private synchronized void connect() {
@@ -225,12 +271,14 @@ public class IPolemoService extends Service {
 
 			case 1:
 				endReconnectTask();
-//				startChatListener();
+				startChatListener();
 				//send broadcast to 
+				sendMessages();
 				break;
 				
 			case 2:
 				endReconnectTask();
+				sendMessages();
 				break;
 			}
 			
@@ -424,12 +472,61 @@ public class IPolemoService extends Service {
 						client.disconnect();
 					}
 					client = null;
-					reconnectTask();
+					Intent intent1 = new Intent(context, IPolemoService.class);
+					intent1.setAction(IPolemoService.ACTION_RECONNECT);
+					startService(intent1);
 				}
 				catch (Exception e){
 					Logger.i(e);
 				}
 			}
 		}
+	};
+	
+	private  synchronized void sendMessages() {
+		List<IMMessage> messages = MessageManager.getInstance(this).getSendingMessages();
+		for (IMMessage imMessage : messages) {
+			JSONObject msg = new JSONObject();
+			try {
+				msg.put("content", imMessage.content);
+				msg.put("roomId", imMessage.roomId);
+				msg.put("msgId", imMessage.msgTime);
+				MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
+					@Override
+					public void responseData(JSONObject msg) {
+						Message mes = new Message();
+						mes.obj = msg;
+						msgHandler.sendMessage(mes);
+					}
+				});
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	Handler msgHandler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			JSONObject obj = (JSONObject) msg.obj; 
+			try {
+				String chatId = obj.getString("chat_id");
+				String msgId = obj.getString("msg_id");
+				String roomId = obj.getString("room_id");
+				String openId = obj.getString("sender");
+				String postAt = obj.getString("post_at");
+				int row = MessageManager.getInstance(IPolemoService.this).updateSendingMessageWhere(roomId, openId, msgId, chatId, postAt);
+				if (row > 0) {
+					Intent intent = new Intent(CommonValue.UPDATE_MESSAGE_ACTION);
+					intent.putExtra("chat_id", chatId);
+					intent.putExtra("msg_id", msgId);
+					intent.putExtra("room_id", roomId);
+					intent.putExtra("sender", postAt);
+					intent.putExtra("post_at", postAt);
+					sendBroadcast(intent);
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		};
 	};
 }

@@ -227,6 +227,7 @@ public class CommonValue {
 	
 	//im
 	public static final String NEW_MESSAGE_ACTION = "chat.newmessage";
+	public static final String UPDATE_MESSAGE_ACTION = "chat.updatemessage";
 	//im reconnect
 	public static final String RECONNECT_ACTION = "chat.reconnect";
 }

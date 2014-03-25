@@ -51,6 +51,7 @@ public abstract class AChating extends AppActivity{
 		super.onCreate(savedInstanceState);
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(CommonValue.NEW_MESSAGE_ACTION);
+		filter.addAction(CommonValue.UPDATE_MESSAGE_ACTION);
 		registerReceiver(receiver, filter);
 		roomId = getIntent().getStringExtra("roomId");
 		if (roomId == null)
@@ -78,6 +79,16 @@ public abstract class AChating extends AppActivity{
 				message_pool.add(message);
 				receiveNewMessage(message);
 				refreshMessage(message_pool);
+			}
+			else if (CommonValue.UPDATE_MESSAGE_ACTION.equals(action)) {
+				String chatId = intent.getExtras().getString("chat_id");
+				String msgId = intent.getExtras().getString("msg_id");
+				String room = intent.getExtras().getString("room_id");
+				String postAt = intent.getExtras().getString("post_at");
+				if (!roomId.equals(room)) {
+					return;
+				}
+				updateThisRoom(msgId, chatId, postAt);
 			}
 		}
 
@@ -138,38 +149,6 @@ public abstract class AChating extends AppActivity{
 		}
 	}
 	
-	protected synchronized void sendMessages() throws Exception {
-		PomeloClient client = MyApplication.getInstance().getPolemoClient();
-		if (client == null) {
-			scheduleReconnect();
-			return;
-		}
-		if (!client.isConnected()) {
-			scheduleReconnect();
-			return;
-		}
-		List<IMMessage> messages = MessageManager.getInstance(appContext).getSendingMessages(roomId);
-		for (IMMessage imMessage : messages) {
-			JSONObject msg = new JSONObject();
-			try {
-				msg.put("content", imMessage.content);
-				msg.put("roomId", roomId);
-				msg.put("msgId", imMessage.msgTime);
-				MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
-					@Override
-					public void responseData(JSONObject msg) {
-						Logger.i(msg.toString());
-						Message mes = new Message();
-						mes.obj = msg;
-						msgHandler.sendMessage(mes);
-					}
-				});
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	protected synchronized void sendMessage(IMMessage immsg) throws Exception {
 		PomeloClient client = MyApplication.getInstance().getPolemoClient();
 		if (client == null) {
@@ -226,7 +205,6 @@ public abstract class AChating extends AppActivity{
 						immsg.chatId = chatId;
 						//update db
 						MessageManager.getInstance(context).updateSendingMessageWhere(roomId, openId, msgId, immsg);
-						
 					}
 				}
 				refreshMessage(message_pool);
@@ -235,6 +213,18 @@ public abstract class AChating extends AppActivity{
 			}
 		};
 	};
+	
+	private void updateThisRoom(String msgId, String chatId, String postAt) {
+		for (IMMessage immsg : message_pool) {
+			if (immsg.msgStatus == JSBubbleMessageStatus.JSBubbleMessageStatusDelivering && immsg.msgTime.equals(msgId)) {
+				immsg.msgStatus = JSBubbleMessageStatus.JSBubbleMessageStatusReaded;
+				immsg.msgTime = postAt;
+				immsg.postAt = postAt;
+				immsg.chatId = chatId;
+			}
+		}
+		refreshMessage(message_pool);
+	}
 	
 //	protected Boolean addNewMessage() {
 //		List<IMMessage> newMsgList = MessageManager.getInstance(context)
