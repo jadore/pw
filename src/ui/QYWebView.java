@@ -28,6 +28,8 @@ import cn.sharesdk.onekeyshare.OnekeyShare;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -95,11 +97,12 @@ public class QYWebView extends AppActivity  {
 	private TextView newtv;
 	
 	private MobileReceiver mobileReceiver;
-	
+	private IWXAPI api;
 	@Override
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
+	    
 	}
 	
 	@Override
@@ -122,6 +125,7 @@ public class QYWebView extends AppActivity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.create_view);
 		registerGetReceiver();
+		api = WXAPIFactory.createWXAPI(this, "wx8b5b960fc0311f3e", false);
 		initUI();
 		initData();
 	}
@@ -205,7 +209,6 @@ public class QYWebView extends AppActivity  {
 					}
 				}
 				else if (url.startsWith("weixin:")) {
-//					UIHelper.ToastMessage(context, "请运行微信查找微信号【bibi100】欢迎咨询", Toast.LENGTH_SHORT);
 					String reg = "weixin://contacts/profile/(\\S+)";
 					Pattern pattern = Pattern.compile(reg);
 					Matcher matcher = pattern.matcher(url);
@@ -220,12 +223,10 @@ public class QYWebView extends AppActivity  {
                                 android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                                 clipboard.setText(matcher.group(1));
                             }
-//							cmb.setText(matcher.group(1));
 							WarningDialog("微信号已保存到剪切板");
 						}catch (Exception e) {
 							Crashlytics.logException(e);
 						}
-						
 					}
 				}
 				else {
