@@ -61,6 +61,7 @@ public abstract class AChating extends AppActivity{
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(receiver);
+		MessageManager.destroy();
 		super.onDestroy();
 	}
 	

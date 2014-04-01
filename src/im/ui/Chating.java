@@ -202,7 +202,7 @@ public class Chating extends AChating implements IXListViewListener{
                 getHistory();
             }
         };
-        mHandler.sendEmptyMessageDelayed(0, 500);
+        mHandler.sendEmptyMessageDelayed(0, 1000);
 	}
 
 	@Override

@@ -223,7 +223,7 @@ public class QYWebView extends AppActivity  {
                                 android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                                 clipboard.setText(matcher.group(1));
                             }
-							WarningDialog("微信号已保存到剪切板");
+							WarningDialogAndOpenWechat("微信号已保存到剪切板,需要打开微信吗？");
 						}catch (Exception e) {
 							Crashlytics.logException(e);
 						}
@@ -574,9 +574,9 @@ public class QYWebView extends AppActivity  {
 		if (this.isFinishing()) {
 			return;
 		}
-		Intent intent = new Intent(context, Chating.class);
-		intent.putExtra("roomId", roomId);
-		context.startActivity(intent);
+//		Intent intent = new Intent(context, Chating.class);
+//		intent.putExtra("roomId", roomId);
+//		context.startActivity(intent);
 	}
 	
 	private void reLogin() {
@@ -727,6 +727,28 @@ public class QYWebView extends AppActivity  {
 		} catch (JSONException e) {
 			Logger.i(e);
 		}
+	}
+	
+	protected void WarningDialogAndOpenWechat(String message) {
+		if (QYWebView.this.isFinishing()) {
+			return;
+		}
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage(message);
+		builder.setPositiveButton("打开", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				api.openWXApp();
+			}
+		});
+		builder.setNegativeButton("取消", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+	   builder.create().show();
 	}
 	
 	protected void WarningDialog(String message) {

@@ -40,6 +40,7 @@ public class MessageManager {
 	private static DBManager manager = null;
 
 	private MessageManager(Context context) {
+		Logger.i(MyApplication.getInstance().getLoginUid());
 		manager = DBManager.getInstance(context, MyApplication.getInstance().getLoginUid());
 	}
 
@@ -50,6 +51,11 @@ public class MessageManager {
 		}
 
 		return messageManager;
+	}
+	
+	public static void destroy() {
+		messageManager = null;
+		manager = null;
 	}
 	
 	public interface MessageManagerCallback{

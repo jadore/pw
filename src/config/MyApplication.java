@@ -9,6 +9,7 @@ import pomelo.PomeloClient;
 
 import com.loopj.android.http.PersistentCookieStore;
 import com.nostra13.universalimageloader.utils.L;
+import com.vikaa.mycontact.BuildConfig;
 
 import service.QYEnterService;
 import service.T9Service;
@@ -17,10 +18,8 @@ import tools.AppException;
 import tools.ImageCacheUtil;
 import tools.Logger;
 import tools.StringUtils;
-
 import bean.ContactBean;
 import bean.UserEntity;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
@@ -75,8 +74,10 @@ public class MyApplication extends AppContext {
 		startService(startService);
 		ImageCacheUtil.init(this);
 		Thread.setDefaultUncaughtExceptionHandler(AppException.getAppExceptionHandler());
-		L.enableLogging();
-		Logger.setDebug(true);
+		if (BuildConfig.DEBUG) {
+			L.enableLogging();
+		}
+		Logger.setDebug(BuildConfig.DEBUG);
 		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);

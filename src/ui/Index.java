@@ -35,6 +35,7 @@ import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.MyApplication;
 import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import config.CommonValue;
@@ -132,9 +133,9 @@ public class Index extends AppActivity {
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
-	    if (appContext.isLogin()) {
-			queryPolemoEntry();
-		}
+//	    if (appContext.isNetworkConnected()) {
+//			queryPolemoEntry();
+//		}
 	}
 
 	  @Override
@@ -1279,6 +1280,13 @@ public class Index extends AppActivity {
 				cookieStore.clear();
 				AppManager.getAppManager().finishAllActivity();
 				appContext.setUserLogout();
+				if (appContext.getPolemoClient()!=null) {
+					appContext.getPolemoClient().disconnect();
+				}
+				if (isServiceRunning()) {
+					Intent intent1 = new Intent(Index.this, IPolemoService.class);
+					stopService(intent1);
+				}
 				Intent intent = new Intent(Index.this, LoginCode1.class);
 				startActivity(intent);
 			}
@@ -1292,21 +1300,13 @@ public class Index extends AppActivity {
 	}
 	
 	private void queryPolemoEntry() {
-		if (isServiceRunning()) {
-			return;
-		}
+//		if (isServiceRunning()) {
+//			return;
+//		}
 		Intent intent = new Intent(this, IPolemoService.class);
 		intent.setAction(IPolemoService.ACTION_START);
 		startService(intent);
 	}
 	
-	private boolean isServiceRunning() {
-	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-	        if ("service.IPolemoService".equals(service.service.getClassName())) {
-	            return true;
-	        }
-	    }
-	    return false;
-	}
+	
 }

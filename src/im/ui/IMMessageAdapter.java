@@ -73,9 +73,9 @@ public class IMMessageAdapter extends BaseAdapter{
 		inflater = LayoutInflater.from(context);
 		this.imageLoader = imageLoader;
 		options = new DisplayImageOptions.Builder()
-		.showImageOnLoading(R.drawable.ic_launcher)
-		.showImageForEmptyUri(R.drawable.ic_launcher)
-		.showImageOnFail(R.drawable.ic_launcher)
+		.showImageOnLoading(R.drawable.avatar_placeholder)
+		.showImageForEmptyUri(R.drawable.avatar_placeholder)
+		.showImageOnFail(R.drawable.avatar_placeholder)
 		.cacheInMemory(true)
 		.cacheOnDisc(true)
 		.bitmapConfig(Bitmap.Config.RGB_565)
