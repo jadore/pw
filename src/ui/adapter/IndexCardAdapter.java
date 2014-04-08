@@ -131,6 +131,38 @@ public class IndexCardAdapter extends SectionedBaseAdapter {
 					}
 				});
 			}
+//			else if (position == 1) {
+//				convertView.setOnClickListener(new OnClickListener() {
+//					@Override
+//					public void onClick(View arg0) {
+//						((Index)context).showUpdate();
+//					}
+//				});
+//			}
+//			else {
+//				convertView.setOnClickListener(new OnClickListener() {
+//					@Override
+//					public void onClick(View arg0) {
+//						((Index)context).logout();
+//					}
+//				});
+//			}
+			convertView.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					return false;
+				}
+			});
+		}
+		else if (model.cardSectionType.equals(CommonValue.CardSectionType.SettingsSectionType)) {
+			if (position == 0) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Index)context).showDialog(1);
+					}
+				});
+			}
 			else if (position == 1) {
 				convertView.setOnClickListener(new OnClickListener() {
 					@Override

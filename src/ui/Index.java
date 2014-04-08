@@ -7,9 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.CookieStore;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import baidupush.Utils;
 import bean.ActivityListEntity;
@@ -20,12 +17,11 @@ import bean.FamilyListEntity;
 import bean.MessageUnReadEntity;
 import bean.PhoneIntroEntity;
 import bean.PhoneListEntity;
-import bean.RecommendListEntity;
 import bean.Result;
 import bean.UserEntity;
-
 import cn.sharesdk.framework.ShareSDK;
 import cn.sharesdk.onekeyshare.OnekeyShare;
+
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
@@ -35,27 +31,22 @@ import com.loopj.android.http.PersistentCookieStore;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
-import config.MyApplication;
 import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import config.CommonValue;
-
-import android.app.ActivityManager;
+import android.R.integer;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.app.ActivityManager.RunningServiceInfo;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.LayoutInflater;
@@ -69,21 +60,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebStorage.QuotaUpdater;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.LinearLayout.LayoutParams;
-import service.AIDLPolemoService;
 import service.IPolemoService;
 import tools.AppManager;
-import tools.ImageUtils;
 import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
@@ -123,19 +107,19 @@ public class Index extends AppActivity {
 	private PinnedHeaderListView mPinedListView0;
 	private IndexCardAdapter mCardAdapter;
 	
-	private ListView mListView3;
+//	private ListView mListView3;
 	private ProgressDialog loadingPd;
-	
-	private int firstVisibleItemPosition;
-	private float mLastY = -1;
+//	
+//	private int firstVisibleItemPosition;
+//	private float mLastY = -1;
 	
 	@Override
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
-//	    if (appContext.isNetworkConnected()) {
-//			queryPolemoEntry();
-//		}
+	    if (appContext.isNetworkConnected()) {
+			queryPolemoEntry();
+		}
 	}
 
 	  @Override
@@ -158,10 +142,6 @@ public class Index extends AppActivity {
 	
 	@Override
 	protected void onDestroy() {
-//		if(conn != null) {
-//			unbindService(conn);
-//			conn = null;
-//		}
 		super.onDestroy();
 	}
 	  
@@ -599,13 +579,13 @@ public class Index extends AppActivity {
 		}
 	}
 	
-	private void showLogin() {
-		appContext.setUserLogout();
-		Intent intent = new Intent(this,LoginCode1.class);
-        startActivity(intent);
-        finish();
-        
-	}
+//	private void showLogin() {
+//		appContext.setUserLogout();
+//		Intent intent = new Intent(this,LoginCode1.class);
+//        startActivity(intent);
+//        finish();
+//        
+//	}
 	
 	private String[] lianxiren1 = new String[] { "创建通讯录", "创建活动", "创建我的名片"};
 	
@@ -817,33 +797,33 @@ public class Index extends AppActivity {
 		});
 	}
 	
-	private void getRecommendList() {
-		AppClient.getRecommendList(appContext, new ClientCallback() {
-			
-			@Override
-			public void onSuccess(Entity data) {
-				RecommendListEntity entity = (RecommendListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					showLogin();
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				e.printStackTrace();
-				Logger.i(e);
-			}
-		});
-	}
+//	private void getRecommendList() {
+//		AppClient.getRecommendList(appContext, new ClientCallback() {
+//			
+//			@Override
+//			public void onSuccess(Entity data) {
+//				RecommendListEntity entity = (RecommendListEntity)data;
+//				switch (entity.getError_code()) {
+//				case Result.RESULT_OK:
+//					break;
+//				default:
+//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+//					showLogin();
+//					break;
+//				}
+//			}
+//			
+//			@Override
+//			public void onFailure(String message) {
+//				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+//			}
+//			@Override
+//			public void onError(Exception e) {
+//				e.printStackTrace();
+//				Logger.i(e);
+//			}
+//		});
+//	}
 	
 	private void getUnReadMessage() {
 		indicatorImageView.setVisibility(View.VISIBLE);
@@ -1094,22 +1074,30 @@ public class Index extends AppActivity {
 		op21.position = "";
 		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
 		ops2.add(op21);
-		
-		CardIntroEntity op22 = new CardIntroEntity();
-		op22.realname = "检查版本";
-		op22.department = "当前版本:"+getCurrentVersionName();
-		op22.position = "";
-		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		ops2.add(op22);
-		
-		CardIntroEntity op23 = new CardIntroEntity();
-		op23.realname = "注销";
-		op23.department = "退出当前账号重新登录";
-		op23.position = "";
-		op23.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		ops2.add(op23);
-		
 		cards.add(ops2);
+		
+		List<CardIntroEntity> ops3 = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op31 = new CardIntroEntity();
+		op31.realname = "功能消息免打扰";
+		op31.department = "开启免打扰后，功能消息将收不到声音和震动提醒。";
+		op31.position = "";
+		op31.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
+		ops3.add(op31);
+		CardIntroEntity op32 = new CardIntroEntity();
+		op32.realname = "检查版本";
+		op32.department = "当前版本:"+getCurrentVersionName();
+		op32.position = "";
+		op32.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
+		ops3.add(op32);
+		
+		CardIntroEntity op33 = new CardIntroEntity();
+		op33.realname = "注销";
+		op33.department = "退出当前账号重新登录";
+		op33.position = "";
+		op33.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
+		ops3.add(op33);
+		
+		cards.add(ops3);
 		
 	}
 	
@@ -1308,5 +1296,53 @@ public class Index extends AppActivity {
 		startService(intent);
 	}
 	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		Dialog dialog = null; 
+		 switch(id) {  
+         case 1:  
+        	 AlertDialog.Builder builder = new AlertDialog.Builder(this);  
+             builder.setTitle("功能消息免打扰");  
+             final ChoiceOnClickListener choiceListener =   
+                 new ChoiceOnClickListener();  
+             String interupt = appContext.getMessageInterupt();
+             int i = 1;
+             try {
+            	i = StringUtils.empty(interupt)? 1 : Integer.valueOf(interupt);
+             }
+             catch (Exception e) {
+            	i = 1;
+             }
+             
+             builder.setSingleChoiceItems(R.array.message_settings, i, choiceListener);  
+               
+             DialogInterface.OnClickListener btnListener =   
+                 new DialogInterface.OnClickListener() {  
+                     @Override  
+                     public void onClick(DialogInterface dialogInterface, int which) {  
+                         int choiceWhich = choiceListener.getWhich();  
+                         appContext.setMessageInterupt(choiceWhich+"");
+                         AppClient.setUser(context, "", "", choiceWhich+"");
+                     }  
+                 };  
+             builder.setPositiveButton("确定", btnListener);  
+             dialog = builder.create();  
+             break;  
+     }  
+     return dialog;
+	}
+	
+	private class ChoiceOnClickListener implements DialogInterface.OnClickListener {  
+		  
+        private int which = 2;  
+        @Override  
+        public void onClick(DialogInterface dialogInterface, int which) {  
+            this.which = which;  
+        }  
+          
+        public int getWhich() {  
+            return which;  
+        }  
+    }
 	
 }

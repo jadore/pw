@@ -148,6 +148,18 @@ public class MyApplication extends AppContext {
 	public String getLoginSign() {
 		return (getProperty("user.sign"));
 	}
+	
+	public String getMessageInterupt() {
+		return (getProperty("messageinterupt"));
+	}
+	
+	public void setMessageInterupt(final String interupt) {
+		setProperties(new Properties(){
+			{
+				setProperty("messageinterupt", interupt);
+			}
+		});	
+	}
 
 	/**
 	 * 获取登录信息

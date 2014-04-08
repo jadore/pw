@@ -17,11 +17,11 @@ public class CommonValue {
 	
 	public static final String PackageName = "com.vikaa.mycontact";
 	
-	public static String BASE_API = "http://qun.hk/api/";
-	public static String BASE_URL = "http://qun.hk";
+//	public static String BASE_API = "http://qun.hk/api/";
+//	public static String BASE_URL = "http://qun.hk";
 	
-//	public static String BASE_API = "http://pb.wcl.m0.hk/api/";
-//	public static String BASE_URL = "http://pb.wcl.m0.hk";
+	public static String BASE_API = "http://pb.wcl.m0.hk/api/";
+	public static String BASE_URL = "http://pb.wcl.m0.hk";
 	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
@@ -122,6 +122,7 @@ public class CommonValue {
 		String BarcodeSectionType = "二维码扫一扫";
 		String VSectionType = "名片加V认证";
 		String FeedbackSectionType = "信息反馈";
+		String SettingsSectionType = "设置";
 	}
 	
 	public interface CardViewIntentKeyValue {

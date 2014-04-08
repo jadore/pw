@@ -574,9 +574,9 @@ public class QYWebView extends AppActivity  {
 		if (this.isFinishing()) {
 			return;
 		}
-//		Intent intent = new Intent(context, Chating.class);
-//		intent.putExtra("roomId", roomId);
-//		context.startActivity(intent);
+		Intent intent = new Intent(context, Chating.class);
+		intent.putExtra("roomId", roomId);
+		context.startActivity(intent);
 	}
 	
 	private void reLogin() {
@@ -752,18 +752,23 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	protected void WarningDialog(String message) {
-		if (QYWebView.this.isFinishing()) {
-			return;
-		}
-		AlertDialog.Builder builder = new Builder(this);
-		builder.setMessage(message);
-		builder.setPositiveButton("确定", new OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
+		try {
+			if (QYWebView.this.isFinishing()) {
+				return;
 			}
-		});
-	   builder.create().show();
+			AlertDialog.Builder builder = new Builder(this);
+			builder.setMessage(message);
+			builder.setPositiveButton("确定", new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+		   builder.create().show();
+		}
+		catch (Exception e) {
+			Crashlytics.logException(e);
+		}
 	}
 	
 	public void addContact(CardIntroEntity entity){
@@ -807,7 +812,6 @@ public class QYWebView extends AppActivity  {
 	private void unregisterGetReceiver() {
 		unregisterReceiver(mobileReceiver);
 	}
-	
 	
 	protected void SMSDialog(final int type) {
 		try {
@@ -911,7 +915,6 @@ public class QYWebView extends AppActivity  {
 					: outputFileUri;  
 			mUploadMessage.onReceiveValue(outputFileUri);  
 			mUploadMessage = null;  
-
 		} 
 	}
 

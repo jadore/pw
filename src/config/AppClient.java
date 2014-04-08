@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 import org.apache.http.Header;
+
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -103,7 +103,7 @@ public class AppClient {
 				try{
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
-				}catch (Exception e) {
+				} catch (Exception e) {
 					callback.onError(e);
 				}
 			}
@@ -131,7 +131,7 @@ public class AppClient {
 				try{
 					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
-				}catch (Exception e) {
+				} catch (Exception e) {
 					callback.onError(e);
 				}
 			}
@@ -153,7 +153,7 @@ public class AppClient {
 		});
 	}
 	
-	public static void setUser(final Context context, String baiduUserId, String baiduChannelId) {
+	public static void setUser(final Context context, final String baiduUserId, String baiduChannelId, String client_push) {
 		RequestParams params = new RequestParams();
 		params.add("client_browser", "android");
 		try {
@@ -161,14 +161,28 @@ public class AppClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		params.add("client_push", "android");
-		params.add("push_user_id", baiduUserId);
-		params.add("push_channel_id", baiduChannelId);
+		if (StringUtils.notEmpty(client_push)) {
+			params.add("client_push", client_push);
+		}
+		if (StringUtils.notEmpty(baiduUserId)) {
+			params.add("push_user_id", baiduUserId);
+		}
+		if (StringUtils.notEmpty(baiduChannelId)) {
+			params.add("push_channel_id", baiduChannelId);
+		}
 		params.add("push_device_type", "3");
 		QYRestClient.post("user/set", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				Utils.setBind(context, true);
+				if (StringUtils.notEmpty(baiduUserId)) {
+					Utils.setBind(context, true);
+				}
+				try {
+					Logger.i(DecodeUtil.decode(new String(content)));
+				} catch (AppException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -230,7 +244,7 @@ public class AppClient {
 					PhoneListEntity data = PhoneListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.PhoneList, data);
 					callback.onSuccess(data);
-				}catch (Exception e) {
+				} catch (Exception e) {
 					callback.onError(e);
 				}
 			}
@@ -401,8 +415,6 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-//					Logger.i(new String(content));
-//					Logger.i(DecodeUtil.decode(new String(content)));
 					FriendCardListEntity data = FriendCardListEntity.parse(DecodeUtil.decode(new String(content)));
 					saveCache(appContext, CommonValue.CacheKey.FriendCardList, data);
 					callback.onSuccess(data);
@@ -617,8 +629,6 @@ public class AppClient {
     }
 	
 	public static void loadURL(Context context, final MyApplication appContext, final String url, final WebCallback callback) {
-//		RequestParams params = new RequestParams();
-//		params.add("_sign", appContext.getLoginSign());
 		QYRestClient.getWeb(context, url+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
@@ -635,10 +645,6 @@ public class AppClient {
 						callback.onSuccess(0, con, MD5Util.getMD5String(url));
 					}
 					else {
-//						Logger.i(dc.md5);
-//						Logger.i(con.md5);
-//						Logger.i(dc.text);
-//						Logger.i(con.text);
 						if (dc.md5.equals(con.md5)) {
 							callback.onSuccess(2, con, MD5Util.getMD5String(url));
 						}

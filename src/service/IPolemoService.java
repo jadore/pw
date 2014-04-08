@@ -68,8 +68,8 @@ public class IPolemoService extends Service {
 	private PomeloClient client;
 	
 	private SharedPreferences mPrefs;
-	private boolean mStarted;
 	
+	private boolean mStarted;
 	private boolean mConnected;
 	
 	private long mStartTime;
@@ -90,7 +90,7 @@ public class IPolemoService extends Service {
 		filter.addAction(CommonValue.RECONNECT_ACTION);
 		registerReceiver(receiver, filter);
 		registerReceiver(mConnectivityChanged, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-	};
+	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -126,7 +126,10 @@ public class IPolemoService extends Service {
 	@Override
 	public void onDestroy() {
 		unregisterReceiver(receiver);
-		unregisterReceiver(mConnectivityChanged);	
+		unregisterReceiver(mConnectivityChanged);
+		if (client!=null) {
+			client.disconnect();
+		}
 		super.onDestroy();
 	}
 	
@@ -484,14 +487,20 @@ public class IPolemoService extends Service {
 	};
 	
 	private  synchronized void sendMessages() {
+		if (client == null) {
+			return;
+		}
 		List<IMMessage> messages = MessageManager.getInstance(this).getSendingMessages();
+		if (messages.size() == 0) {
+			return;
+		}
 		for (IMMessage imMessage : messages) {
 			JSONObject msg = new JSONObject();
 			try {
 				msg.put("content", imMessage.content);
 				msg.put("roomId", imMessage.roomId);
 				msg.put("msgId", imMessage.msgTime);
-				MyApplication.getInstance().getPolemoClient().request("chat.chatHandler.send", msg, new DataCallBack() {
+				client.request("chat.chatHandler.send", msg, new DataCallBack() {
 					@Override
 					public void responseData(JSONObject msg) {
 						Message mes = new Message();
