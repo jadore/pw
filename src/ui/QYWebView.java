@@ -685,7 +685,7 @@ public class QYWebView extends AppActivity  {
 			final OnekeyShare oks = new OnekeyShare();
 			oks.setNotification(R.drawable.ic_launcher, getResources().getString(R.string.app_name));
 			oks.setTitle(title);
-			oks.setText("#群友通讯录#" +desc + "\n" + link);
+			oks.setText(desc + "\n" + link);
 			oks.setUrl(link);
 			if (StringUtils.notEmpty(filePath)) {
 				oks.setImagePath(filePath);

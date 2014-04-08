@@ -940,7 +940,7 @@ public class Index extends AppActivity {
 				String cachePath = cn.sharesdk.framework.utils.R.getCachePath(this, null);
 				oks.setImagePath(cachePath + "logo.png");
 			}
-			oks.setText("#群友通讯录#" + text + "\n" + link);
+			oks.setText(text + "\n" + link);
 			oks.setUrl(link);
 			oks.setSiteUrl(link);
 			oks.setSite(link);
