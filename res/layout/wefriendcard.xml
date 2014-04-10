@@ -10,7 +10,7 @@
         android:background="@color/nav_color"
         android:id="@+id/navLayout"
         >
-        <Button
+        <!-- <Button
             android:id="@+id/leftBarButton"
             android:layout_width="90dp"
             android:layout_height="44dp"
@@ -23,7 +23,7 @@
             android:drawablePadding="-20dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
-            />
+            /> -->
         
         <TextView 
             android:id="@+id/titleBarView"

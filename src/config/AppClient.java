@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.http.Header;
+import org.json.JSONObject;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
@@ -764,6 +765,35 @@ public class AppClient {
 				try{
 					ChatHistoryListEntity entity = ChatHistoryListEntity.parse(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(entity);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("");
+			}
+		});
+	}
+	
+	//录入
+	public static void phonebookAssist(MyApplication appContext, String name, String phone, String code, final FileCallback callback) {
+		RequestParams param = new RequestParams();
+		param.add("realname", name);
+		param.add("phone", phone);
+		param.add("code", code);
+		QYRestClient.post("phonebook/assist"+"?_sign="+MyApplication.getInstance().getLoginSign(), param, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					Logger.i(DecodeUtil.decode(new String(content)));
+					JSONObject json = new JSONObject(DecodeUtil.decode(new String(content)));
+					if (json.getInt("status") == 1) {
+						callback.onSuccess(json.getString("url"));
+					}
+					else {
+						callback.onFailure(json.getString("info"));
+					}
 				}catch (Exception e) {
 					callback.onError(e);
 				}

@@ -120,7 +120,6 @@ public class MyApplication extends AppContext {
 	public void saveLoginInfo(final UserEntity user) {
 		this.loginUid = user.openid;
 		this.login = true;
-		Logger.i(user.headimgurl);
 		setProperties(new Properties(){
 			{
 				setProperty("user.login","1");

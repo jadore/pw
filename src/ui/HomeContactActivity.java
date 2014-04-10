@@ -11,13 +11,13 @@ import bean.ContactBean;
 import bean.Entity;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.analytics.tracking.android.EasyTracker;
 import com.google.gson.Gson;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.AppClient.ClientCallback;
 import contact.MobileSynListBean;
-
 import sms.MessageBoxList;
 import tools.AppException;
 import tools.AppManager;
@@ -66,6 +66,17 @@ public class HomeContactActivity extends AppActivity {
 	private ProgressDialog loadingPd;
 //	private GetMobileReceiver getMobileReceiver;
 	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  
+	}
+
+	@Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  
+	}
 	
 	public void onCreate(Bundle savedInstanceState) {
 

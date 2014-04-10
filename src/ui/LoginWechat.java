@@ -141,7 +141,7 @@ public class LoginWechat extends AppActivity{
 	}
 	
 	private void enterIndex() {
-		Intent intent = new Intent(this, Index.class);
+		Intent intent = new Intent(this, Tabbar.class);
 		startActivity(intent);
 		setResult(RESULT_OK);
 		AppManager.getAppManager().finishActivity(this);

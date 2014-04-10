@@ -502,6 +502,12 @@ public class QYWebView extends AppActivity  {
 	    	msg.what = CommonValue.CreateViewJSType.showChat;
 	    	mJSHandler.sendMessage(msg);
 	    }
+	    public void phonebookAssistSelect(String c) {
+	    	Message msg = new Message();
+	    	msg.obj = c;
+	    	msg.what = CommonValue.CreateViewJSType.phonebookAssistSelect;
+	    	mJSHandler.sendMessage(msg);
+	    }
     }
 	
 	Handler mJSHandler = new Handler(){
@@ -566,9 +572,22 @@ public class QYWebView extends AppActivity  {
 				code = (String) msg.obj;
 				enterChat(code);
 				break;
+			case CommonValue.CreateViewJSType.phonebookAssistSelect:
+				code = (String) msg.obj;
+				enterPhonebook(code);
+				break;
 			}
 		};
 	};
+	
+	private void enterPhonebook(String code) {
+		if (this.isFinishing()) {
+			return;
+		}
+		Intent intent = new Intent(context, MobileSelect.class);
+		intent.putExtra("code", code);
+		startActivityForResult(intent, CommonValue.CreateViewJSType.phonebookAssistSelect);
+	}
 	
 	private void enterChat(String roomId) {
 		if (this.isFinishing()) {
@@ -916,6 +935,15 @@ public class QYWebView extends AppActivity  {
 			mUploadMessage.onReceiveValue(outputFileUri);  
 			mUploadMessage = null;  
 		} 
+		if (resultCode != RESULT_OK) {
+			return;
+		}
+		switch (requestCode) {
+		case CommonValue.CreateViewJSType.phonebookAssistSelect:
+			String url = intent.getStringExtra("url");
+			webView.loadUrl(url);
+			break;
+		}
 	}
 
 	

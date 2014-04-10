@@ -117,9 +117,9 @@ public class Index extends AppActivity {
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
-	    if (appContext.isNetworkConnected()) {
-			queryPolemoEntry();
-		}
+//	    if (appContext.isNetworkConnected()) {
+//			queryPolemoEntry();
+//		}
 	}
 
 	  @Override
@@ -213,6 +213,7 @@ public class Index extends AppActivity {
 		iphoneTreeView.setGroupIndicator(null);
 		iphoneTreeView.addHeaderView(header);
 		iphoneTreeView.addFooterView(footer);
+		
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
 		
 		List<PhoneIntroEntity> phone0 = new ArrayList<PhoneIntroEntity>();
@@ -842,7 +843,7 @@ public class Index extends AppActivity {
 					else {
 						try {
 							int news = Integer.valueOf(entity.news);
-							String n = news>99?"99+":entity.news;
+							String n = news>99?"99+":news+"";
 							messageView.setText(n);
 							messageView.setVisibility(View.VISIBLE);
 						} catch (Exception e) {

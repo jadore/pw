@@ -9,6 +9,7 @@ import tools.AppException;
 
 public class MessageUnReadEntity extends Entity{
 	public String news;
+	public String card;
 	
 	public static MessageUnReadEntity parse(String res) throws IOException, AppException {
 		MessageUnReadEntity data = new MessageUnReadEntity();
@@ -18,6 +19,7 @@ public class MessageUnReadEntity extends Entity{
 				data.error_code = Result.RESULT_OK;
 				JSONObject info = js.getJSONObject("info");
 				data.news = info.getString("news");
+				data.card = info.getString("card");
 			}
 			else {
 				if (!js.isNull("error_code")) {

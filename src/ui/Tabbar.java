@@ -67,14 +67,14 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
-        checkLogin();
+//        checkLogin();
 	}
 	
 	private void prepareIntent() {
-		homeIntent = new Intent(this, MessageView.class);
-		nearmeIntent = new Intent(this, MessageView.class);
-		meIntent = new Intent(this, Find.class);
-		moreIntent = new Intent(this, HomeContactActivity.class);
+		homeIntent = new Intent(this, Index.class);
+		nearmeIntent = new Intent(this, WeFriendCard.class);
+		meIntent = new Intent(this, MessageView.class);
+		moreIntent = new Intent(this, WeFriendCard.class);
 	}
 	
 	private void setupIntent() {

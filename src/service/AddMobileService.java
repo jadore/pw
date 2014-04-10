@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Email;
@@ -112,7 +113,7 @@ public class AddMobileService extends IntentService{
 		String mimetype = "";
 		int oldrid = -1;
 		int contactId = -1;
-		Cursor cursor = getContentResolver().query(Data.CONTENT_URI,null, null, null, Data.RAW_CONTACT_ID);
+		Cursor cursor = getContentResolver().query(Data.CONTENT_URI, null, null, null, Data.RAW_CONTACT_ID);
 		if (cursor.getColumnCount() == 1) {
 			if (sendBC) {
 				sendBroadcast(CommonValue.ContactOperationResult.NOT_AUTHORITY);
@@ -393,16 +394,18 @@ public class AddMobileService extends IntentService{
 		  for (MobileSynBean mobileSynBean : persons) {
 			  for (PhoneBean phone : mobileSynBean.phone) {
 				  String mobile = phone.phone;
-				  mobile = mobile.replace(" ", "");
-				  mobile = mobile.replace("+86", "");
-				  mobile = mobile.replace("-", "");
-				  if (mobile.indexOf(card.phone) != -1) {
-					  exit = true;
-					  if (sendBC) {
-						  Logger.i("aaa");
-							sendBroadcast(CommonValue.ContactOperationResult.EXIST);
-						}
-					  break;
+				  if (StringUtils.notEmpty(mobile)) {
+					  mobile = mobile.replace(" ", "");
+					  mobile = mobile.replace("+86", "");
+					  mobile = mobile.replace("-", "");
+					  if (mobile.indexOf(card.phone) != -1) {
+						  exit = true;
+						  if (sendBC) {
+							  Logger.i("aaa");
+								sendBroadcast(CommonValue.ContactOperationResult.EXIST);
+							}
+						  break;
+					  }
 				  }
 			  }
 		  }
@@ -419,8 +422,9 @@ public class AddMobileService extends IntentService{
 	
 	private void insert(CardIntroEntity card, boolean sendBC) {
 		try {
+			String name = card.realname;
 			ContentValues values = new ContentValues();
-	        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
+			values.put(Data.DISPLAY_NAME, name);
 	        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
 	        if (StringUtils.empty(rawContactUri)) {
 	        	if (sendBC) {
@@ -429,6 +433,7 @@ public class AddMobileService extends IntentService{
 	        	return;
 			}
 	        long rawContactId = ContentUris.parseId(rawContactUri);
+	        long contactId = getContactId(this, rawContactId);
 	        
 	        values.clear();
 	        values.put(Data.RAW_CONTACT_ID, rawContactId);
@@ -501,5 +506,22 @@ public class AddMobileService extends IntentService{
 		intent.putExtra(CommonValue.ContactOperationResult.ContactOperationResultType, type);
 		intent.setAction(CommonValue.ContactOperationResult.ContactBCAction);
 		sendBroadcast(intent);
+	}
+	
+	public static long getContactId(Context context, long rawContactId) {
+	    Cursor cur = null;
+	    try {
+	        cur = context.getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, new String[] { ContactsContract.RawContacts.CONTACT_ID }, ContactsContract.RawContacts._ID + "=" + rawContactId, null, null);
+	        if (cur.moveToFirst()) {
+	            return cur.getLong(cur.getColumnIndex(ContactsContract.RawContacts.CONTACT_ID));
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    } finally {
+	        if (cur != null) {
+	            cur.close();
+	        }
+	    }
+	    return -1l;
 	}
 }

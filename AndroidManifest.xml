@@ -72,7 +72,6 @@
             android:name="im.ui.Chating"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
              >
         </activity>
         
@@ -137,12 +136,14 @@
         <activity
             android:name="ui.Tabbar"
             android:screenOrientation="portrait"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask" 
+            android:windowSoftInputMode="adjustNothing|stateHidden">
         </activity>
         
         <activity
             android:name="ui.Index"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustNothing"
             android:launchMode="singleTask" >
         </activity>
         
@@ -218,6 +219,7 @@
             android:name="ui.MessageView"
             android:screenOrientation="portrait"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing"
              >
         </activity>  
         
@@ -238,7 +240,7 @@
         <activity
             android:name="ui.WeFriendCard"
             android:screenOrientation="portrait"
-            
+            android:windowSoftInputMode="stateHidden|adjustNothing"
              >
         </activity> 
         
@@ -265,8 +267,14 @@
             android:name="ui.HomeContactActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustUnspecified|stateHidden|adjustPan" >
-            
         </activity>
+        
+        <activity
+            android:name="ui.MobileSelect"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden|adjustPan" >
+        </activity>
+        
         <activity
             android:name="ui.HomeSMSActivity"
             android:screenOrientation="portrait"
