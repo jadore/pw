@@ -942,6 +942,7 @@ public class QYWebView extends AppActivity  {
 		case CommonValue.CreateViewJSType.phonebookAssistSelect:
 			String url = intent.getStringExtra("url");
 			webView.loadUrl(url);
+			loadingPd = UIHelper.showProgress(QYWebView.this, "", "", true);
 			break;
 		}
 	}

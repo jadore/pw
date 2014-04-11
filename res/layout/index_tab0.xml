@@ -13,10 +13,10 @@
         android:fadingEdge="none"
         android:transcriptMode="disabled"
         />
-	<FrameLayout
+	<!-- <FrameLayout
         android:id="@+id/topGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
-    </FrameLayout>
+    </FrameLayout> -->
 </FrameLayout>

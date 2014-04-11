@@ -90,12 +90,12 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		initUI();
 		keyword = "";
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-		Handler jumpHandler = new Handler();
-        jumpHandler.postDelayed(new Runnable() {
-			public void run() {
+//		Handler jumpHandler = new Handler();
+//        jumpHandler.postDelayed(new Runnable() {
+//			public void run() {
 				getFriendCardFromCache();
-			}
-		}, 100);
+//			}
+//		}, 100);
 	}
 	
 	private void initUI() {

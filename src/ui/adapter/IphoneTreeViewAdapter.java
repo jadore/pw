@@ -38,7 +38,6 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 			CommonValue.FamilySectionType.FamilySectionType,
 			CommonValue.FamilySectionType.ClanSectionType
 	};
-	private HashMap<Integer, Integer> groupStatusMap;
 	private Context context;
 	private LayoutInflater inflater;
 	private List<List<PhoneIntroEntity>> phones;
@@ -47,7 +46,6 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.phones = phones;
-		this.groupStatusMap = new HashMap<Integer, Integer>();
 	}
 	
 	@Override

@@ -86,13 +86,13 @@ public class Index extends AppActivity {
 	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
-	private Button cardButton;
+//	private Button cardButton;
 	
 	private boolean isFirst = true;
 	private boolean isCFirst = true;
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
-	private static final int PAGE3 = 2;// 页面3
+//	private static final int PAGE3 = 2;// 页面3
 	private ViewPager mPager;
 	private List<View> mListViews;// Tab页面
 	
@@ -184,7 +184,7 @@ public class Index extends AppActivity {
 		});
 		
 		messageView = (TextView) findViewById(R.id.messageView);
-		cardButton = (Button) findViewById(R.id.cardButton);
+//		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
 		phoneButton = (Button) findViewById(R.id.phoneButton);
 		phoneButton.setSelected(true);
@@ -195,13 +195,12 @@ public class Index extends AppActivity {
 		
 		View lay1 = inflater.inflate(R.layout.index_tab0, null);
 		View lay2 = inflater.inflate(R.layout.tab2, null);
-		View lay0 = inflater.inflate(R.layout.tab0, null);
-//		View lay3 = inflater.inflate(R.layout.tab3, null);
+//		View lay0 = inflater.inflate(R.layout.tab0, null);
 		
 		mListViews.add(lay1);
 		mListViews.add(lay2);
-		mListViews.add(lay0);
-//		mListViews.add(lay3);
+//		mListViews.add(lay0);
+		
 		mPager.setAdapter(new IndexPagerAdapter(mListViews));
 		mPager.setCurrentItem(PAGE1);
 		mPager.setOnPageChangeListener(new MyOnPageChangeListener());
@@ -262,13 +261,13 @@ public class Index extends AppActivity {
 		webView = (WebView) lay2.findViewById(R.id.webview);
 		loadAgainButton = (Button) lay2.findViewById(R.id.loadAgain);
 		
-		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
-		mPinedListView0.setDividerHeight(0);
-		View footer1 = inflater.inflate(R.layout.index_footer, null);
-		mPinedListView0.addFooterView(footer1);
-		cards = new ArrayList<List<CardIntroEntity>>();
-		mCardAdapter = new IndexCardAdapter(this, cards);
-		mPinedListView0.setAdapter(mCardAdapter);
+//		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
+//		mPinedListView0.setDividerHeight(0);
+//		View footer1 = inflater.inflate(R.layout.index_footer, null);
+//		mPinedListView0.addFooterView(footer1);
+//		cards = new ArrayList<List<CardIntroEntity>>();
+//		mCardAdapter = new IndexCardAdapter(this, cards);
+//		mPinedListView0.setAdapter(mCardAdapter);
 	}
 	
 	public void showMobileView() {
@@ -398,15 +397,15 @@ public class Index extends AppActivity {
 		case R.id.activityButton:
 			mPager.setCurrentItem(PAGE2);
 			break;
-		case R.id.cardButton:
-			mPager.setCurrentItem(PAGE3);
-			break;
+//		case R.id.cardButton:
+//			mPager.setCurrentItem(PAGE3);
+//			break;
 		case R.id.navmobile:
 			showMobileView();
 			break;
-		case R.id.friendmobile:
-			showFriendCardView();
-			break;
+//		case R.id.friendmobile:
+//			showFriendCardView();
+//			break;
 		case R.id.loadAgain:
 			loadAgain();
 			break;
@@ -418,7 +417,7 @@ public class Index extends AppActivity {
 		getFamilyListFromCache();
 		getPhoneListFromCache();
 		getActivityListFromCache();
-		getCardListFromCache();
+//		getCardListFromCache();
 	}
 	
 	private void getFamilyListFromCache() {
@@ -579,14 +578,6 @@ public class Index extends AppActivity {
 	        startActivity(intent);
 		}
 	}
-	
-//	private void showLogin() {
-//		appContext.setUserLogout();
-//		Intent intent = new Intent(this,LoginCode1.class);
-//        startActivity(intent);
-//        finish();
-//        
-//	}
 	
 	private String[] lianxiren1 = new String[] { "创建通讯录", "创建活动", "创建我的名片"};
 	
@@ -883,7 +874,7 @@ public class Index extends AppActivity {
 			case PAGE1:// 切换到页卡1
 				phoneButton.setSelected(true);
 				activityButton.setSelected(false);
-				cardButton.setSelected(false);
+//				cardButton.setSelected(false);
 				if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
 					getPhoneList();
 				}
@@ -903,18 +894,18 @@ public class Index extends AppActivity {
 				}
 				phoneButton.setSelected(false);
 				activityButton.setSelected(true);
-				cardButton.setSelected(false);
+//				cardButton.setSelected(false);
 				break;
-			case PAGE3:// 切换到页卡3
-				if (isCFirst) {
-					getCardList();
-					Logger.i("ddd");
-					isCFirst = false;
-				}
-				phoneButton.setSelected(false);
-				activityButton.setSelected(false);
-				cardButton.setSelected(true);
-				break;
+//			case PAGE3:// 切换到页卡3
+//				if (isCFirst) {
+//					getCardList();
+//					Logger.i("ddd");
+//					isCFirst = false;
+//				}
+//				phoneButton.setSelected(false);
+//				activityButton.setSelected(false);
+//				cardButton.setSelected(true);
+//				break;
 			}
 		}
 
@@ -1138,8 +1129,8 @@ public class Index extends AppActivity {
 			mPager.setCurrentItem(PAGE1);
 			break;
 		case CommonValue.CreateViewUrlAndRequest.CardCreat:
-			getCardList();
-			mPager.setCurrentItem(PAGE3);
+//			getCardList();
+//			mPager.setCurrentItem(PAGE3);
 			break;
 		case CommonValue.PhonebookViewUrlRequest.editPhoneview:
 			getPhoneList();
@@ -1148,7 +1139,7 @@ public class Index extends AppActivity {
 			getActivityList();
 			break;
 		case CommonValue.CardViewUrlRequest.editCard:
-			getCardList();
+//			getCardList();
 			break;
 		}
 	}
@@ -1329,8 +1320,8 @@ public class Index extends AppActivity {
              builder.setPositiveButton("确定", btnListener);  
              dialog = builder.create();  
              break;  
-     }  
-     return dialog;
+		 }  
+		 return dialog;
 	}
 	
 	private class ChoiceOnClickListener implements DialogInterface.OnClickListener {  
