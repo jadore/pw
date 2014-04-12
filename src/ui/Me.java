@@ -93,6 +93,7 @@ public class Me extends AppActivity{
 			addCardOp();
 			mCardAdapter.notifyDataSetChanged();
 			expandView();
+			getCardList();
 			return;
 		}
 		cards.clear();
@@ -171,9 +172,7 @@ public class Me extends AppActivity{
 					if (entity.owned.size()>0) {
 						cards.add(entity.owned);
 					}
-					else {
-						
-					}
+					Logger.i(cards.size()+"");
 					addCardOp();
 					mCardAdapter.notifyDataSetChanged();
 					expandView();

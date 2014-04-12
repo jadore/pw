@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ExpandableListView;
@@ -48,9 +49,26 @@ public class Setting extends AppActivity{
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
+			closeInput();
 			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			break;
+
+		}
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			AppManager.getAppManager().finishActivity(this);
+			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
+			break;
+
+		default:
 			break;
 		}
+		return super.onKeyDown(keyCode, event);
 	}
 	
 	private void initUI() {

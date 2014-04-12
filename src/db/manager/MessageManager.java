@@ -319,7 +319,6 @@ public class MessageManager {
 		List<Conversation> list = st
 				.queryForList(
 						new RowMapper<Conversation>() {
-
 							@Override
 							public Conversation mapRow(Cursor cursor, int index) {
 								Conversation notice = new Conversation();

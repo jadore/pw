@@ -83,7 +83,7 @@ public class Index extends AppActivity {
 	private ImageView indicatorImageView;
 	private Animation indicatorAnimation;
 	
-	private TextView messageView;
+//	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
 //	private Button cardButton;
@@ -183,7 +183,7 @@ public class Index extends AppActivity {
 		    }
 		});
 		
-		messageView = (TextView) findViewById(R.id.messageView);
+//		messageView = (TextView) findViewById(R.id.messageView);
 //		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
 		phoneButton = (Button) findViewById(R.id.phoneButton);
@@ -347,7 +347,7 @@ public class Index extends AppActivity {
 	                   null)            // Event value
 	      .build()
 		);
-		messageView.setVisibility(View.INVISIBLE);
+//		messageView.setVisibility(View.INVISIBLE);
 		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		startActivity(intent);
@@ -529,7 +529,7 @@ public class Index extends AppActivity {
 					getFamilyList();
 					getPhoneList();
 					getActivityList();
-					getUnReadMessage();
+//					getUnReadMessage();
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
@@ -817,55 +817,55 @@ public class Index extends AppActivity {
 //		});
 //	}
 	
-	private void getUnReadMessage() {
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getUnReadMessage(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				MessageUnReadEntity entity = (MessageUnReadEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					if (entity.news.equals("0")) {
-						messageView.setVisibility(View.INVISIBLE);
-					}
-					else {
-						try {
-							int news = Integer.valueOf(entity.news);
-							String n = news>99?"99+":news+"";
-							messageView.setText(n);
-							messageView.setVisibility(View.VISIBLE);
-						} catch (Exception e) {
-							
-						}
-					}
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				e.printStackTrace();
-				Logger.i(e);
-			}
-		});
-	}
+//	private void getUnReadMessage() {
+//		indicatorImageView.setVisibility(View.VISIBLE);
+//    	indicatorImageView.startAnimation(indicatorAnimation);
+//		AppClient.getUnReadMessage(appContext, new ClientCallback() {
+//			@Override
+//			public void onSuccess(Entity data) {
+//				indicatorImageView.clearAnimation();
+//				indicatorImageView.setVisibility(View.INVISIBLE);
+//				MessageUnReadEntity entity = (MessageUnReadEntity)data;
+//				switch (entity.getError_code()) {
+//				case Result.RESULT_OK:
+//					if (entity.news.equals("0")) {
+//						messageView.setVisibility(View.INVISIBLE);
+//					}
+//					else {
+//						try {
+//							int news = Integer.valueOf(entity.news);
+//							String n = news>99?"99+":news+"";
+//							messageView.setText(n);
+//							messageView.setVisibility(View.VISIBLE);
+//						} catch (Exception e) {
+//							
+//						}
+//					}
+//					break;
+//				case CommonValue.USER_NOT_IN_ERROR:
+//					forceLogout();
+//					break;
+//				default:
+//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+//					break;
+//				}
+//			}
+//			
+//			@Override
+//			public void onFailure(String message) {
+//				indicatorImageView.clearAnimation();
+//				indicatorImageView.setVisibility(View.INVISIBLE);
+//				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+//			}
+//			@Override
+//			public void onError(Exception e) {
+//				indicatorImageView.clearAnimation();
+//				indicatorImageView.setVisibility(View.INVISIBLE);
+//				e.printStackTrace();
+//				Logger.i(e);
+//			}
+//		});
+//	}
 	
 	// ViewPager页面切换监听
 	public class MyOnPageChangeListener implements OnPageChangeListener {

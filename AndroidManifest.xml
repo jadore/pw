@@ -219,7 +219,7 @@
             android:name="ui.MessageView"
             android:screenOrientation="portrait"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustNothing"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"
              >
         </activity>  
         
@@ -234,6 +234,7 @@
         <activity
             android:name="ui.Setting"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.SlideLeft"
              >
         </activity>  
         
@@ -254,6 +255,16 @@
         <activity
             android:name="ui.WeFriendCard"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustNothing"
+            
+             >
+        </activity> 
+        
+        <activity
+            android:name="ui.Conversation"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.SlideLeft"
             android:windowSoftInputMode="stateHidden|adjustNothing"
              >
         </activity> 

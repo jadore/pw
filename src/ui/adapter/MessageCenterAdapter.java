@@ -85,6 +85,7 @@ public class MessageCenterAdapter extends SectionedBaseAdapter {
 			convertView.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View arg0) {
+					((MessageView)context).showConversation();
 				}
 			});
 		}

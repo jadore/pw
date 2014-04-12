@@ -93,7 +93,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 //		Handler jumpHandler = new Handler();
 //        jumpHandler.postDelayed(new Runnable() {
 //			public void run() {
-				getFriendCardFromCache();
+		getFriendCardFromCache();
 //			}
 //		}, 100);
 	}

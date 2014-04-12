@@ -125,6 +125,19 @@ public class MessageView extends AppActivity {
 		});
 	}
 	
+	public void showConversation() {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看对话",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, Conversation.class);
+		startActivity(intent);
+	}
+	
 	public void showCard() {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
