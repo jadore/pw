@@ -512,6 +512,7 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					MessageUnReadEntity data = MessageUnReadEntity.parse(DecodeUtil.decode(new String(content)));
+					saveCache(appContext, CommonValue.CacheKey.MessageUnRead, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);

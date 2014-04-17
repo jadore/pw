@@ -3,9 +3,10 @@ package ui;
 
 import baidupush.Utils;
 import bean.Entity;
+import bean.FriendCardListEntity;
+import bean.MessageUnReadEntity;
 import bean.Result;
 import bean.UserEntity;
-
 import cn.sharesdk.framework.ShareSDK;
 
 import com.google.zxing.client.android.common.executor.HoneycombAsyncTaskExecInterface;
@@ -15,7 +16,6 @@ import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 import config.MyApplication;
-
 import tools.AppContext;
 import tools.AppException;
 import tools.AppManager;
@@ -27,16 +27,23 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
 
 public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	private MyApplication appContext;
-	private RadioGroup mainTab;
+//	private RadioGroup mainTab;
 	public static TabHost mTabHost;
+	private RelativeLayout layout1;
+	private RelativeLayout layout2;
+	private RelativeLayout layout3;
+	private RelativeLayout layout4;
 	
+	private static TextView messagePao;
 	//内容Intent
 	private Intent homeIntent;
 	private Intent nearmeIntent;
@@ -56,18 +63,42 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 		setContentView(R.layout.tabbar);
 		ShareSDK.initSDK(this);
         AppManager.getAppManager().addActivity(this);
-        mainTab=(RadioGroup)findViewById(R.id.main_tab);
-        mainTab.setOnCheckedChangeListener(this);
+//        mainTab=(RadioGroup)findViewById(R.id.main_tab);
+//        mainTab.setOnCheckedChangeListener(this);
         prepareIntent();
         setupIntent();
-        RadioButton homebutton = (RadioButton)findViewById(R.id.radio_button1);
-        homebutton.setChecked(true);
+        messagePao = (TextView) findViewById(R.id.messageView);
+        layout1 = (RelativeLayout)findViewById(R.id.radio_button1);
+        layout1.setSelected(true);
+        layout2 = (RelativeLayout)findViewById(R.id.radio_button2);
+        layout2.setSelected(false);
+        layout3 = (RelativeLayout)findViewById(R.id.radio_button3);
+        layout3.setSelected(false);
+        layout4 = (RelativeLayout)findViewById(R.id.radio_button4);
+        layout4.setSelected(false);
         appContext = (MyApplication) getApplication();
         if (!appContext.isNetworkConnected()) {
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
-//        checkLogin();
+        String key = String.format("%s-%s", CommonValue.CacheKey.MessageUnRead, appContext.getLoginUid());
+        MessageUnReadEntity entity = (MessageUnReadEntity)appContext.readObject(key);
+        setMessagePao(entity);
+	}
+	
+	public static void setMessagePao(MessageUnReadEntity entity) {
+		if(entity != null){
+			messagePao.setVisibility(View.VISIBLE);
+			int pao = Integer.valueOf(entity.news) + Integer.valueOf(entity.card);
+			String num = pao>99?"99+":pao+"";
+			messagePao.setText(num);
+			if (pao == 0) {
+				messagePao.setVisibility(View.INVISIBLE);
+			}
+		}
+		else {
+			messagePao.setVisibility(View.INVISIBLE);
+		}
 	}
 	
 	private void prepareIntent() {
@@ -113,13 +144,43 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 			this.mTabHost.setCurrentTabByTag(TAB_TAG_ME);
 			break;
 		case R.id.radio_button4:
+			layout1.setSelected(false);
 			this.mTabHost.setCurrentTabByTag(TAB_TAG_MORE);
 			break;
 		}
 	}
 	
-	public void tabClick(View v) {
-		
+	public void ButtonClick(View v) {
+		switch(v.getId()){
+		case R.id.radio_button1:
+			layout1.setSelected(true);
+	        layout2.setSelected(false);
+	        layout3.setSelected(false);
+	        layout4.setSelected(false);
+			this.mTabHost.setCurrentTabByTag(TAB_TAG_HOME);
+			break;
+		case R.id.radio_button2:
+			layout1.setSelected(false);
+	        layout2.setSelected(true);
+	        layout3.setSelected(false);
+	        layout4.setSelected(false);
+			this.mTabHost.setCurrentTabByTag(TAB_TAG_NEARME);
+			break;
+		case R.id.radio_button3:
+			layout1.setSelected(false);
+	        layout2.setSelected(false);
+	        layout3.setSelected(true);
+	        layout4.setSelected(false);
+			this.mTabHost.setCurrentTabByTag(TAB_TAG_ME);
+			break;
+		case R.id.radio_button4:
+			layout1.setSelected(false);
+	        layout2.setSelected(false);
+	        layout3.setSelected(false);
+	        layout4.setSelected(true);
+			this.mTabHost.setCurrentTabByTag(TAB_TAG_MORE);
+			break;
+		}
 	}
 	
 	private void checkLogin() {

@@ -18,7 +18,7 @@
     		android:layout_height="wrap_content"
     		android:layout_weight="0.0"
     		android:visibility="gone"/>
-    	<RadioGroup
+    	<!-- <RadioGroup
     		android:id="@+id/main_tab"
     		android:orientation="horizontal"
     		android:layout_width="fill_parent"
@@ -60,6 +60,150 @@
     			android:text="我"
     			android:background="#4e7398"
     			/>
-    	</RadioGroup>
+    	</RadioGroup> -->
+    	
+    	<LinearLayout 
+    	    android:id="@+id/main_tab"
+    		android:orientation="horizontal"
+    		android:layout_width="match_parent"
+    		android:layout_height="49dp"
+    		android:gravity="center_vertical"
+    		android:layout_gravity="bottom"
+    		android:background="@color/white"
+    		android:visibility="visible"
+    	    >
+    	    <RelativeLayout 
+    	        android:onClick="ButtonClick"
+    	        android:id="@+id/radio_button1"
+    	        style="@style/main_tab_bottom"
+    	        >
+    	        <View 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="0.5px"
+    	            android:background="#959595"
+    	            />
+    	        <ImageView 
+    	            android:duplicateParentState="true"
+    	            android:layout_marginTop="4dp"
+    	            android:layout_width="25dp"
+    	            android:layout_height="25dp"
+    	            android:background="@drawable/tabbar_phone"
+    	            android:layout_centerHorizontal="true"
+    	            />
+    	        <TextView 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="18dp"
+    	            android:layout_alignParentBottom="true"
+    	            android:text="通讯录"
+    	            android:gravity="center_horizontal"
+    	            android:textColor="@color/tabbar_text_color"
+    	            />
+    	    </RelativeLayout>
+    	    <RelativeLayout 
+    	        android:onClick="ButtonClick"
+    	        android:id="@+id/radio_button2"
+    	        style="@style/main_tab_bottom"
+    	        >
+    	        <View 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="0.5px"
+    	            android:background="#959595"
+    	            />
+    	        <ImageView 
+    	            android:layout_marginTop="4dp"
+    	            android:duplicateParentState="true"
+    	            android:layout_width="29dp"
+    	            android:layout_height="25dp"
+    	            android:background="@drawable/tabbar_friend"
+    	            android:layout_centerHorizontal="true"
+    	            />
+    	        <TextView 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="18dp"
+    	            android:layout_alignParentBottom="true"
+    	            android:text="微友"
+    	            android:gravity="center_horizontal"
+    	            android:textColor="@color/tabbar_text_color"
+    	            />
+    	    </RelativeLayout>
+    	    <RelativeLayout 
+    	        android:onClick="ButtonClick"
+    	        android:id="@+id/radio_button3"
+    	        style="@style/main_tab_bottom"
+    	        >
+    	        <View 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="0.5px"
+    	            android:background="#959595"
+    	            />
+    	        <ImageView 
+    	            android:duplicateParentState="true"
+    	            android:layout_marginTop="8dp"
+    	            android:layout_width="26dp"
+    	            android:layout_height="19dp"
+    	            android:background="@drawable/tabbar_message"
+    	            android:layout_centerHorizontal="true"
+    	            />
+    	        <TextView 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="18dp"
+    	            android:layout_alignParentBottom="true"
+    	            android:text="消息中心"
+    	            android:gravity="center_horizontal"
+    	            android:textColor="@color/tabbar_text_color"
+    	            />
+    	        <TextView
+			        android:id="@+id/messageView"
+			        android:layout_width="wrap_content"
+			        android:layout_height="18dp"
+			        android:textSize="11dp"
+			        android:minWidth="25dp"
+			        android:minHeight="18dp"
+			        android:background="@drawable/message_label"
+			        android:gravity="center"
+			        android:visibility="invisible"
+			        android:layout_alignParentRight="true"
+			        android:layout_alignParentTop="true"
+			        android:layout_marginRight="8dp"
+			        android:layout_marginTop="4dp"
+			        android:textColor="@color/white"
+			        />
+    	    </RelativeLayout>
+    	    <RelativeLayout 
+    	        android:onClick="ButtonClick"
+    	        android:id="@+id/radio_button4"
+    	        style="@style/main_tab_bottom"
+    	        >
+    	        <View 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="0.5px"
+    	            android:background="#959595"
+    	            />
+    	        <ImageView 
+    	            android:duplicateParentState="true"
+    	            android:layout_marginTop="3dp"
+    	            android:layout_width="26dp"
+    	            android:layout_height="26dp"
+    	            android:background="@drawable/tabbar_me"
+    	            android:layout_centerHorizontal="true"
+    	            />
+    	        <TextView 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="18dp"
+    	            android:layout_alignParentBottom="true"
+    	            android:text="我"
+    	            android:gravity="center_horizontal"
+    	            android:textColor="@color/tabbar_text_color"
+    	            />
+    	    </RelativeLayout>
+    	</LinearLayout>
     </LinearLayout>
 </TabHost>

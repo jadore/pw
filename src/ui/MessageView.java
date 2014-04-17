@@ -41,7 +41,8 @@ public class MessageView extends AppActivity {
 	@Override
 	public void onStart() {
 	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  
+	    EasyTracker.getInstance(this).activityStart(this); 
+	    getNewsNumber();
 	}
 
 	@Override
@@ -56,7 +57,7 @@ public class MessageView extends AppActivity {
 		setContentView(R.layout.message_view);
 		initUI();
 		addMessageOp();
-		getNewsNumber();
+		
 	}
 	
 	private void initUI() {
@@ -93,7 +94,6 @@ public class MessageView extends AppActivity {
 
 	private void getNewsNumber() {
 		AppClient.getUnReadMessage(appContext, new ClientCallback() {
-			
 			@Override
 			public void onSuccess(Entity data) {
 				MessageUnReadEntity entity = (MessageUnReadEntity) data;
@@ -109,6 +109,8 @@ public class MessageView extends AppActivity {
 				ops2.add(op21);
 				messsages.set(2, ops2);
 				mMessageViewAdapter.notifyDataSetChanged();
+				
+				Tabbar.setMessagePao(entity);
 			}
 			
 			@Override
@@ -150,6 +152,7 @@ public class MessageView extends AppActivity {
 		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/follower", CommonValue.BASE_URL));
 		startActivity(intent);
+		AppClient.setMessageRead(appContext);
 	}
 	
 	public void showNotification() {
@@ -164,5 +167,7 @@ public class MessageView extends AppActivity {
 		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		startActivity(intent);
+		AppClient.setMessageRead(appContext);
 	}
+	
 }

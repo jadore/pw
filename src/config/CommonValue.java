@@ -46,6 +46,7 @@ public class CommonValue {
 		String FriendCardList1 = "FriendCardList1";
 		String MessageList = "MessageList";
 		
+		String MessageUnRead = "MessageUnRead";
 		String ChatterInfo = "ChatterInfo";
 	}
 	
