@@ -71,6 +71,7 @@
     		android:layout_gravity="bottom"
     		android:background="@color/white"
     		android:visibility="visible"
+    		android:fadingEdge="none"
     	    >
     	    <RelativeLayout 
     	        android:onClick="ButtonClick"

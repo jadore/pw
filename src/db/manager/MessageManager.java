@@ -322,18 +322,24 @@ public class MessageManager {
 							@Override
 							public Conversation mapRow(Cursor cursor, int index) {
 								Conversation notice = new Conversation();
+								notice.roomId = (cursor.getString(cursor.getColumnIndex("room_id")));
 								notice.content = (cursor.getString(cursor.getColumnIndex("msg_content")));
 								notice.openId = (cursor.getString(cursor.getColumnIndex("msg_from")));
-								notice.noticeTime = (cursor.getString(cursor.getColumnIndex("max(msg_time)")));
-								notice.noticeSum = (cursor.getInt(cursor.getColumnIndex("count(msg_content)")));
+								notice.noticeTime = (cursor.getString(cursor.getColumnIndex("msg_time")));
+								notice.noticeSum = (cursor.getInt(cursor.getColumnIndex("counts")));
 								notice.noticeType = (cursor.getInt(cursor.getColumnIndex("msg_type")));
 								notice.noticeStatus = (cursor.getInt(cursor.getColumnIndex("msg_status")));
 								notice.noticeMediaType = (cursor.getInt(cursor.getColumnIndex("media_type")));
 								return notice;
 							}
 						},
-						"select *, max(msg_time), count(msg_content) from im_msg where msg_status=1 group by room_id",
+						"SELECT *, max(msg_time) from im_msg group by room_id order by msg_time desc;",
 						null);
+		for (Conversation conversation : list) {
+			int count = st.getCount("select msg_content from im_msg where room_id=? and msg_status", 
+						new String[]{conversation.roomId, JSBubbleMessageStatus.JSBubbleMessageStatusReceiving+""});
+			conversation.noticeSum = count;
+		}
 		return list;
 	}
 }

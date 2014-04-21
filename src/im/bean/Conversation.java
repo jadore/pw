@@ -8,6 +8,7 @@ import bean.Entity;
  * 
  */
 public class Conversation extends Entity{
+	public String roomId;
 	public String content; 
 	public String openId; 
 	public String noticeTime; 

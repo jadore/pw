@@ -178,7 +178,7 @@ public class Me extends AppActivity{
 					expandView();
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
+//					forceLogout();
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);

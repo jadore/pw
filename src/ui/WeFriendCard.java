@@ -162,7 +162,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 					handleFriends(entity, action);
 					break;
 				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
 					break;
 				}
 			}

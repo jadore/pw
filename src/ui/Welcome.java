@@ -1,23 +1,13 @@
 package ui;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import bean.CardIntroEntity;
 
 import com.crashlytics.android.Crashlytics;
 
 import service.AddMobileService;
-import service.QYEnterService;
 import tools.AppManager;
-import tools.Logger;
-import tools.MD5Util;
-
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
@@ -30,7 +20,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
