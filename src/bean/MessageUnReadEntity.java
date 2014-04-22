@@ -19,7 +19,7 @@ public class MessageUnReadEntity extends Entity{
 				data.error_code = Result.RESULT_OK;
 				JSONObject info = js.getJSONObject("info");
 				data.news = info.getString("news");
-				data.card = info.getString("card");
+//				data.card = info.getString("card");
 			}
 			else {
 				if (!js.isNull("error_code")) {

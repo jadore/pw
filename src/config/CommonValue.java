@@ -152,6 +152,7 @@ public class CommonValue {
 		int webNotSign = 10;
 		int showChat = 11;
 		int phonebookAssistSelect = 12;
+		int showJiaV = 13;
 	}
 	
 	public interface PhonebookViewIntentKeyValue {

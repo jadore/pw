@@ -574,11 +574,23 @@ public class QYWebView extends AppActivity  {
 				break;
 			case CommonValue.CreateViewJSType.phonebookAssistSelect:
 				code = (String) msg.obj;
-				enterPhonebook(code);
+				enterJiaV(code);
 				break;
+			case CommonValue.CreateViewJSType.showJiaV:
+				code = (String) msg.obj;
+				enterJiaV(code);
 			}
 		};
 	};
+	
+	private void enterJiaV(String code) {
+		if (this.isFinishing()) {
+			return;
+		}
+		Intent intent = new Intent(context, JiaV.class);
+		intent.putExtra("code", code);
+		startActivityForResult(intent, CommonValue.CreateViewJSType.phonebookAssistSelect);
+	}
 	
 	private void enterPhonebook(String code) {
 		if (this.isFinishing()) {
@@ -928,7 +940,7 @@ public class QYWebView extends AppActivity  {
 
 		}  
 		if(requestCode==CAMERA_RESULTCODE)  
-		{  Logger.i("ee");
+		{  
 			if (null == mUploadMessage) return;  
 			outputFileUri = outputFileUri == null || resultCode != RESULT_OK ? null  
 					: outputFileUri;  
