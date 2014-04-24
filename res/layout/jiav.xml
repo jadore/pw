@@ -51,19 +51,40 @@
             />
     </RelativeLayout>
     
-    <ImageView 
-        android:id="@+id/mingpian"
+    <RelativeLayout 
+        android:layout_marginTop="10dp"
+        android:id="@+id/mingpianLayout"
+        android:layout_gravity="center_horizontal"
         android:layout_width="145dp"
         android:layout_height="80dp"
-        android:layout_gravity="center_horizontal"
-        android:scaleType="centerCrop"
-        android:adjustViewBounds="true"
-        android:src="@drawable/content_image_loading"
-        />
+        >
+        <ImageView 
+	        android:id="@+id/mingpian"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:scaleType="centerCrop"
+	        android:adjustViewBounds="true"
+	        android:src="@drawable/content_image_loading"
+	        />
+        
+        <TextView 
+            android:id="@+id/mingpianProgress"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:background="#aa000000"
+	        android:textSize="18dp"
+	        android:gravity="center"
+	        android:textColor="@color/white"
+	        android:visibility="invisible"
+            />
+    </RelativeLayout>
     
     <Button 
+        android:layout_marginTop="5dp"
         android:id="@+id/mingpianbutton"
-        android:layout_width="145dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
         android:layout_height="35dp"
         android:text="上传名片工牌扫描件"
         android:textColor="@color/white"
@@ -74,20 +95,40 @@
         android:onClick="ButtonClick"
         />
     
-    <ImageView 
+    <RelativeLayout 
         android:layout_marginTop="20dp"
-        android:id="@+id/id"
+        android:id="@+id/idLayout"
+        android:layout_gravity="center_horizontal"
         android:layout_width="145dp"
         android:layout_height="80dp"
-        android:layout_gravity="center_horizontal"
-        android:scaleType="centerCrop"
-        android:adjustViewBounds="true"
-        android:src="@drawable/content_image_loading"
-        />
+        >
+        <ImageView 
+	        android:id="@+id/id"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:scaleType="centerCrop"
+	        android:adjustViewBounds="true"
+	        android:src="@drawable/content_image_loading"
+	        />
+        
+        <TextView 
+            android:id="@+id/idProgress"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:background="#aa000000"
+	        android:textSize="18dp"
+	        android:gravity="center"
+	        android:textColor="@color/white"
+	        android:visibility="invisible"
+            />
+    </RelativeLayout>
     
     <Button 
         android:id="@+id/idbutton"
-        android:layout_width="145dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
         android:layout_height="35dp"
         android:text="上传身份证扫描件"
         android:textColor="@color/white"

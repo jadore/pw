@@ -10,10 +10,14 @@ import org.json.JSONObject;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import baidupush.Utils;
 import bean.ActivityListEntity;
 import bean.ActivityViewEntity;
@@ -512,7 +516,7 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					MessageUnReadEntity data = MessageUnReadEntity.parse(DecodeUtil.decode(new String(content)));
-					saveCache(appContext, CommonValue.CacheKey.MessageUnRead, data);
+//					saveCache(appContext, CommonValue.CacheKey.MessageUnRead, data);
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);
@@ -732,6 +736,11 @@ public class AppClient {
 					Throwable error) {
 				callback.onFailure("网络不给力，请重新尝试");
 			}
+			
+			@Override
+			public void onProgress(int bytesWritten, int totalSize) {
+				Logger.i(String.format("Progress %d from %d (%d%%)", bytesWritten, totalSize, (totalSize > 0) ? (bytesWritten / totalSize) * 100 : -1));
+			}
 		});
 	}
 	
@@ -802,6 +811,26 @@ public class AppClient {
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("");
+			}
+		});
+	}
+	
+	public static void cardVIP(String code, String material_idcard, String material_card, final ClientCallback callback) {
+		RequestParams param = new RequestParams();
+		param.put("material_idcard", material_idcard);
+		param.put("material_card", material_card);
+		param.put("code", code);
+		QYRestClient.post("card/vip", param, new AsyncHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+				Logger.i(new String(responseBody));
+			}
+			
+			@Override
+			public void onFailure(int statusCode, Header[] headers,
+					byte[] responseBody, Throwable error) {
+				Logger.i(new String(responseBody));
 			}
 		});
 	}

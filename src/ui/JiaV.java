@@ -2,16 +2,33 @@ package ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import qiniu.auth.JSONObjectRet;
+import qiniu.io.IO;
+import qiniu.io.PutExtra;
+import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
+import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
+import bean.Entity;
 
 import com.vikaa.mycontact.R;
 
+import config.AppClient;
+import config.AppClient.ClientCallback;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -22,14 +39,23 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class JiaV extends AppActivity{
+	private RelativeLayout mingpianLayout;
 	private ImageView mingpianIV;
+	private TextView mingpianTV;
+	
+	private RelativeLayout idLayout;
 	private ImageView idIV;
+	private TextView idTV;
 	private Button mingpianButton;
 	private Button idButton;
 	private int type;
@@ -38,29 +64,52 @@ public class JiaV extends AppActivity{
 	private String mingpianFile;
 	private String idFile;
 	
+	private String code;
+	private String uploadToken;
+	public static String bucketName = "pbwci";
+	public static String domain = bucketName + ".qiniudn.com";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.jiav);
 		initUI();
+//		code = getIntent().getStringExtra("code");
+		uploadToken = getIntent().getStringExtra("token");
 	}
 	
 	private void initUI() {
+		mingpianLayout = (RelativeLayout) findViewById(R.id.mingpianLayout);
 		mingpianIV = (ImageView) findViewById(R.id.mingpian);
+		mingpianTV = (TextView) findViewById(R.id.mingpianProgress);
+		idLayout = (RelativeLayout) findViewById(R.id.idLayout);
 		idIV = (ImageView) findViewById(R.id.id);
+		idTV = (TextView) findViewById(R.id.idProgress);
 		mingpianButton = (Button) findViewById(R.id.mingpianbutton);
 		idButton = (Button) findViewById(R.id.idbutton);
+		
+		int w = ImageUtils.getDisplayWidth(this) - ImageUtils.dip2px(this, 40);
+		int h = w*320/568;
+		
+		LayoutParams layout = (LayoutParams) mingpianLayout.getLayoutParams();
+		layout.width = w;
+		layout.height = h;
+		mingpianLayout.setLayoutParams(layout);
+		
+		LayoutParams layout2 = (LayoutParams) idLayout.getLayoutParams();
+		layout2.width = w;
+		layout2.height = h;
+		idLayout.setLayoutParams(layout2);
 	}
 	
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			
+			AppManager.getAppManager().finishActivity(this);
 			break;
-
 		case R.id.rightBarButton:
+			submit();
 			break;
-			
 		case R.id.mingpianbutton:
 			type = 0;
 			PhotoChooseOption();
@@ -71,6 +120,32 @@ public class JiaV extends AppActivity{
 			PhotoChooseOption();
 			break;
 		}
+	}
+	
+	private void submit() {
+		if (StringUtils.empty(mingpianFile) || StringUtils.empty(idFile)) {
+			return;
+		}
+		AppClient.cardVIP(code, idFile, mingpianFile, new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 	
 	@Override
@@ -126,15 +201,76 @@ public class JiaV extends AppActivity{
 	}
 	
 	private void upload(int type, String path) {
+		String key = IO.UNDEFINED_KEY; 
+		PutExtra extra = new PutExtra();
 		switch (type) {
 		case 0:
+			mingpianTV.setVisibility(View.VISIBLE);
+			mingpianTV.setText("0%");
 			this.imageLoader.displayImage("file://"+path, mingpianIV);
-			
+			extra.params = new HashMap<String, String>();
+			Logger.i(uploadToken);
+			IO.putFile(uploadToken, key, new File(path), extra, new JSONObjectRet() {
+				@Override
+				public void onProcess(long current, long total) {
+					
+					float percent = (float) (current*1.0/total)*100;
+					if ((int)percent < 100) {
+						mingpianTV.setText((int)percent+"%");
+					}
+					else if ((int)percent == 100) {
+						mingpianTV.setText("处理中...");
+					}
+				}
+
+				@Override
+				public void onSuccess(JSONObject resp) {
+					String hash = resp.optString("hash", "");
+					String redirect = "http://" + domain + "/" + hash;
+					mingpianFile = hash;
+					mingpianTV.setVisibility(View.INVISIBLE);
+				}
+
+				@Override
+				public void onFailure(Exception ex) {
+					Logger.i(ex.toString());
+				}
+			});
 			break;
 
 		case 1:
 			this.imageLoader.displayImage("file://"+path, idIV);
-			
+			idTV.setVisibility(View.VISIBLE);
+			idTV.setText("0%");
+			extra.params = new HashMap<String, String>();
+			Logger.i(uploadToken);
+			IO.putFile(uploadToken, key, new File(path), extra, new JSONObjectRet() {
+				@Override
+				public void onProcess(long current, long total) {
+					
+					float percent = (float) (current*1.0/total)*100;
+					if ((int)percent < 100) {
+						idTV.setText((int)percent+"%");
+					}
+					else if ((int)percent == 100) {
+						idTV.setText("处理中...");
+					}
+				}
+
+				@Override
+				public void onSuccess(JSONObject resp) {
+					String hash = resp.optString("hash", "");
+					String redirect = "http://" + domain + "/" + hash;
+					Logger.i(redirect);
+					idFile = hash;
+					idTV.setVisibility(View.INVISIBLE);
+				}
+
+				@Override
+				public void onFailure(Exception ex) {
+					Logger.i(ex.toString());
+				}
+			});
 			break;
 		}
 	}

@@ -825,7 +825,16 @@ public class Index extends AppActivity {
 				MessageUnReadEntity entity = (MessageUnReadEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					Tabbar.setMessagePao(entity);
+//					Tabbar.setMessagePao(entity);
+					if(entity != null){
+						messageView.setVisibility(View.VISIBLE);
+						int pao = Integer.valueOf(entity.news);
+						String num = pao>99?"99+":pao+"";
+						messageView.setText(num);
+						if (pao == 0) {
+							messageView.setVisibility(View.INVISIBLE);
+						}
+					}
 				case CommonValue.USER_NOT_IN_ERROR:
 					break;
 				default:

@@ -508,6 +508,13 @@ public class QYWebView extends AppActivity  {
 	    	msg.what = CommonValue.CreateViewJSType.phonebookAssistSelect;
 	    	mJSHandler.sendMessage(msg);
 	    }
+	    public void showJiaV(String c) {
+	    	Logger.i(c);
+	    	Message msg = new Message();
+	    	msg.obj = c;
+	    	msg.what = CommonValue.CreateViewJSType.showJiaV;
+	    	mJSHandler.sendMessage(msg);
+	    }
     }
 	
 	Handler mJSHandler = new Handler(){
@@ -587,9 +594,15 @@ public class QYWebView extends AppActivity  {
 		if (this.isFinishing()) {
 			return;
 		}
-		Intent intent = new Intent(context, JiaV.class);
-		intent.putExtra("code", code);
-		startActivityForResult(intent, CommonValue.CreateViewJSType.phonebookAssistSelect);
+//		try {
+//			JSONObject js = new JSONObject(code);
+			Intent intent = new Intent(context, JiaV.class);
+//			intent.putExtra("code", js.getString("code"));
+			intent.putExtra("token", "jZpEEbK-tElCcE5Z7ANp-IaSSljrsq5AklVV3OhS:suFY6AYmYw4knBirt1OLoxZgGN0=:eyJzY29wZSI6InBid2NpIiwiZGVhZGxpbmUiOjEzOTgzMjMxMTd9");
+			startActivity(intent);
+//		} catch (JSONException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	private void enterPhonebook(String code) {

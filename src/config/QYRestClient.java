@@ -37,6 +37,11 @@ public class QYRestClient {
 	  private static String getAbsoluteUrl(String relativeUrl) {
 		  client.setTimeout(10*1000);
 		  client.setMaxConnections(5);
-	      return CommonValue.BASE_API + relativeUrl;
+		  if (relativeUrl.contains("http")) {
+			  return relativeUrl;
+		  }
+		  else {
+			  return CommonValue.BASE_API + relativeUrl; 
+		  }
 	  }
 }

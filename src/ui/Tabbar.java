@@ -88,16 +88,16 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	
 	public static void setMessagePao(MessageUnReadEntity entity) {
 		if(entity != null){
-			messagePao.setVisibility(View.VISIBLE);
-			int pao = Integer.valueOf(entity.news) + Integer.valueOf(entity.card);
-			String num = pao>99?"99+":pao+"";
-			messagePao.setText(num);
-			if (pao == 0) {
-				messagePao.setVisibility(View.INVISIBLE);
-			}
+//			messagePao.setVisibility(View.VISIBLE);
+//			int pao = Integer.valueOf(entity.news) + Integer.valueOf(entity.card);
+//			String num = pao>99?"99+":pao+"";
+//			messagePao.setText(num);
+//			if (pao == 0) {
+//				messagePao.setVisibility(View.INVISIBLE);
+//			}
 		}
 		else {
-			messagePao.setVisibility(View.INVISIBLE);
+//			messagePao.setVisibility(View.INVISIBLE);
 		}
 	}
 	
