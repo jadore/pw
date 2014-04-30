@@ -3,7 +3,6 @@ package ui.adapter;
 import java.util.List;
 
 import bean.ActivityIntroEntity;
-import bean.PhoneIntroEntity;
 
 import com.vikaa.mycontact.R;
 
@@ -12,8 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import ui.adapter.IndexPhoneAdapter.CellHolder;
-import ui.adapter.IndexPhoneAdapter.SectionView;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
 
 public class IndexActivityAdapter extends SectionedBaseAdapter {

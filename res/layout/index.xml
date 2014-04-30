@@ -85,7 +85,7 @@
         	    android:layout_width="0dp"
 				android:layout_height="44dp"
 				android:layout_weight="1.0"
-				android:text="通讯录"
+				android:text="我的"
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
@@ -96,13 +96,13 @@
         	    android:layout_width="0dp"
 				android:layout_height="44dp"
 				android:layout_weight="1.0"
-				android:text="发现"
+				android:text="系统推荐"
 				android:background="@drawable/friendcard_button"
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
 				android:textSize="@dimen/navbar_button_text_size"
         	    />
-        	<Button 
+        	<!-- <Button 
         	    android:id="@+id/cardButton"
         	    android:layout_width="0dp"
         	    android:layout_weight="1.0"
@@ -112,7 +112,7 @@
 				android:textColor="@color/friendcard_button_textcolor"
 				android:onClick="ButtonClick"
 				android:textSize="@dimen/navbar_button_text_size"
-        	    /> 
+        	    />  -->
     </LinearLayout>
     
     <android.support.v4.view.ViewPager

@@ -87,13 +87,13 @@ public class Index extends AppActivity {
 //	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
-	private Button cardButton;
+//	private Button cardButton;
 	
 	private boolean isFirst = true;
-	private boolean isCFirst = true;
+//	private boolean isCFirst = true;
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
-	private static final int PAGE3 = 2;// 页面3
+//	private static final int PAGE3 = 2;// 页面3
 	private ViewPager mPager;
 	private List<View> mListViews;// Tab页面
 	
@@ -159,7 +159,7 @@ public class Index extends AppActivity {
 		});
 		
 //		messageView = (TextView) findViewById(R.id.messageView);
-		cardButton = (Button) findViewById(R.id.cardButton);
+//		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
 		phoneButton = (Button) findViewById(R.id.phoneButton);
 		phoneButton.setSelected(true);
@@ -182,10 +182,10 @@ public class Index extends AppActivity {
 		
 		View footer = inflater.inflate(R.layout.index_footer, null);
 		
-		View header = inflater.inflate(R.layout.index_tab0_header, null);
+//		View header = inflater.inflate(R.layout.index_tab0_header, null);
 		iphoneTreeView = (ExpandableListView) lay1.findViewById(R.id.iphone_tree_view);
 		iphoneTreeView.setGroupIndicator(null);
-		iphoneTreeView.addHeaderView(header);
+//		iphoneTreeView.addHeaderView(header);
 		iphoneTreeView.addFooterView(footer);
 		
 		phones = new ArrayList<List<PhoneIntroEntity>>(4);
@@ -209,27 +209,27 @@ public class Index extends AppActivity {
 			@Override
 			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
 					long arg3) {
-				if (iphoneTreeView.isGroupExpanded(position)) {
-					iphoneTreeView.collapseGroup(position);
-				}
-				else {
-					iphoneTreeView.expandGroup(position); 
-				}
-				if (position == 0 || position == 1) {
-					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
-						getFamilyList();
-					}
-				}
-				else if (position == 2 || position == 3) {
-					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
-						getPhoneList();
-					}
-				}
-				else if (position == 4 || position == 5) {
-					if (phones.get(4).size() == 0 && phones.get(5).size() == 0) {
-						getActivityList();
-					}
-				}
+//				if (iphoneTreeView.isGroupExpanded(position)) {
+//					iphoneTreeView.collapseGroup(position);
+//				}
+//				else {
+//					iphoneTreeView.expandGroup(position); 
+//				}
+//				if (position == 0 || position == 1) {
+//					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
+//						getFamilyList();
+//					}
+//				}
+//				else if (position == 2 || position == 3) {
+//					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
+//						getPhoneList();
+//					}
+//				}
+//				else if (position == 4 || position == 5) {
+//					if (phones.get(4).size() == 0 && phones.get(5).size() == 0) {
+//						getActivityList();
+//					}
+//				}
 				return true;
 			}
 		});
@@ -372,9 +372,9 @@ public class Index extends AppActivity {
 		case R.id.activityButton:
 			mPager.setCurrentItem(PAGE2);
 			break;
-		case R.id.cardButton:
-			mPager.setCurrentItem(PAGE3);
-			break;
+//		case R.id.cardButton:
+//			mPager.setCurrentItem(PAGE3);
+//			break;
 		case R.id.navmobile:
 			showMobileView();
 			break;
@@ -389,12 +389,12 @@ public class Index extends AppActivity {
 	
 	private void getCache() {
 //		getCacheUser();
-		getFamilyListFromCache();
+//		getFamilyListFromCache();
 		getPhoneListFromCache();
-		getActivityListFromCache();
+//		getActivityListFromCache();
 		getPhoneList();
-		getActivityList();
-		getFamilyList();
+//		getActivityList();
+//		getFamilyList();
 	}
 	
 	private void getFamilyListFromCache() {
@@ -408,15 +408,15 @@ public class Index extends AppActivity {
 	private void handlerFamilySection(FamilyListEntity entity) {
 		if (entity.family.size()>0) {
 			phones.set(4, entity.family);
-			if (entity.family.size() <= 3) {
+//			if (entity.family.size() <= 3) {
 				iphoneTreeView.expandGroup(4);
-			}
+//			}
 		}
 		if (entity.clan.size()>0) {
 			phones.set(5, entity.clan);
-			if (entity.clan.size() <= 3) {
+//			if (entity.clan.size() <= 3) {
 				iphoneTreeView.expandGroup(5);
-			}
+//			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -433,15 +433,15 @@ public class Index extends AppActivity {
 	private void handlerPhoneSection(PhoneListEntity entity) {
 		if (entity.owned.size()>0) {
 			phones.set(0, entity.owned);
-			if (entity.owned.size() <= 3) {
+//			if (entity.owned.size() <= 3) {
 				iphoneTreeView.expandGroup(0);
-			}
+//			}
 		}
 		if (entity.joined.size()>0) {
 			phones.set(1, entity.joined);
-			if (entity.joined.size() <= 3) {
+//			if (entity.joined.size() <= 3) {
 				iphoneTreeView.expandGroup(1);
-			}
+//			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -458,15 +458,15 @@ public class Index extends AppActivity {
 	private void handlerActivitySection(ActivityListEntity entity) {
 		if (entity.owned.size()>0) {
 			phones.set(2, entity.owned);
-			if (entity.owned.size() <= 3) {
+//			if (entity.owned.size() <= 3) {
 				iphoneTreeView.expandGroup(2);
-			}
+//			}
 		}
 		if (entity.joined.size()>0) {
 			phones.set(3, entity.joined);
-			if (entity.joined.size() <= 3) {
+//			if (entity.joined.size() <= 3) {
 				iphoneTreeView.expandGroup(3);
-			}
+//			}
 		}
 		mPhoneAdapter.notifyDataSetChanged();
 	}
@@ -837,7 +837,7 @@ public class Index extends AppActivity {
 			case PAGE1:// 切换到页卡1
 				phoneButton.setSelected(true);
 				activityButton.setSelected(false);
-				cardButton.setSelected(false);
+//				cardButton.setSelected(false);
 				if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
 					getPhoneList();
 				}
@@ -857,18 +857,18 @@ public class Index extends AppActivity {
 				}
 				phoneButton.setSelected(false);
 				activityButton.setSelected(true);
-				cardButton.setSelected(false);
+//				cardButton.setSelected(false);
 				break;
-			case PAGE3:// 切换到页卡3
-				if (isCFirst) {
-					getCardList();
-					Logger.i("ddd");
-					isCFirst = false;
-				}
-				phoneButton.setSelected(false);
-				activityButton.setSelected(false);
-				cardButton.setSelected(true);
-				break;
+//			case PAGE3:// 切换到页卡3
+//				if (isCFirst) {
+//					getCardList();
+//					Logger.i("ddd");
+//					isCFirst = false;
+//				}
+//				phoneButton.setSelected(false);
+//				activityButton.setSelected(false);
+//				cardButton.setSelected(true);
+//				break;
 			}
 		}
 

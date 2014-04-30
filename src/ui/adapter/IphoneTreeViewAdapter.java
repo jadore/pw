@@ -112,22 +112,26 @@ public class IphoneTreeViewAdapter extends BaseExpandableListAdapter{
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+//		if (convertView == null) {
+//			convertView = inflater.inflate(R.layout.list_group_view, null);
+//		}
+//		TextView groupName = (TextView) convertView
+//				.findViewById(R.id.group_name);
+//		groupName.setText(getGroup(groupPosition).toString());
+//
+//		ImageView indicator = (ImageView) convertView
+//				.findViewById(R.id.group_indicator);
+//		TextView onlineNum = (TextView) convertView
+//				.findViewById(R.id.online_count);
+//		onlineNum.setText(getChildrenCount(groupPosition) + "");
+//		if (isExpanded) {
+//			indicator.setImageResource(R.drawable.indicator_expanded);
+//		} else {
+//			indicator.setImageResource(R.drawable.indicator_unexpanded);
+//		}
+//		return convertView;
 		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.list_group_view, null);
-		}
-		TextView groupName = (TextView) convertView
-				.findViewById(R.id.group_name);
-		groupName.setText(getGroup(groupPosition).toString());
-
-		ImageView indicator = (ImageView) convertView
-				.findViewById(R.id.group_indicator);
-		TextView onlineNum = (TextView) convertView
-				.findViewById(R.id.online_count);
-		onlineNum.setText(getChildrenCount(groupPosition) + "");
-		if (isExpanded) {
-			indicator.setImageResource(R.drawable.indicator_expanded);
-		} else {
-			indicator.setImageResource(R.drawable.indicator_unexpanded);
+			convertView = inflater.inflate(R.layout.index_group_divider, null);
 		}
 		return convertView;
 	}
