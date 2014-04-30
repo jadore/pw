@@ -4,6 +4,7 @@ import java.util.List;
 
 import ui.Index;
 import ui.Me;
+import ui.Setting;
 import ui.adapter.IndexCardAdapter.CellHolder;
 import ui.adapter.IndexCardAdapter.SectionView;
 
@@ -12,6 +13,7 @@ import com.vikaa.mycontact.R;
 import bean.CardIntroEntity;
 import config.CommonValue;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,13 +32,10 @@ public class MeCardAdapter extends BaseExpandableListAdapter{
 	private LayoutInflater inflater;
 	private List<List<CardIntroEntity>> cards;
 	
-	static class SectionView {
-		TextView titleView;
-	}
 	
 	static class CellHolder {
 		TextView titleView;
-		TextView desView;
+		ImageView iconView;
 	}
 	
 	public MeCardAdapter(ExpandableListView iphoneTreeView, Context context, List<List<CardIntroEntity>> cards) {
@@ -90,17 +89,9 @@ public class MeCardAdapter extends BaseExpandableListAdapter{
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
-		SectionView sect = null;
 		if (convertView == null) {
-			sect = new SectionView();
-			convertView = inflater.inflate(R.layout.index_section, null);
-			sect.titleView = (TextView) convertView.findViewById(R.id.titleView);
-			convertView.setTag(sect);
+			convertView = inflater.inflate(R.layout.messagecenter_section, null);
 		}
-		else {
-			sect = (SectionView) convertView.getTag();
-		}
-		sect.titleView.setText(getGroup(groupPosition).toString());
 		return convertView;
 	}
 
@@ -110,9 +101,9 @@ public class MeCardAdapter extends BaseExpandableListAdapter{
 		CellHolder cell = null;
 		if (convertView == null) {
 			cell = new CellHolder();
-			convertView = inflater.inflate(R.layout.index_cell, null);
+			convertView = inflater.inflate(R.layout.more_cell, null);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
-			cell.desView = (TextView) convertView.findViewById(R.id.des);
+			cell.iconView = (ImageView) convertView.findViewById(R.id.icon);
 			convertView.setTag(cell);
 		}
 		else {
@@ -120,24 +111,17 @@ public class MeCardAdapter extends BaseExpandableListAdapter{
 		}
 		final CardIntroEntity model = cards.get(groupPosition).get(childPosition);
 		cell.titleView.setText(model.realname);
-		cell.desView.setText(String.format("%s %s", model.department, model.position));
-		if (model.cardSectionType.equals(CommonValue.CardSectionType.OwnedSectionType)) {
-			convertView.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View arg0) {
-					((Me)context).showCardViewWeb(model);
-				}
-			});
-			convertView.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					((Me)context).cardSharePre(false, null, model);
-					return false;
-				}
-			});
-		}
-		else if (model.cardSectionType.equals(CommonValue.CardSectionType.BarcodeSectionType)) {
+		cell.iconView.setBackgroundResource(Integer.valueOf(model.department));
+		if (model.cardSectionType.equals(CommonValue.CardSectionType.BarcodeSectionType)) {
 			if (childPosition == 0) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Me)context).showMyCard();
+					}
+				});
+			}
+			else if (childPosition == 2) {
 				convertView.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
@@ -153,12 +137,32 @@ public class MeCardAdapter extends BaseExpandableListAdapter{
 					}
 				});
 			}
-			convertView.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					return false;
-				}
-			});
+		}
+		else if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
+			if (childPosition == 0) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Me)context).showSetting();
+					}
+				});
+			}
+			else if (childPosition == 1) {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Me)context).showFeedback();
+					}
+				});
+			}
+			else {
+				convertView.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						((Me)context).showUpdate();
+					}
+				});
+			}
 		}
 		return convertView;
 	}

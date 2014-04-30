@@ -73,8 +73,6 @@ public class FriendCardListEntity extends Entity {
 				if (!info.isNull("ne")) {
 					data.ne = info.getInt("ne");
 				}
-				
-				Logger.i(data.ne+"");
 			}
 			else {
 				if (!js.isNull("error_code")) {

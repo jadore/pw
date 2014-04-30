@@ -81,9 +81,9 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
     		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
     		return;
     	}
-        String key = String.format("%s-%s", CommonValue.CacheKey.MessageUnRead, appContext.getLoginUid());
-        MessageUnReadEntity entity = (MessageUnReadEntity)appContext.readObject(key);
-        setMessagePao(entity);
+//        String key = String.format("%s-%s", CommonValue.CacheKey.MessageUnRead, appContext.getLoginUid());
+//        MessageUnReadEntity entity = (MessageUnReadEntity)appContext.readObject(key);
+//        setMessagePao(entity);
 	}
 	
 	public static void setMessagePao(MessageUnReadEntity entity) {
@@ -102,8 +102,8 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	}
 	
 	private void prepareIntent() {
-		homeIntent = new Intent(this, Index.class);
-		nearmeIntent = new Intent(this, WeFriendCard.class);
+		homeIntent = new Intent(this, WeFriendCard.class);
+		nearmeIntent = new Intent(this, Index.class);
 		meIntent = new Intent(this, MessageView.class);
 		moreIntent = new Intent(this, Me.class);
 	}

@@ -22,6 +22,7 @@
             android:drawablePadding="-5dp"
             android:paddingLeft="12dp"
             android:onClick="ButtonClick"
+            android:visibility="invisible"
             />
         
         <TextView

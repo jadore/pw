@@ -84,7 +84,7 @@ public class Index extends AppActivity {
 	private ImageView indicatorImageView;
 	private Animation indicatorAnimation;
 	
-	private TextView messageView;
+//	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
 	private Button cardButton;
@@ -118,29 +118,14 @@ public class Index extends AppActivity {
 	public void onStart() {
 	    super.onStart();
 	    EasyTracker.getInstance(this).activityStart(this);  
-//	    if (appContext.isNetworkConnected()) {
-//			queryPolemoEntry();
-//		}
 	}
 
-	  @Override
+	@Override
 	public void onStop() {
 	    super.onStop();
 	    EasyTracker.getInstance(this).activityStop(this);  
 	}
 	  
-	@Override
-	protected void onResume() {
-		super.onResume();
-		TextView title = (TextView) findViewById(R.id.barTitleTV);
-		if (!appContext.isNetworkConnected()) {
-			title.setText("群友通讯录(未连接)");
-		}
-		else {
-			title.setText("群友通讯录");
-		}
-	}
-	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -152,18 +137,7 @@ public class Index extends AppActivity {
 		setContentView(R.layout.index);
 		ShareSDK.initSDK(this);
 		initUI();
-		Handler jumpHandler = new Handler();
-        jumpHandler.postDelayed(new Runnable() {
-			public void run() {
-				getCache();
-				if (!appContext.isNetworkConnected()) {
-		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-		    		return;
-		    	}
-				UpdateManager.getUpdateManager().checkAppUpdate(Index.this, false);
-				checkLogin();
-			}
-		}, 500);
+		getCache();
 	}
 	
 	private void blindBaidu() {
@@ -184,7 +158,7 @@ public class Index extends AppActivity {
 		    }
 		});
 		
-		messageView = (TextView) findViewById(R.id.messageView);
+//		messageView = (TextView) findViewById(R.id.messageView);
 		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
 		phoneButton = (Button) findViewById(R.id.phoneButton);
@@ -348,7 +322,7 @@ public class Index extends AppActivity {
 	                   null)            // Event value
 	      .build()
 		);
-		messageView.setVisibility(View.INVISIBLE);
+//		messageView.setVisibility(View.INVISIBLE);
 		Intent intent = new Intent(this, QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
 		startActivity(intent);
@@ -418,7 +392,9 @@ public class Index extends AppActivity {
 		getFamilyListFromCache();
 		getPhoneListFromCache();
 		getActivityListFromCache();
-		getCardListFromCache();
+		getPhoneList();
+		getActivityList();
+		getFamilyList();
 	}
 	
 	private void getFamilyListFromCache() {
@@ -827,13 +803,13 @@ public class Index extends AppActivity {
 				case Result.RESULT_OK:
 //					Tabbar.setMessagePao(entity);
 					if(entity != null){
-						messageView.setVisibility(View.VISIBLE);
-						int pao = Integer.valueOf(entity.news);
-						String num = pao>99?"99+":pao+"";
-						messageView.setText(num);
-						if (pao == 0) {
-							messageView.setVisibility(View.INVISIBLE);
-						}
+//						messageView.setVisibility(View.VISIBLE);
+//						int pao = Integer.valueOf(entity.news);
+//						String num = pao>99?"99+":pao+"";
+//						messageView.setText(num);
+//						if (pao == 0) {
+//							messageView.setVisibility(View.INVISIBLE);
+//						}
 					}
 				case CommonValue.USER_NOT_IN_ERROR:
 					break;

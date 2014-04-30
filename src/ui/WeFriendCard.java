@@ -2,8 +2,11 @@ package ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -15,6 +18,8 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
@@ -23,27 +28,35 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
+import baidupush.Utils;
 import bean.CardIntroEntity;
 import bean.Entity;
 import bean.FriendCardListEntity;
+import bean.MessageUnReadEntity;
 import bean.Result;
+import bean.UserEntity;
 
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.zxing.client.android.CaptureActivity;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 import config.QYRestClient;
-
 import tools.AppManager;
+import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
+import tools.UpdateManager;
 import ui.adapter.FriendCardAdapter;
 import widget.XListView;
 import widget.XListView.IXListViewListener;
 
 public class WeFriendCard extends AppActivity implements IXListViewListener, OnScrollListener, OnEditorActionListener{
+	private TextView messageView;
 	
 	private int lvDataState;
 	private int currentPage;
@@ -88,17 +101,25 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wefriendcard);
 		initUI();
+		currentPage = 1;
 		keyword = "";
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-//		Handler jumpHandler = new Handler();
-//        jumpHandler.postDelayed(new Runnable() {
-//			public void run() {
 		getFriendCardFromCache();
-//			}
-//		}, 100);
+		Handler jumpHandler = new Handler();
+        jumpHandler.postDelayed(new Runnable() {
+			public void run() {
+				if (!appContext.isNetworkConnected()) {
+		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+		    		return;
+		    	}
+				UpdateManager.getUpdateManager().checkAppUpdate(WeFriendCard.this, false);
+				checkLogin();
+			}
+		}, 500);
 	}
 	
 	private void initUI() {
+		messageView = (TextView) findViewById(R.id.messageView);
 		searchHeaderView = getLayoutInflater().inflate(R.layout.search_headview, null);
 		editText = (EditText) searchHeaderView.findViewById(R.id.searchEditView);
 		editText.setOnEditorActionListener(this);
@@ -133,15 +154,130 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
 		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
 		if(entity == null){
-			currentPage = 1;
-			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-			xlistView.startLoadMore();
+//			currentPage = 1;
+//			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
+//			xlistView.startLoadMore();
 			return;
 		}
 		handleFriends(entity, UIHelper.LISTVIEW_ACTION_INIT);
-		currentPage = 1;
-		getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
+//		currentPage = 1;
+//		getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
 	}
+	
+	private void checkLogin() {
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+    	
+		AppClient.autoLogin(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				UserEntity user = (UserEntity)data;
+				switch (user.getError_code()) {
+				case Result.RESULT_OK:
+					appContext.saveLoginInfo(user);
+					showReg(user);
+					getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
+					getUnReadMessage();
+					if (!Utils.hasBind(getApplicationContext())) {
+						blindBaidu();
+					}
+					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			@Override
+			public void onFailure(String message) {
+				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				Logger.i(e);
+			}
+		});
+	}
+	
+	private void showReg(UserEntity user) {
+		String reg = "手机用户.*";
+		Pattern p = Pattern.compile(reg);
+		Matcher m = p.matcher(user.nickname);
+		if (m.matches()) {
+			Intent intent = new Intent(this, Register.class);
+			intent.putExtra("mobile", user.username);
+			intent.putExtra("jump", false);
+	        startActivity(intent);
+		}
+	}
+	
+	public void showMessage() {
+		Intent intent = new Intent(this, MessageView.class);
+		startActivity(intent);
+	}
+	
+	private void getUnReadMessage() {
+		AppClient.getUnReadMessage(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				MessageUnReadEntity entity = (MessageUnReadEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+//					Tabbar.setMessagePao(entity);
+					if(entity != null){
+						messageView.setVisibility(View.VISIBLE);
+						int pao = Integer.valueOf(entity.news);
+						String num = pao>99?"99+":pao+"";
+						messageView.setText(num);
+						if (pao == 0) {
+							messageView.setVisibility(View.INVISIBLE);
+						}
+						WebView webview = (WebView) findViewById(R.id.webview);
+						webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
+						webview.setWebViewClient(new WebViewClient() {
+							public boolean shouldOverrideUrlLoading(WebView view, String url) {
+								view.loadUrl(url);
+								return true;
+							};
+						});
+					}
+				case CommonValue.USER_NOT_IN_ERROR:
+					break;
+				default:
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				e.printStackTrace();
+				Logger.i(e);
+			}
+		});
+	}
+	
+	private void blindBaidu() {
+		PushManager.startWork(getApplicationContext(),
+				PushConstants.LOGIN_TYPE_API_KEY, 
+				Utils.getMetaValue(this, "api_key"));
+	}
+	
 	
 	private void getFriendCard(int page, String kw, String count, final int action) {
 		if (!appContext.isNetworkConnected()) {
@@ -223,7 +359,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			AppManager.getAppManager().finishActivity(this);
+			showMessage();
 			break;
 		case R.id.searchEditView:
 			editText.setCursorVisible(true);

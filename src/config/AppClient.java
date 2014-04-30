@@ -195,6 +195,30 @@ public class AppClient {
 		});
 	}
 	
+	public static void setAvatar(String code, String sign, String key) {
+		RequestParams param = new RequestParams();
+		param.put("code", code);
+		param.put("sign", sign);
+		param.put("key", key);
+		QYRestClient.post("card/setAvatar", param, new AsyncHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+				try {
+					Logger.i(DecodeUtil.decode(new String(responseBody)));
+				} catch (AppException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			@Override
+			public void onFailure(int statusCode, Header[] headers,
+					byte[] responseBody, Throwable error) {
+				Logger.i(new String(responseBody));
+			}
+		});
+	}
+	
 	public static void regUser(final MyApplication appContext, String phone, String password, String realname, String department, String position, String email, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		params.add("phone", phone);
@@ -819,12 +843,16 @@ public class AppClient {
 		RequestParams param = new RequestParams();
 		param.put("material_idcard", material_idcard);
 		param.put("material_card", material_card);
-		param.put("code", code);
-		QYRestClient.post("card/vip", param, new AsyncHttpResponseHandler() {
+//		param.put("code", code);
+		QYRestClient.post("card/certify/code/"+code, param, new AsyncHttpResponseHandler() {
 			
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-				Logger.i(new String(responseBody));
+				try {
+					Logger.i(DecodeUtil.decode(new String(responseBody)));
+				} catch (AppException e) {
+					e.printStackTrace();
+				}
 			}
 			
 			@Override

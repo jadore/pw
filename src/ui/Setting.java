@@ -98,77 +98,15 @@ public class Setting extends AppActivity{
 	
 	
 	private void addCardOp() {
-//		List<CardIntroEntity> ops = new ArrayList<CardIntroEntity>();
-//		CardIntroEntity op1 = new CardIntroEntity();
-//		op1.realname = "我微友通讯录二维码";
-//		op1.department = CommonValue.subTitle.subtitle4;
-//		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
-//		op1.position = "";
-//		ops.add(op1);
-//		CardIntroEntity op2 = new CardIntroEntity();
-//		op2.realname = "扫一扫";
-//		op2.department = CommonValue.subTitle.subtitle5;
-//		op2.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
-//		op2.position = "";
-//		ops.add(op2);
-//		cards.add(ops);
-		
-		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op21 = new CardIntroEntity();
-		op21.realname = "客服反馈";
-		op21.department = CommonValue.subTitle.subtitle6;
-		op21.position = "";
-		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		ops2.add(op21);
-		cards.add(ops2);
-		
 		List<CardIntroEntity> ops3 = new ArrayList<CardIntroEntity>();
 		CardIntroEntity op31 = new CardIntroEntity();
 		op31.realname = "功能消息免打扰";
-		op31.department = "开启免打扰后，功能消息将收不到声音和震动提醒。";
 		op31.position = "";
 		op31.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
 		ops3.add(op31);
-		CardIntroEntity op32 = new CardIntroEntity();
-		op32.realname = "检查版本";
-		op32.department = "当前版本:"+getCurrentVersionName();
-		op32.position = "";
-		op32.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-		ops3.add(op32);
-		
-		CardIntroEntity op33 = new CardIntroEntity();
-		op33.realname = "注销";
-		op33.department = "退出当前账号重新登录";
-		op33.position = "";
-		op33.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-		ops3.add(op33);
-		
 		cards.add(ops3);
-		
 	}
 	
-	/**
-	 * 获取当前客户端版本信息
-	 */
-	private String  getCurrentVersionName(){
-		String versionName = null;
-        try { 
-        	PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-        	versionName = info.versionName;
-        } catch (NameNotFoundException e) {    
-			e.printStackTrace(System.err);
-		} 
-        return versionName;
-	}
-	
-	public void showFeedback() {
-		Intent intent = new Intent(this, Feedback.class);
-		startActivity(intent);
-	}
-	
-	public void showUpdate() {
-		UpdateManager.getUpdateManager().checkAppUpdate(this, true);
-	}
 	
 	public void logout() {
 		new AlertDialog.Builder(this).setTitle("确定注销本账号吗?")

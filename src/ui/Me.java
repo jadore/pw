@@ -4,10 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import tools.AppManager;
+import tools.ImageUtils;
 import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
+import tools.UpdateManager;
 import ui.adapter.IndexCardAdapter;
 import ui.adapter.MeCardAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
@@ -20,6 +23,9 @@ import cn.sharesdk.onekeyshare.OnekeyShare;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.zxing.client.android.CaptureActivity;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -28,12 +34,16 @@ import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ExpandableListView.OnGroupClickListener;
 
@@ -44,12 +54,23 @@ public class Me extends AppActivity{
 	
 	private ProgressDialog loadingPd;
 	
+	private ImageView avatarView;
+	private DisplayImageOptions avatar_options = new DisplayImageOptions.Builder()
+	.bitmapConfig(Bitmap.Config.RGB_565)
+	.cacheInMemory(true)
+	.cacheOnDisc(true)
+	.imageScaleType(ImageScaleType.EXACTLY_STRETCHED) 
+	.displayer(new RoundedBitmapDisplayer(10))
+	.build();
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.me);
 		initUI();
-		getCardListFromCache();
+		addCardOp();
+		mCardAdapter.notifyDataSetChanged();
+		expandView();
+		this.imageLoader.displayImage(appContext.getUserAvatar(), avatarView, avatar_options);
 	}
 	
 	public void ButtonClick(View v) {
@@ -67,6 +88,9 @@ public class Me extends AppActivity{
 		iphoneTreeView = (ExpandableListView) findViewById(R.id.iphone_tree_view);
 		iphoneTreeView.setGroupIndicator(null);
 		iphoneTreeView.addFooterView(footer);
+		View header = inflater.inflate(R.layout.more_headerview, null);
+		avatarView = (ImageView) header.findViewById(R.id.avatar);
+		iphoneTreeView.addHeaderView(header);
 		cards = new ArrayList<List<CardIntroEntity>>();
 		mCardAdapter = new MeCardAdapter(iphoneTreeView, this, cards);
 		iphoneTreeView.setAdapter(mCardAdapter);
@@ -90,9 +114,7 @@ public class Me extends AppActivity{
 		String key = String.format("%s-%s", CommonValue.CacheKey.CardList, appContext.getLoginUid());
 		CardListEntity entity = (CardListEntity) appContext.readObject(key);
 		if(entity == null){
-			addCardOp();
-			mCardAdapter.notifyDataSetChanged();
-			expandView();
+			
 			getCardList();
 			return;
 		}
@@ -100,7 +122,6 @@ public class Me extends AppActivity{
 		if (entity.owned.size()>0) {
 			cards.add(entity.owned);
 		}
-		addCardOp();
 		mCardAdapter.notifyDataSetChanged();
 		expandView();
 		getCardList();
@@ -108,54 +129,63 @@ public class Me extends AppActivity{
 	
 	private void addCardOp() {
 		List<CardIntroEntity> ops = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op1 = new CardIntroEntity();
-		op1.realname = "我微友通讯录二维码";
-		op1.department = CommonValue.subTitle.subtitle4;
-		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
-		op1.position = "";
-		ops.add(op1);
+		CardIntroEntity op0 = new CardIntroEntity();
+		op0.realname = "我的名片";
+		op0.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		op0.department = R.drawable.icon_set_card+"";
+		op0.position = "";
+		ops.add(op0);
+		
 		CardIntroEntity op2 = new CardIntroEntity();
 		op2.realname = "扫一扫";
-		op2.department = CommonValue.subTitle.subtitle5;
 		op2.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
 		op2.position = "";
+		op2.department = R.drawable.icon_set_ocr+"";
 		ops.add(op2);
+		
+		CardIntroEntity op1 = new CardIntroEntity();
+		op1.realname = "我的二维码";
+		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
+		op1.position = "";
+		op1.department = R.drawable.icon_set_barcode+"";
+		ops.add(op1);
 		cards.add(ops);
 		
-//		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
-//		CardIntroEntity op21 = new CardIntroEntity();
-//		op21.realname = "客服反馈";
-//		op21.department = CommonValue.subTitle.subtitle6;
-//		op21.position = "";
-//		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-//		ops2.add(op21);
-//		cards.add(ops2);
-//		
-//		List<CardIntroEntity> ops3 = new ArrayList<CardIntroEntity>();
-//		CardIntroEntity op31 = new CardIntroEntity();
-//		op31.realname = "功能消息免打扰";
-//		op31.department = "开启免打扰后，功能消息将收不到声音和震动提醒。";
-//		op31.position = "";
-//		op31.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-//		ops3.add(op31);
-//		CardIntroEntity op32 = new CardIntroEntity();
-//		op32.realname = "检查版本";
-//		op32.department = "当前版本:"+getCurrentVersionName();
-//		op32.position = "";
-//		op32.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-//		ops3.add(op32);
-//		
-//		CardIntroEntity op33 = new CardIntroEntity();
-//		op33.realname = "注销";
-//		op33.department = "退出当前账号重新登录";
-//		op33.position = "";
-//		op33.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-//		ops3.add(op33);
-//		
-//		cards.add(ops3);
-		
+		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op20 = new CardIntroEntity();
+		op20.realname = "设置";
+		op20.position = "";
+		op20.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		op20.department = R.drawable.icon_set_setting+"";
+		ops2.add(op20);
+		CardIntroEntity op21 = new CardIntroEntity();
+		op21.realname = "客服反馈";
+		op21.position = "";
+		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		op21.department = R.drawable.icon_set_feedback+"";
+		ops2.add(op21);
+		CardIntroEntity op22 = new CardIntroEntity();
+		op22.realname = "版本升级("+getCurrentVersionName()+")";
+		op22.position = "";
+		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+		op22.department = R.drawable.icon_set_update+"";
+		ops2.add(op22);
+		cards.add(ops2);
 	}
 	
+	/**
+	 * 获取当前客户端版本信息
+	 */
+	private String  getCurrentVersionName(){
+		String versionName = null;
+        try { 
+        	PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        	versionName = info.versionName;
+        } catch (NameNotFoundException e) {    
+			e.printStackTrace(System.err);
+		} 
+        return versionName;
+	}
 	private void getCardList() {
 //		indicatorImageView.setVisibility(View.VISIBLE);
 //    	indicatorImageView.startAnimation(indicatorAnimation);
@@ -216,6 +246,19 @@ public class Me extends AppActivity{
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
+	public void showMyCard() {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看我的名片",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, MyCard.class);
+		startActivity(intent);
+	}
+	
 	public void showMyBarcode() {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
@@ -233,6 +276,20 @@ public class Me extends AppActivity{
 	public void showScan() {
 		Intent intent = new Intent(this, CaptureActivity.class);
 		startActivity(intent);
+	}
+	
+	public void showSetting() {
+		Intent intent = new Intent(Me.this, Setting.class);
+		startActivity(intent);
+	}
+	
+	public void showFeedback() {
+		Intent intent = new Intent(this, Feedback.class);
+		startActivity(intent);
+	}
+	
+	public void showUpdate() {
+		UpdateManager.getUpdateManager().checkAppUpdate(this, true);
 	}
 	
 	public void oks(String title, String text, String link, String filePath) {

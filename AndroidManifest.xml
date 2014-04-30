@@ -64,7 +64,12 @@
         <activity
             android:name="ui.JiaV"
             android:screenOrientation="portrait"
-            android:launchMode="singleTop"
+             >
+        </activity>
+        
+        <activity
+            android:name="ui.UploadAvatar"
+            android:screenOrientation="portrait"
              >
         </activity>
         
@@ -234,7 +239,14 @@
             android:name="ui.Me"
             android:screenOrientation="portrait"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustNothing"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"
+             >
+        </activity>  
+        
+        <activity
+            android:name="ui.MyCard"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"
              >
         </activity>  
         

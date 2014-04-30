@@ -153,6 +153,7 @@ public class CommonValue {
 		int showChat = 11;
 		int phonebookAssistSelect = 12;
 		int showJiaV = 13;
+		int showUploadAvatar = 14;
 	}
 	
 	public interface PhonebookViewIntentKeyValue {

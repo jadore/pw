@@ -2,16 +2,10 @@ package ui;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import qiniu.auth.JSONObjectRet;
@@ -20,7 +14,6 @@ import qiniu.io.PutExtra;
 import tools.AppManager;
 import tools.ImageUtils;
 import tools.Logger;
-import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
 import bean.Entity;
@@ -29,17 +22,13 @@ import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.AppClient.ClientCallback;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -66,15 +55,13 @@ public class JiaV extends AppActivity{
 	
 	private String code;
 	private String uploadToken;
-	public static String bucketName = "pbwci";
-	public static String domain = bucketName + ".qiniudn.com";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.jiav);
 		initUI();
-//		code = getIntent().getStringExtra("code");
+		code = getIntent().getStringExtra("code");
 		uploadToken = getIntent().getStringExtra("token");
 	}
 	
@@ -164,7 +151,7 @@ public class JiaV extends AppActivity{
 				}
 				String imagePathAfterCompass = ImageUtils.CACHE_IMAGE_FILE_PATH + "/" + file.getName();
 				try {
-					ImageUtils.saveImageToSD(imagePathAfterCompass, ImageUtils.getSmallBitmap(theLarge), 60);
+					ImageUtils.saveImageToSD(imagePathAfterCompass, ImageUtils.getSmallBitmap(theLarge, 300), 90);
 					newPhotoPath = imagePathAfterCompass;
 					upload(type, newPhotoPath);
 				} catch (IOException e) {
@@ -190,7 +177,7 @@ public class JiaV extends AppActivity{
 			}
 			String imagePathAfterCompass = ImageUtils.CACHE_IMAGE_FILE_PATH + "/" + file.getName();
 			try {
-				ImageUtils.saveImageToSD(imagePathAfterCompass, ImageUtils.getSmallBitmap(newPhotoPath), 60);
+				ImageUtils.saveImageToSD(imagePathAfterCompass, ImageUtils.getSmallBitmap(newPhotoPath, 300), 90);
 				newPhotoPath = imagePathAfterCompass;
 				upload(type, newPhotoPath);
 			} catch (IOException e) {
@@ -226,8 +213,8 @@ public class JiaV extends AppActivity{
 				@Override
 				public void onSuccess(JSONObject resp) {
 					String hash = resp.optString("hash", "");
-					String redirect = "http://" + domain + "/" + hash;
 					mingpianFile = hash;
+					Logger.i(hash);
 					mingpianTV.setVisibility(View.INVISIBLE);
 				}
 
@@ -260,8 +247,6 @@ public class JiaV extends AppActivity{
 				@Override
 				public void onSuccess(JSONObject resp) {
 					String hash = resp.optString("hash", "");
-					String redirect = "http://" + domain + "/" + hash;
-					Logger.i(redirect);
 					idFile = hash;
 					idTV.setVisibility(View.INVISIBLE);
 				}

@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import service.AddMobileService;
+import tools.AppContext;
 import tools.AppManager;
 import tools.Logger;
 import tools.MD5Util;
@@ -48,6 +49,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -98,6 +100,9 @@ public class QYWebView extends AppActivity  {
 	
 	private MobileReceiver mobileReceiver;
 	private IWXAPI api;
+	
+	private SharedPreferences shared;
+	private SharedPreferences.Editor editor;
 	@Override
 	public void onStart() {
 	    super.onStart();
@@ -123,6 +128,8 @@ public class QYWebView extends AppActivity  {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		shared = getSharedPreferences("userInfo", 0); 
+		editor = shared.edit();
 		setContentView(R.layout.create_view);
 		registerGetReceiver();
 		api = WXAPIFactory.createWXAPI(this, "wx8b5b960fc0311f3e", false);
@@ -304,20 +311,47 @@ public class QYWebView extends AppActivity  {
 	}
 	
 	private void loadURLScheme(String url) {
-		String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
-		WebContent dc = (WebContent) appContext.readObject(key);
-		if(dc == null){
-			if (!appContext.isNetworkConnected()) {
-            	webView.loadUrl(url);
-            	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+		switch (appContext.getNetworkType()) {
+		case AppContext.NETTYPE_WIFI:
+			if (url.contains("card")) {
+				webView.loadUrl(url);
 			}
 			else {
-				loadURL(url, true, true);
+				String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
+				WebContent dc = (WebContent) appContext.readObject(key);
+				if(dc == null){
+					if (!appContext.isNetworkConnected()) {
+		            	webView.loadUrl(url);
+		            	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+					}
+					else {
+						loadURL(url, true, true);
+					}
+				}
+				else {
+					webView.loadDataWithBaseURL(CommonValue.BASE_URL, dc.text, "text/html", "utf-8", url);
+					loadURL(url, false, true);
+				}
 			}
-		}
-		else {
-			webView.loadDataWithBaseURL(CommonValue.BASE_URL, dc.text, "text/html", "utf-8", url);
-			loadURL(url, false, true);
+			break;
+		case AppContext.NETTYPE_CMNET:
+		case AppContext.NETTYPE_CMWAP:
+			String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
+			WebContent dc = (WebContent) appContext.readObject(key);
+			if(dc == null){
+				if (!appContext.isNetworkConnected()) {
+	            	webView.loadUrl(url);
+	            	UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+				}
+				else {
+					loadURL(url, true, true);
+				}
+			}
+			else {
+				webView.loadDataWithBaseURL(CommonValue.BASE_URL, dc.text, "text/html", "utf-8", url);
+				loadURL(url, false, true);
+			}
+			break;
 		}
 	}
 	
@@ -509,10 +543,15 @@ public class QYWebView extends AppActivity  {
 	    	mJSHandler.sendMessage(msg);
 	    }
 	    public void showJiaV(String c) {
-	    	Logger.i(c);
 	    	Message msg = new Message();
 	    	msg.obj = c;
 	    	msg.what = CommonValue.CreateViewJSType.showJiaV;
+	    	mJSHandler.sendMessage(msg);
+	    }
+	    public void setAvatar(String c) {
+	    	Message msg = new Message();
+	    	msg.obj = c;
+	    	msg.what = CommonValue.CreateViewJSType.showUploadAvatar;
 	    	mJSHandler.sendMessage(msg);
 	    }
     }
@@ -581,28 +620,52 @@ public class QYWebView extends AppActivity  {
 				break;
 			case CommonValue.CreateViewJSType.phonebookAssistSelect:
 				code = (String) msg.obj;
-				enterJiaV(code);
+				enterPhonebook(code);
 				break;
 			case CommonValue.CreateViewJSType.showJiaV:
 				code = (String) msg.obj;
+				Logger.i(code);
 				enterJiaV(code);
+				break;
+			case CommonValue.CreateViewJSType.showUploadAvatar:
+				code = (String) msg.obj;
+				Logger.i(code);
+				enterUploadAvatar(code);
+				break;
 			}
 		};
 	};
+	
+	private void enterUploadAvatar(String code) {
+		if (this.isFinishing()) {
+			return;
+		}
+		try {
+			JSONObject js = new JSONObject(code);
+			Intent intent = new Intent(context, UploadAvatar.class);
+			intent.putExtra("code", js.getString("code"));
+			intent.putExtra("token", js.getString("token"));
+			intent.putExtra("avatar", js.getString("avatar"));
+			intent.putExtra("sign", js.getString("sign"));
+			startActivityForResult(intent, CommonValue.CreateViewJSType.showUploadAvatar);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	private void enterJiaV(String code) {
 		if (this.isFinishing()) {
 			return;
 		}
-//		try {
-//			JSONObject js = new JSONObject(code);
+		try {
+			JSONObject js = new JSONObject(code);
 			Intent intent = new Intent(context, JiaV.class);
-//			intent.putExtra("code", js.getString("code"));
-			intent.putExtra("token", "jZpEEbK-tElCcE5Z7ANp-IaSSljrsq5AklVV3OhS:suFY6AYmYw4knBirt1OLoxZgGN0=:eyJzY29wZSI6InBid2NpIiwiZGVhZGxpbmUiOjEzOTgzMjMxMTd9");
+			intent.putExtra("code", js.getString("code"));
+			intent.putExtra("token", js.getString("token"));
 			startActivity(intent);
-//		} catch (JSONException e) {
-//			e.printStackTrace();
-//		}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void enterPhonebook(String code) {
@@ -967,6 +1030,10 @@ public class QYWebView extends AppActivity  {
 		case CommonValue.CreateViewJSType.phonebookAssistSelect:
 			String url = intent.getStringExtra("url");
 			webView.loadUrl(url);
+			loadingPd = UIHelper.showProgress(QYWebView.this, "", "", true);
+			break;
+		case CommonValue.CreateViewJSType.showUploadAvatar:
+			webView.loadUrl(urls.get(urls.size()-1));
 			loadingPd = UIHelper.showProgress(QYWebView.this, "", "", true);
 			break;
 		}

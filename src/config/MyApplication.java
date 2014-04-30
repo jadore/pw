@@ -17,6 +17,7 @@ import tools.AppContext;
 import tools.AppException;
 import tools.ImageCacheUtil;
 import tools.Logger;
+import tools.NetworkStateService;
 import tools.StringUtils;
 import bean.ContactBean;
 import bean.UserEntity;
@@ -82,7 +83,7 @@ public class MyApplication extends AppContext {
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);
 		
-//        Intent service = new Intent(this, QYEnterService.class);
+//        Intent service = new Intent(this, NetworkStateService.class);
 //		startService(service);
 	}
 	

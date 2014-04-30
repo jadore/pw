@@ -27,13 +27,9 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 	private LayoutInflater inflater;
 	private List<List<CardIntroEntity>> cards;
 	
-	static class SectionView {
-		TextView titleView;
-	}
 	
 	static class CellHolder {
 		TextView titleView;
-		TextView desView;
 	}
 	
 	public SettingCardAdapter(ExpandableListView iphoneTreeView, Context context, List<List<CardIntroEntity>> cards) {
@@ -87,17 +83,9 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
-		SectionView sect = null;
 		if (convertView == null) {
-			sect = new SectionView();
-			convertView = inflater.inflate(R.layout.index_section, null);
-			sect.titleView = (TextView) convertView.findViewById(R.id.titleView);
-			convertView.setTag(sect);
+			convertView = inflater.inflate(R.layout.messagecenter_section, null);
 		}
-		else {
-			sect = (SectionView) convertView.getTag();
-		}
-		sect.titleView.setText(getGroup(groupPosition).toString());
 		return convertView;
 	}
 
@@ -107,9 +95,8 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 		CellHolder cell = null;
 		if (convertView == null) {
 			cell = new CellHolder();
-			convertView = inflater.inflate(R.layout.index_cell, null);
+			convertView = inflater.inflate(R.layout.more_cell, null);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
-			cell.desView = (TextView) convertView.findViewById(R.id.des);
 			convertView.setTag(cell);
 		}
 		else {
@@ -117,24 +104,7 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 		}
 		final CardIntroEntity model = cards.get(groupPosition).get(childPosition);
 		cell.titleView.setText(model.realname);
-		cell.desView.setText(String.format("%s %s", model.department, model.position));
-		if (model.cardSectionType.equals(CommonValue.CardSectionType.FeedbackSectionType)) {
-			if (childPosition == 0) {
-				convertView.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View arg0) {
-						((Setting)context).showFeedback();
-					}
-				});
-			}
-			convertView.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					return false;
-				}
-			});
-		}
-		else if (model.cardSectionType.equals(CommonValue.CardSectionType.SettingsSectionType)) {
+		if (model.cardSectionType.equals(CommonValue.CardSectionType.SettingsSectionType)) {
 			if (childPosition == 0) {
 				convertView.setOnClickListener(new OnClickListener() {
 					@Override
@@ -143,28 +113,6 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 					}
 				});
 			}
-			else if (childPosition == 1) {
-				convertView.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View arg0) {
-						((Setting)context).showUpdate();
-					}
-				});
-			}
-			else {
-				convertView.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View arg0) {
-						((Setting)context).logout();
-					}
-				});
-			}
-			convertView.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					return false;
-				}
-			});
 		}
 		return convertView;
 	}
