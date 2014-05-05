@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 import tools.AppException;
 import tools.StringUtils;
 
-public class PhoneIntroEntity extends Entity {
+public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEntity> {
 	
 	public String qun_id;//": "4",
 	public String wechat_id;//": "oYTgBuITFr_rlDTx7VLiPvrt-D_s",
@@ -126,6 +126,18 @@ public class PhoneIntroEntity extends Entity {
 			throw AppException.json(e);
 		}
 		return data;
+	}
+	
+	@Override
+	public int compareTo(PhoneIntroEntity another) {
+		if (null == this.dateline ) {
+			return 0;
+		}
+		String time1 = "";
+		String time2 = "";
+		time1 = this.dateline;
+		time2 = another.dateline;
+		return time1.compareTo(time2);
 	}
     	
 }

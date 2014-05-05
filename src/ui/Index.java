@@ -2,6 +2,7 @@ package ui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,45 +75,29 @@ import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
-import ui.adapter.IndexCardAdapter;
 import ui.adapter.IndexPagerAdapter;
-import ui.adapter.IphoneTreeViewAdapter;
+import ui.adapter.IndexPhoneAdapter;
+import widget.XListView;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
 public class Index extends AppActivity {
-//	private ImageView avatarImageView;
 	private ImageView indicatorImageView;
 	private Animation indicatorAnimation;
 	
-//	private TextView messageView;
 	private Button phoneButton;
 	private Button activityButton;
-//	private Button cardButton;
 	
 	private boolean isFirst = true;
-//	private boolean isCFirst = true;
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
-//	private static final int PAGE3 = 2;// 页面3
 	private ViewPager mPager;
 	private List<View> mListViews;// Tab页面
 	
-	private ExpandableListView iphoneTreeView;
-	private IphoneTreeViewAdapter mPhoneAdapter;
-	private List<List<PhoneIntroEntity>> phones;
+	private XListView xListView;
+	private List<PhoneIntroEntity> phones = new ArrayList<PhoneIntroEntity>();
+	private IndexPhoneAdapter phoneAdapter;
 	
-	private WebView webView;
-	private Button loadAgainButton;
-	
-	private List<List<CardIntroEntity>> cards;
-	private PinnedHeaderListView mPinedListView0;
-	private IndexCardAdapter mCardAdapter;
-	
-//	private ListView mListView3;
 	private ProgressDialog loadingPd;
-//	
-//	private int firstVisibleItemPosition;
-//	private float mLastY = -1;
 	
 	@Override
 	public void onStart() {
@@ -140,12 +125,6 @@ public class Index extends AppActivity {
 		getCache();
 	}
 	
-	private void blindBaidu() {
-		PushManager.startWork(getApplicationContext(),
-				PushConstants.LOGIN_TYPE_API_KEY, 
-				Utils.getMetaValue(this, "api_key"));
-	}
-	
 	private void initUI() {
 		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
 		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
@@ -158,8 +137,6 @@ public class Index extends AppActivity {
 		    }
 		});
 		
-//		messageView = (TextView) findViewById(R.id.messageView);
-//		cardButton = (Button) findViewById(R.id.cardButton);
 		activityButton = (Button) findViewById(R.id.activityButton);
 		phoneButton = (Button) findViewById(R.id.phoneButton);
 		phoneButton.setSelected(true);
@@ -168,13 +145,11 @@ public class Index extends AppActivity {
 		mListViews = new ArrayList<View>();
 		LayoutInflater inflater = LayoutInflater.from(this);
 		
-		View lay1 = inflater.inflate(R.layout.index_tab0, null);
-		View lay2 = inflater.inflate(R.layout.tab2, null);
 		View lay0 = inflater.inflate(R.layout.tab0, null);
+		View lay1 = inflater.inflate(R.layout.tab1, null);
 		
-		mListViews.add(lay1);
-		mListViews.add(lay2);
 		mListViews.add(lay0);
+		mListViews.add(lay1);
 		
 		mPager.setAdapter(new IndexPagerAdapter(mListViews));
 		mPager.setCurrentItem(PAGE1);
@@ -182,67 +157,13 @@ public class Index extends AppActivity {
 		
 		View footer = inflater.inflate(R.layout.index_footer, null);
 		
-//		View header = inflater.inflate(R.layout.index_tab0_header, null);
-		iphoneTreeView = (ExpandableListView) lay1.findViewById(R.id.iphone_tree_view);
-		iphoneTreeView.setGroupIndicator(null);
-//		iphoneTreeView.addHeaderView(header);
-		iphoneTreeView.addFooterView(footer);
-		
-		phones = new ArrayList<List<PhoneIntroEntity>>(4);
-		
-		List<PhoneIntroEntity> phone0 = new ArrayList<PhoneIntroEntity>();
-		List<PhoneIntroEntity> phone1 = new ArrayList<PhoneIntroEntity>();
-		List<PhoneIntroEntity> phone2 = new ArrayList<PhoneIntroEntity>();
-		List<PhoneIntroEntity> phone3 = new ArrayList<PhoneIntroEntity>();
-		List<PhoneIntroEntity> phone4 = new ArrayList<PhoneIntroEntity>();
-		List<PhoneIntroEntity> phone5 = new ArrayList<PhoneIntroEntity>();
-		phones.add(phone0);
-		phones.add(phone1);
-		phones.add(phone2);
-		phones.add(phone3);
-		phones.add(phone4);
-		phones.add(phone5);
-		mPhoneAdapter = new IphoneTreeViewAdapter(iphoneTreeView, this, phones);
-		iphoneTreeView.setAdapter(mPhoneAdapter);
-		iphoneTreeView.setSelection(0);
-		iphoneTreeView.setOnGroupClickListener(new OnGroupClickListener() {
-			@Override
-			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
-					long arg3) {
-//				if (iphoneTreeView.isGroupExpanded(position)) {
-//					iphoneTreeView.collapseGroup(position);
-//				}
-//				else {
-//					iphoneTreeView.expandGroup(position); 
-//				}
-//				if (position == 0 || position == 1) {
-//					if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
-//						getFamilyList();
-//					}
-//				}
-//				else if (position == 2 || position == 3) {
-//					if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
-//						getPhoneList();
-//					}
-//				}
-//				else if (position == 4 || position == 5) {
-//					if (phones.get(4).size() == 0 && phones.get(5).size() == 0) {
-//						getActivityList();
-//					}
-//				}
-				return true;
-			}
-		});
-		webView = (WebView) lay2.findViewById(R.id.webview);
-		loadAgainButton = (Button) lay2.findViewById(R.id.loadAgain);
-		
-		mPinedListView0 = (PinnedHeaderListView) lay0.findViewById(R.id.tab0_listView);
-		mPinedListView0.setDividerHeight(0);
-		View footer1 = inflater.inflate(R.layout.index_footer, null);
-		mPinedListView0.addFooterView(footer1);
-		cards = new ArrayList<List<CardIntroEntity>>();
-		mCardAdapter = new IndexCardAdapter(this, cards);
-		mPinedListView0.setAdapter(mCardAdapter);
+		xListView = (XListView) lay0.findViewById(R.id.tab0_listView);
+		xListView.addFooterView(footer);
+		xListView.setPullLoadEnable(false);
+		xListView.setPullRefreshEnable(false);
+		xListView.setDividerHeight(0);
+		phoneAdapter = new IndexPhoneAdapter(this, phones);
+		xListView.setAdapter(phoneAdapter);
 	}
 	
 	public void showMobileView() {
@@ -285,81 +206,10 @@ public class Index extends AppActivity {
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
-	public void showActivityViewWeb(PhoneIntroEntity entity) {
-		EasyTracker easyTracker = EasyTracker.getInstance(this);
-		easyTracker.send(MapBuilder
-	      .createEvent("ui_action",     // Event category (required)
-	                   "button_press",  // Event action (required)
-	                   "查看聚会："+entity.link,   // Event label
-	                   null)            // Event value
-	      .build()
-		);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
-	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
-	}
-	
-	public void showCardViewWeb(CardIntroEntity entity) {
-		EasyTracker easyTracker = EasyTracker.getInstance(this);
-		easyTracker.send(MapBuilder
-	      .createEvent("ui_action",     // Event category (required)
-	                   "button_press",  // Event action (required)
-	                   "查看名片："+entity.link,   // Event label
-	                   null)            // Event value
-	      .build()
-		);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
-		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
-	}
-	
-	private void showMessage() {
-		EasyTracker easyTracker = EasyTracker.getInstance(this);
-		easyTracker.send(MapBuilder
-	      .createEvent("ui_action",     // Event category (required)
-	                   "button_press",  // Event action (required)
-	                   "查看消息："+String.format("%s/message/index", CommonValue.BASE_URL),   // Event label
-	                   null)            // Event value
-	      .build()
-		);
-//		messageView.setVisibility(View.INVISIBLE);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/message/index", CommonValue.BASE_URL));
-		startActivity(intent);
-	}
-	
-	public void showMyBarcode() {
-		EasyTracker easyTracker = EasyTracker.getInstance(this);
-		easyTracker.send(MapBuilder
-	      .createEvent("ui_action",     // Event category (required)
-	                   "button_press",  // Event action (required)
-	                   "查看名片二维码："+String.format("%s/card/mybarcode", CommonValue.BASE_URL),   // Event label
-	                   null)            // Event value
-	      .build()
-		);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, String.format("%s/card/mybarcode", CommonValue.BASE_URL));
-		startActivity(intent);
-	}
-	
-	public void showScan() {
-		Intent intent = new Intent(this, CaptureActivity.class);
-		startActivity(intent);
-	}
-	
-	public void showFeedback() {
-		Intent intent = new Intent(this, Feedback.class);
-		startActivity(intent);
-	}
-	
-	public void showUpdate() {
-		UpdateManager.getUpdateManager().checkAppUpdate(this, true);
-	}
 	
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
-			showMessage();
 			break;
 		case R.id.rightBarButton:
 			showContactDialog();
@@ -372,9 +222,6 @@ public class Index extends AppActivity {
 		case R.id.activityButton:
 			mPager.setCurrentItem(PAGE2);
 			break;
-//		case R.id.cardButton:
-//			mPager.setCurrentItem(PAGE3);
-//			break;
 		case R.id.navmobile:
 			showMobileView();
 			break;
@@ -382,43 +229,13 @@ public class Index extends AppActivity {
 			showFriendCardView();
 			break;
 		case R.id.loadAgain:
-			loadAgain();
 			break;
 		}
 	}
 	
 	private void getCache() {
-//		getCacheUser();
-//		getFamilyListFromCache();
 		getPhoneListFromCache();
-//		getActivityListFromCache();
 		getPhoneList();
-//		getActivityList();
-//		getFamilyList();
-	}
-	
-	private void getFamilyListFromCache() {
-		String key = String.format("%s-%s", CommonValue.CacheKey.FamilyList, appContext.getLoginUid());
-		FamilyListEntity entity = (FamilyListEntity) appContext.readObject(key);
-		if(entity != null){
-			handlerFamilySection(entity);
-		}
-	}
-	
-	private void handlerFamilySection(FamilyListEntity entity) {
-		if (entity.family.size()>0) {
-			phones.set(4, entity.family);
-//			if (entity.family.size() <= 3) {
-				iphoneTreeView.expandGroup(4);
-//			}
-		}
-		if (entity.clan.size()>0) {
-			phones.set(5, entity.clan);
-//			if (entity.clan.size() <= 3) {
-				iphoneTreeView.expandGroup(5);
-//			}
-		}
-		mPhoneAdapter.notifyDataSetChanged();
 	}
 	
 	private void getPhoneListFromCache() {
@@ -431,129 +248,15 @@ public class Index extends AppActivity {
 	}
 	
 	private void handlerPhoneSection(PhoneListEntity entity) {
+		phones.clear();
 		if (entity.owned.size()>0) {
-			phones.set(0, entity.owned);
-//			if (entity.owned.size() <= 3) {
-				iphoneTreeView.expandGroup(0);
-//			}
+			phones.addAll(entity.owned);
 		}
 		if (entity.joined.size()>0) {
-			phones.set(1, entity.joined);
-//			if (entity.joined.size() <= 3) {
-				iphoneTreeView.expandGroup(1);
-//			}
+			phones.addAll(entity.joined);
 		}
-		mPhoneAdapter.notifyDataSetChanged();
-	}
-	
-	private void getActivityListFromCache() {
-		String key = String.format("%s-%s", CommonValue.CacheKey.ActivityList, appContext.getLoginUid());
-		ActivityListEntity entity = (ActivityListEntity) appContext.readObject(key);
-		if(entity != null){
-			handlerActivitySection(entity);
-		}
-		
-	}
-	
-	private void handlerActivitySection(ActivityListEntity entity) {
-		if (entity.owned.size()>0) {
-			phones.set(2, entity.owned);
-//			if (entity.owned.size() <= 3) {
-				iphoneTreeView.expandGroup(2);
-//			}
-		}
-		if (entity.joined.size()>0) {
-			phones.set(3, entity.joined);
-//			if (entity.joined.size() <= 3) {
-				iphoneTreeView.expandGroup(3);
-//			}
-		}
-		mPhoneAdapter.notifyDataSetChanged();
-	}
-	
-	private void getCardListFromCache() {
-		String key = String.format("%s-%s", CommonValue.CacheKey.CardList, appContext.getLoginUid());
-		CardListEntity entity = (CardListEntity) appContext.readObject(key);
-		if(entity == null){
-			addCardOp();
-			mCardAdapter.notifyDataSetChanged();
-			return;
-		}
-		cards.clear();
-		if (entity.owned.size()>0) {
-			cards.add(entity.owned);
-		}
-		addCardOp();
-		mCardAdapter.notifyDataSetChanged();
-	}
-	
-	private void checkLogin() {
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-    	
-		AppClient.autoLogin(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-//				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UserEntity user = (UserEntity)data;
-				switch (user.getError_code()) {
-				case Result.RESULT_OK:
-					appContext.saveLoginInfo(user);
-					showReg(user);
-					getFamilyList();
-					getPhoneList();
-					getActivityList();
-					getUnReadMessage();
-					if (!Utils.hasBind(getApplicationContext())) {
-						blindBaidu();
-					}
-					WebView webview = (WebView) findViewById(R.id.webview);
-					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
-					webview.setWebViewClient(new WebViewClient() {
-						public boolean shouldOverrideUrlLoading(WebView view, String url) {
-							view.loadUrl(url);
-							return true;
-						};
-					});
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			@Override
-			public void onFailure(String message) {
-//				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-//				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				Logger.i(e);
-			}
-		});
-	}
-	
-	private void showReg(UserEntity user) {
-		String reg = "手机用户.*";
-		Pattern p = Pattern.compile(reg);
-		Matcher m = p.matcher(user.nickname);
-		if (m.matches()) {
-			Intent intent = new Intent(this, Register.class);
-			intent.putExtra("mobile", user.username);
-			intent.putExtra("jump", false);
-	        startActivity(intent);
-		}
+		Collections.sort(phones);
+		phoneAdapter.notifyDataSetChanged();
 	}
 	
 	private String[] lianxiren1 = new String[] { "创建通讯录", "创建活动", "创建我的名片"};
@@ -605,43 +308,6 @@ public class Index extends AppActivity {
         startActivityForResult(intent, RequestCode);
 	}
 	
-	private void getFamilyList() {
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getFamilyList(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				FamilyListEntity entity = (FamilyListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					handlerFamilySection(entity);
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				Logger.i(e);
-			}
-		});
-	}
-	
 	private void getPhoneList() {
 		indicatorImageView.setVisibility(View.VISIBLE);
     	indicatorImageView.startAnimation(indicatorAnimation);
@@ -654,13 +320,13 @@ public class Index extends AppActivity {
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
 					handlerPhoneSection(entity);
-					mPhoneAdapter.notifyDataSetChanged();
+					phoneAdapter.notifyDataSetChanged();
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
 					break;
 				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
 					break;
 				}
 			}
@@ -680,91 +346,7 @@ public class Index extends AppActivity {
 		});
 	}
 	
-	private void getActivityList() {
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getActivityList(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-//				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				ActivityListEntity entity = (ActivityListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					handlerActivitySection(entity);
-					mPhoneAdapter.notifyDataSetChanged();
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				Logger.i(e);
-			}
-		});
-	}
 	
-	private void getCardList() {
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getCardList(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-//				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				CardListEntity entity = (CardListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					cards.clear();
-					if (entity.owned.size()>0) {
-						cards.add(entity.owned);
-					}
-					else {
-						
-					}
-					addCardOp();
-					mCardAdapter.notifyDataSetChanged();
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				e.printStackTrace();
-				Logger.i(e);
-			}
-		});
-	}
 	
 //	private void getRecommendList() {
 //		AppClient.getRecommendList(appContext, new ClientCallback() {
@@ -794,42 +376,6 @@ public class Index extends AppActivity {
 //		});
 //	}
 	
-	private void getUnReadMessage() {
-		AppClient.getUnReadMessage(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				MessageUnReadEntity entity = (MessageUnReadEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-//					Tabbar.setMessagePao(entity);
-					if(entity != null){
-//						messageView.setVisibility(View.VISIBLE);
-//						int pao = Integer.valueOf(entity.news);
-//						String num = pao>99?"99+":pao+"";
-//						messageView.setText(num);
-//						if (pao == 0) {
-//							messageView.setVisibility(View.INVISIBLE);
-//						}
-					}
-				case CommonValue.USER_NOT_IN_ERROR:
-					break;
-				default:
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				e.printStackTrace();
-				Logger.i(e);
-			}
-		});
-	}
-	
 	// ViewPager页面切换监听
 	public class MyOnPageChangeListener implements OnPageChangeListener {
 		public void onPageSelected(int arg0) {
@@ -837,38 +383,11 @@ public class Index extends AppActivity {
 			case PAGE1:// 切换到页卡1
 				phoneButton.setSelected(true);
 				activityButton.setSelected(false);
-//				cardButton.setSelected(false);
-				if (phones.get(0).size() == 0 && phones.get(1).size() == 0) {
-					getPhoneList();
-				}
-				if (phones.get(2).size() == 0 && phones.get(3).size() == 0) {
-					getActivityList();
-				}
 				break;
 			case PAGE2:// 切换到页卡2
-				if (isFirst) {
-					Handler jumpHandler = new Handler();
-			        jumpHandler.postDelayed(new Runnable() {
-						public void run() {
-							initWebData();
-						}
-					}, 200);
-					isFirst = false;
-				}
 				phoneButton.setSelected(false);
 				activityButton.setSelected(true);
-//				cardButton.setSelected(false);
 				break;
-//			case PAGE3:// 切换到页卡3
-//				if (isCFirst) {
-//					getCardList();
-//					Logger.i("ddd");
-//					isCFirst = false;
-//				}
-//				phoneButton.setSelected(false);
-//				activityButton.setSelected(false);
-//				cardButton.setSelected(true);
-//				break;
 			}
 		}
 
@@ -960,344 +479,11 @@ public class Index extends AppActivity {
 		}
 	}
 	
-	public void cardShare(boolean silent, String platform, CardIntroEntity card, String filePath) {
-		try {
-			String text = (StringUtils.notEmpty(card.intro)?card.intro:String.format("您好，我叫%s，这是我的名片，请多多指教。",card.realname));
-			oks(card.realname, text, card.link, filePath);
-		} catch (Exception e) {
-			Logger.i(e);
-		}
-	}
-	
-	public void cardSharePre(final boolean silent, final String platform, final CardIntroEntity card) {
-		if (StringUtils.empty(appContext.getLoginInfo().headimgurl)) {
-			cardShare(silent, platform, card, "");
-			return;
-		}
-		String storageState = Environment.getExternalStorageState();	
-		if(storageState.equals(Environment.MEDIA_MOUNTED)){
-			String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/" + MD5Util.getMD5String(appContext.getLoginInfo().headimgurl) + ".png";
-			File file = new File(savePath);
-			if (file.exists()) {
-				cardShare(silent, platform, card, savePath);
-			}
-			else {
-				loadingPd = UIHelper.showProgress(Index.this, null, null, true);
-				AppClient.downFile(this, appContext, appContext.getLoginInfo().headimgurl, ".png", new FileCallback() {
-					@Override
-					public void onSuccess(String filePath) {
-						UIHelper.dismissProgress(loadingPd);
-						cardShare(silent, platform, card, filePath);
-					}
-					
-					@Override
-					public void onFailure(String message) {
-						UIHelper.dismissProgress(loadingPd);
-						cardShare(silent, platform, card, "");
-					}
-					
-					@Override
-					public void onError(Exception e) {
-						UIHelper.dismissProgress(loadingPd);
-						cardShare(silent, platform, card, "");
-					}
-				});
-			}
-		}
-	}
-	
-	private void addCardOp() {
-		List<CardIntroEntity> ops = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op1 = new CardIntroEntity();
-		op1.realname = "我微友通讯录二维码";
-		op1.department = CommonValue.subTitle.subtitle4;
-		op1.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
-		op1.position = "";
-		ops.add(op1);
-		CardIntroEntity op2 = new CardIntroEntity();
-		op2.realname = "扫一扫";
-		op2.department = CommonValue.subTitle.subtitle5;
-		op2.cardSectionType = CommonValue.CardSectionType .BarcodeSectionType;
-		op2.position = "";
-		ops.add(op2);
-		cards.add(ops);
-		
-		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op21 = new CardIntroEntity();
-		op21.realname = "客服反馈";
-		op21.department = CommonValue.subTitle.subtitle6;
-		op21.position = "";
-		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		ops2.add(op21);
-		cards.add(ops2);
-		
-		List<CardIntroEntity> ops3 = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op31 = new CardIntroEntity();
-		op31.realname = "功能消息免打扰";
-		op31.department = "开启免打扰后，功能消息将收不到声音和震动提醒。";
-		op31.position = "";
-		op31.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-		ops3.add(op31);
-		CardIntroEntity op32 = new CardIntroEntity();
-		op32.realname = "检查版本";
-		op32.department = "当前版本:"+getCurrentVersionName();
-		op32.position = "";
-		op32.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-		ops3.add(op32);
-		
-		CardIntroEntity op33 = new CardIntroEntity();
-		op33.realname = "注销";
-		op33.department = "退出当前账号重新登录";
-		op33.position = "";
-		op33.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
-		ops3.add(op33);
-		
-		cards.add(ops3);
-		
-	}
-	
-	/**
-	 * 获取当前客户端版本信息
-	 */
-	private String  getCurrentVersionName(){
-		String versionName = null;
-        try { 
-        	PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-        	versionName = info.versionName;
-        } catch (NameNotFoundException e) {    
-			e.printStackTrace(System.err);
-		} 
-        return versionName;
-	}
-
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode != RESULT_OK) {
 			return;
 		}
-		switch (requestCode) {
-		case CommonValue.CreateViewUrlAndRequest.ContactCreat:
-			getPhoneList();
-			mPager.setCurrentItem(PAGE1);
-			break;
-		case CommonValue.CreateViewUrlAndRequest.ActivityCreateCreat:
-			getActivityList();
-			int result1 = data.getIntExtra("resultcode", 0);
-			if (result1 == CommonValue.CreateViewJSType.goPhonebookView) {
-				PhoneIntroEntity entity = new PhoneIntroEntity();
-				entity.code = data.getStringExtra("resultdata");
-				entity.content = " ";
-				showActivityViewWeb(entity);
-			}
-			mPager.setCurrentItem(PAGE1);
-			break;
-		case CommonValue.CreateViewUrlAndRequest.CardCreat:
-//			getCardList();
-//			mPager.setCurrentItem(PAGE3);
-			break;
-		case CommonValue.PhonebookViewUrlRequest.editPhoneview:
-			getPhoneList();
-			break;
-		case CommonValue.ActivityViewUrlRequest.editActivity:
-			getActivityList();
-			break;
-		case CommonValue.CardViewUrlRequest.editCard:
-//			getCardList();
-			break;
-		}
 	}
-	
-	private void showFinder(String url) {
-		Logger.i(url);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
-		startActivity(intent);
-	}
-	
-	private void initWebData() {
-		String url = CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign() ;
-		WebSettings webseting = webView.getSettings();  
-		webseting.setJavaScriptEnabled(true);
-		webseting.setLightTouchEnabled(true);
-	    webseting.setDomStorageEnabled(true);             
-	    webseting.setAppCacheMaxSize(1024*1024*8);//设置缓冲大小，我设的是8M  
-	    String appCacheDir = this.getApplicationContext().getDir("cache", Context.MODE_PRIVATE).getPath();      
-        webseting.setAppCachePath(appCacheDir);  
-        webseting.setAllowFileAccess(true);  
-        webseting.setAppCacheEnabled(true); 
-//        webView.addJavascriptInterface(mJS, "pbwc");
-        
-        if (appContext.isNetworkConnected()) {
-        	webseting.setCacheMode(WebSettings.LOAD_DEFAULT); 
-		}
-        else {
-        	webseting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); 
-        }
-		
-		webView.setWebViewClient(new WebViewClient() {
-			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				showFinder(url);
-				return true;
-			}
-			public void onReceivedSslError(WebView view,
-					SslErrorHandler handler, SslError error) {
-				handler.proceed();
-			}
-			
-			@Override
-			public void onReceivedError(WebView view, int errorCode,
-					String description, String failingUrl) {
-				Logger.i(errorCode+"");
-				switch (errorCode) {
-				case -2:
-					webView.setVisibility(View.INVISIBLE);
-					break;
-				}
-				loadAgainButton.setVisibility(View.VISIBLE);
-				super.onReceivedError(view, errorCode, description, failingUrl);
-			}
-		});
-		webView.setWebChromeClient(new WebChromeClient() {
-		    public void onProgressChanged(WebView view, int progress) {
-		        setTitle("页面加载中，请稍候..." + progress + "%");
-		        setProgress(progress * 100);
-		        if (progress == 100) {
-//		        	UIHelper.dismissProgress(loadingPd);
-		        	indicatorImageView.clearAnimation();
-		        	indicatorImageView.setVisibility(View.INVISIBLE);
-		        }
-		    }
-		    
-		    @Override
-		    public void onReachedMaxAppCacheSize(long spaceNeeded,
-		    		long quota, QuotaUpdater quotaUpdater) {
-		    	quotaUpdater.updateQuota(spaceNeeded * 2);  
-		    }
-		});
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		webView.loadUrl(url);
-		if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-    		return;
-    	}
-	}
-	
-	private void loadAgain() {
-		loadAgainButton.setVisibility(View.INVISIBLE);
-		webView.setVisibility(View.VISIBLE);
-		String url = CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign() ;
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		webView.loadUrl(url);
-		if (!appContext.isNetworkConnected()) {
-    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-    		return;
-    	}
-	}
-	
-//	@Override
-//	public void onBackPressed() {
-//		new AlertDialog.Builder(this).setTitle("确定退出吗?")
-//		.setNeutralButton("确定", new DialogInterface.OnClickListener() {
-//			@Override
-//			public void onClick(DialogInterface dialog, int which) {
-//				AppManager.getAppManager().finishAllActivity();
-//			}
-//		})
-//		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-//			@Override
-//			public void onClick(DialogInterface dialog, int which) {
-//				dialog.cancel();
-//			}
-//		}).show();
-//	}
-	
-	public void logout() {
-		new AlertDialog.Builder(this).setTitle("确定注销本账号吗?")
-		.setNeutralButton("确定", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				AppClient.Logout(appContext);
-				CookieStore cookieStore = new PersistentCookieStore(Index.this);  
-				cookieStore.clear();
-				AppManager.getAppManager().finishAllActivity();
-				appContext.setUserLogout();
-				if (appContext.getPolemoClient()!=null) {
-					appContext.getPolemoClient().disconnect();
-				}
-				if (isServiceRunning()) {
-					Intent intent1 = new Intent(Index.this, IPolemoService.class);
-					stopService(intent1);
-				}
-				Intent intent = new Intent(Index.this, LoginCode1.class);
-				startActivity(intent);
-			}
-		})
-		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-			}
-		}).show();
-	}
-	
-	private void queryPolemoEntry() {
-//		if (isServiceRunning()) {
-//			return;
-//		}
-		Intent intent = new Intent(this, IPolemoService.class);
-		intent.setAction(IPolemoService.ACTION_START);
-		startService(intent);
-	}
-	
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		Dialog dialog = null; 
-		 switch(id) {  
-         case 1:  
-        	 AlertDialog.Builder builder = new AlertDialog.Builder(this);  
-             builder.setTitle("功能消息免打扰");  
-             final ChoiceOnClickListener choiceListener =   
-                 new ChoiceOnClickListener();  
-             String interupt = appContext.getMessageInterupt();
-             int i = 1;
-             try {
-            	i = StringUtils.empty(interupt)? 1 : Integer.valueOf(interupt);
-             }
-             catch (Exception e) {
-            	i = 1;
-             }
-             
-             builder.setSingleChoiceItems(R.array.message_settings, i, choiceListener);  
-               
-             DialogInterface.OnClickListener btnListener =   
-                 new DialogInterface.OnClickListener() {  
-                     @Override  
-                     public void onClick(DialogInterface dialogInterface, int which) {  
-                         int choiceWhich = choiceListener.getWhich();  
-                         appContext.setMessageInterupt(choiceWhich+"");
-                         AppClient.setUser(context, "", "", choiceWhich+"");
-                     }  
-                 };  
-             builder.setPositiveButton("确定", btnListener);  
-             dialog = builder.create();  
-             break;  
-		 }  
-		 return dialog;
-	}
-	
-	private class ChoiceOnClickListener implements DialogInterface.OnClickListener {  
-		  
-        private int which = 2;  
-        @Override  
-        public void onClick(DialogInterface dialogInterface, int which) {  
-            this.which = which;  
-        }  
-          
-        public int getWhich() {  
-            return which;  
-        }  
-    }
 	
 }

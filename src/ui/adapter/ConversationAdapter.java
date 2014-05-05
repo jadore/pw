@@ -10,7 +10,6 @@ import tools.Logger;
 import tools.StringUtils;
 import ui.CardView;
 import ui.QYWebView;
-import ui.FriendCards;
 import ui.WeFriendCard;
 
 import com.nostra13.universalimageloader.core.ImageLoader;

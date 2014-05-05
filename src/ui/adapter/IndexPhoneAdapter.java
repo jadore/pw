@@ -2,8 +2,10 @@ package ui.adapter;
 
 import java.util.List;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
 
+import config.CommonValue;
 import bean.PhoneIntroEntity;
 import ui.Index;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
@@ -14,6 +16,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class IndexPhoneAdapter extends BaseAdapter {
@@ -25,123 +28,29 @@ public class IndexPhoneAdapter extends BaseAdapter {
 		this.inflater = LayoutInflater.from(context);
 		this.phones = phones;
 	}
-//	
+
 	static class CellHolder {
+		ImageView avatarView;
 		TextView titleView;
 		TextView desView;
+		TextView timeView;
 	}
-//	
-//	static class SectionView {
-//		TextView titleView;
-//	}
-//	
-//	@Override
-//	public Object getItem(int section, int position) {
-//		return phones.get(section).get(position);
-//	}
-//
-//	@Override
-//	public long getItemId(int section, int position) {
-//		return position;
-//	}
-//
-//	@Override
-//	public int getSectionCount() {
-//		return phones.size();
-//	}
-//
-//	@Override
-//	public int getCountForSection(int section) {
-//		return phones.get(section).size();
-//	}
-//
-//	@Override
-//	public View getItemView(int section, int position, View convertView,
-//			ViewGroup parent) {
-//		CellHolder cell = null;
-//		if (convertView == null) {
-//			cell = new CellHolder();
-//			convertView = inflater.inflate(R.layout.index_cell, null);
-//			cell.titleView = (TextView) convertView.findViewById(R.id.title);
-//			cell.desView = (TextView) convertView.findViewById(R.id.des);
-//			convertView.setTag(cell);
-//		}
-//		else {
-//			cell = (CellHolder) convertView.getTag();
-//		}
-//		final PhoneIntroEntity model = phones.get(section).get(position);
-//		if (section > 0) {
-//			cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
-//			convertView.setOnClickListener(new OnClickListener() {
-//				@Override
-//				public void onClick(View arg0) {
-//					((Index)context).showPhoneViewWeb(model);
-//				}
-//			});
-//			convertView.setOnLongClickListener(new OnLongClickListener() {
-//				@Override
-//				public boolean onLongClick(View arg0) {
-////					((Index)context).showShareDialog(model);
-//					return false;
-//				}
-//			});
-//		}
-//		else {
-//			cell.desView.setText(model.content);
-//			if (position == 0) {
-//				convertView.setOnClickListener(new OnClickListener() {
-//					@Override
-//					public void onClick(View arg0) {
-//						((Index)context).showMobileView();
-//					}
-//				});
-//			} else if (position == 2) {
-//				convertView.setOnClickListener(new OnClickListener() {
-//					@Override
-//					public void onClick(View arg0) {
-//						((Index)context).showFriendCardView();
-//					}
-//				});
-//			}
-//			convertView.setOnLongClickListener(new OnLongClickListener() {
-//				@Override
-//				public boolean onLongClick(View arg0) {
-//					return false;
-//				}
-//			});
-//		}
-//		cell.titleView.setText(model.title);
-//		return convertView;
-//	}
-//
-//	@Override
-//	public View getSectionHeaderView(int section, View convertView,
-//			ViewGroup parent) {
-//		SectionView sect = null;
-//		if (convertView == null) {
-//			sect = new SectionView();
-//			convertView = inflater.inflate(R.layout.index_section, null);
-//			sect.titleView = (TextView) convertView.findViewById(R.id.titleView);
-//			convertView.setTag(sect);
-//		}
-//		else {
-//			sect = (SectionView) convertView.getTag();
-//		}
-//		sect.titleView.setText(phones.get(section).get(0).phoneSectionType);
-//		return convertView;
-//	}
+
 	@Override
 	public int getCount() {
 		return phones.size();
 	}
+	
 	@Override
 	public Object getItem(int arg0) {
 		return phones.get(arg0);
 	}
+	
 	@Override
 	public long getItemId(int arg0) {
 		return phones.get(arg0).getId();
 	}
+	
 	@Override
 	public View getView(int position, View convertView, ViewGroup arg2) {
 		CellHolder cell = null;
@@ -150,12 +59,15 @@ public class IndexPhoneAdapter extends BaseAdapter {
 			convertView = inflater.inflate(R.layout.index_cell, null);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
 			cell.desView = (TextView) convertView.findViewById(R.id.des);
+			cell.avatarView = (ImageView) convertView.findViewById(R.id.avatarImageView);
+			cell.timeView = (TextView) convertView.findViewById(R.id.time);
 			convertView.setTag(cell);
 		}
 		else {
 			cell = (CellHolder) convertView.getTag();
 		}
 		final PhoneIntroEntity model = phones.get(position);
+		ImageLoader.getInstance().displayImage(model.logo, cell.avatarView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.title);
 		cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
 		return convertView;

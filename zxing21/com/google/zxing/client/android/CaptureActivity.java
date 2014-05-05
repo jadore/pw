@@ -14,7 +14,6 @@ import tools.Logger;
 import tools.StringUtils;
 import ui.AppActivity;
 import ui.QYWebView;
-import ui.FriendCards;
 
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;

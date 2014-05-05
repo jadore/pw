@@ -5,8 +5,6 @@ import java.util.List;
 import ui.Index;
 import ui.Me;
 import ui.Setting;
-import ui.adapter.IndexCardAdapter.CellHolder;
-import ui.adapter.IndexCardAdapter.SectionView;
 
 import com.vikaa.mycontact.R;
 

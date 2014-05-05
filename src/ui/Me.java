@@ -11,7 +11,6 @@ import tools.MD5Util;
 import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
-import ui.adapter.IndexCardAdapter;
 import ui.adapter.MeCardAdapter;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 import bean.CardIntroEntity;
