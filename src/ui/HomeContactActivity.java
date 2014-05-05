@@ -101,7 +101,6 @@ public class HomeContactActivity extends AppActivity {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
 			AppManager.getAppManager().finishActivity(this);
-			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 
 		default:

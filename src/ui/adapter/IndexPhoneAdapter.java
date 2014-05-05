@@ -8,6 +8,7 @@ import com.vikaa.mycontact.R;
 import config.CommonValue;
 import bean.PhoneIntroEntity;
 import ui.Index;
+import ui.MyCard;
 import za.co.immedia.pinnedheaderlistview.SectionedBaseAdapter;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -70,6 +71,12 @@ public class IndexPhoneAdapter extends BaseAdapter {
 		ImageLoader.getInstance().displayImage(model.logo, cell.avatarView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.title);
 		cell.desView.setText(String.format("人数:%s 点击数:%s", model.member, model.hits));
+		convertView.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				((Index)context).showPhoneTimeline(model);
+			}
+		});
 		return convertView;
 	}
 

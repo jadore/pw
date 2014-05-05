@@ -90,7 +90,6 @@ public class MobileSelect extends AppActivity {
 		switch (v.getId()) {
 		case R.id.leftBarButton:
 			AppManager.getAppManager().finishActivity(this);
-			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 
 		default:
@@ -104,13 +103,6 @@ public class MobileSelect extends AppActivity {
 				"sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
 	}
 
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if(keyCode == KeyEvent.KEYCODE_BACK){
-			AppManager.getAppManager().finishActivity(this);
-			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
-		}
-		return super.onKeyDown(keyCode, event);
-	}	
 	/**
 	 * 数据库异步查询类AsyncQueryHandler
 	 * 

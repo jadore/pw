@@ -112,7 +112,6 @@ public class Feedback extends AppActivity{
 		case R.id.leftBarButton:
 			closeInput();
 			AppManager.getAppManager().finishActivity(this);
-			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 		case R.id.rightBarButton:
 			sendFeedback();

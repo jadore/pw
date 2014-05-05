@@ -422,7 +422,6 @@ public class QYWebView extends AppActivity  {
 		    }
 			else {
 				AppManager.getAppManager().finishActivity(this);
-				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			}
 			break;
 		case R.id.rightBarButton:
@@ -443,7 +442,6 @@ public class QYWebView extends AppActivity  {
 			break;
 		case R.id.closeBarButton:
 			AppManager.getAppManager().finishActivity(this);
-			overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			break;
 		}
 	}
@@ -458,7 +456,6 @@ public class QYWebView extends AppActivity  {
 			}
 			else {
 				AppManager.getAppManager().finishActivity(this);
-				overridePendingTransition(R.anim.exit_in_from_left, R.anim.exit_out_to_right);
 			}
 			break;
 

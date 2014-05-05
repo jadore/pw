@@ -62,6 +62,13 @@
         android:theme="@android:style/Theme.NoTitleBar" >
        
         <activity
+            android:name="ui.PhoneTimeline"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden"
+             >
+        </activity>
+        
+        <activity
             android:name="ui.JiaV"
             android:screenOrientation="portrait"
              >
@@ -128,7 +135,6 @@
         <activity
             android:name="ui.LoginCode1"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
             android:windowSoftInputMode="adjustUnspecified|stateAlwaysVisible" >
         </activity>
         
@@ -167,14 +173,12 @@
         
         <activity
             android:name="ui.QunZi"
-            android:theme="@style/Theme.SlideLeft"
             android:screenOrientation="portrait"
             android:launchMode="singleTask" >
         </activity>
         
         <activity
             android:name="ui.Find"
-            android:theme="@style/Theme.SlideLeft"
             android:screenOrientation="portrait"
             android:launchMode="singleTask" >
         </activity>
@@ -185,13 +189,11 @@
               android:clearTaskOnLaunch="true"
               android:stateNotNeeded="true"
               android:configChanges="orientation|keyboardHidden"
-              android:theme="@style/Theme.SlideLeft"
               android:windowSoftInputMode="stateAlwaysHidden"/>
 		
         <activity
             android:name="ui.PhonebookViewMembers"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
              >
         </activity>
         
@@ -222,7 +224,6 @@
         <activity
             android:name="ui.Feedback"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
             android:configChanges="keyboardHidden|orientation" android:windowSoftInputMode="stateVisible|adjustResize"
              >
         </activity>
@@ -253,14 +254,12 @@
         <activity
             android:name="ui.Setting"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
              >
         </activity>  
         
         <activity
             android:name="ui.QYWebView"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
              >
         </activity>  
         
@@ -283,7 +282,6 @@
             android:name="ui.Conversation"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.SlideLeft"
             android:windowSoftInputMode="stateHidden|adjustNothing"
              >
         </activity> 

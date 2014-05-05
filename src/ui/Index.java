@@ -206,6 +206,19 @@ public class Index extends AppActivity {
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
+	public void showPhoneTimeline(PhoneIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看群友通讯录动态："+entity.link,   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, PhoneTimeline.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.PhoneView, entity);
+	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+	}
 	
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
@@ -346,8 +359,6 @@ public class Index extends AppActivity {
 		});
 	}
 	
-	
-	
 //	private void getRecommendList() {
 //		AppClient.getRecommendList(appContext, new ClientCallback() {
 //			
@@ -392,13 +403,9 @@ public class Index extends AppActivity {
 		}
 
 		public void onPageScrolled(int arg0, float arg1, int arg2) {
-			// TODO Auto-generated method stub
-
 		}
 
 		public void onPageScrollStateChanged(int arg0) {
-			// TODO Auto-generated method stub
-
 		}
 	}
 	
