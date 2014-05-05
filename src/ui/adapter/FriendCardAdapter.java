@@ -15,7 +15,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
-
 import bean.CardIntroEntity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,14 +24,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class FriendCardAdapter extends BaseAdapter {
+public class FriendCardAdapter extends BaseExpandableListAdapter {
 	private Context context;
 	private LayoutInflater inflater;
-	private List<CardIntroEntity> cards;
+	private List<List<CardIntroEntity>> cards;
 	
 	static class CellHolder {
 		TextView alpha;
@@ -42,29 +42,100 @@ public class FriendCardAdapter extends BaseAdapter {
 		Button callButton;
 	}
 	
-	public FriendCardAdapter(Context context, List<CardIntroEntity> cards) {
+	public FriendCardAdapter(Context context, List<List<CardIntroEntity>> cards) {
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.cards = cards;
 	}
 	
-	@Override
-	public int getCount() {
-		return cards.size();
+//	@Override
+//	public int getCount() {
+//		return cards.size();
+//	}
+//
+//	@Override
+//	public Object getItem(int arg0) {
+//		return cards.get(arg0);
+//	}
+//
+//	@Override
+//	public long getItemId(int arg0) {
+//		return cards.get(arg0).getId();
+//	}
+
+//	@Override
+//	public View getView(int position, View convertView, ViewGroup arg2) {
+//		CellHolder cell = null;
+//		if (convertView == null) {
+//			cell = new CellHolder();
+//			convertView = inflater.inflate(R.layout.friend_card_cell, null);
+//			cell.alpha = (TextView) convertView.findViewById(R.id.alpha);
+//			cell.avatarImageView = (ImageView) convertView.findViewById(R.id.avatarImageView);
+//			cell.titleView = (TextView) convertView.findViewById(R.id.title);
+//			cell.desView = (TextView) convertView.findViewById(R.id.des);
+//			cell.callButton = (Button) convertView.findViewById(R.id.call);
+//			convertView.setTag(cell);
+//		}
+//		else {
+//			cell = (CellHolder) convertView.getTag();
+//		}
+//		final CardIntroEntity model = cards.get(position);
+//		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
+//		cell.titleView.setText(model.realname);
+//		cell.desView.setText(String.format("%s %s", model.department, model.position));
+//		cell.alpha.setVisibility(View.GONE);
+//		if (StringUtils.empty(model.phone_display)) {
+//			cell.callButton.setVisibility(View.INVISIBLE);
+//		}
+//		else {
+//			if (model.phone_display.indexOf("*") != -1 ) {
+//				cell.callButton.setVisibility(View.INVISIBLE);
+//			}
+//			else {
+//				cell.callButton.setVisibility(View.VISIBLE);
+//			}
+//		}
+//		cell.callButton.setOnClickListener(new OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				Uri uri = Uri.parse("tel:" + model.phone);
+//				Intent it;
+//				try {
+//					it = new Intent(Intent.ACTION_VIEW, uri);
+//				} catch (Exception e) {
+//					it = new Intent(Intent.ACTION_DIAL, uri);
+//				}
+//				context.startActivity(it);
+//			}
+//		});
+//		convertView.setOnClickListener( new OnClickListener() {
+//			@Override
+//			public void onClick(View arg0) {
+//				showCardView(model);
+//			}
+//		});
+//		return convertView;
+//	}
+	
+	private void showCardView(CardIntroEntity entity) {
+		Intent intent = new Intent(context, QYWebView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
+		((WeFriendCard)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 
 	@Override
-	public Object getItem(int arg0) {
-		return cards.get(arg0);
+	public Object getChild(int groupPosition, int childPosition) {
+		return null;
 	}
 
 	@Override
-	public long getItemId(int arg0) {
-		return cards.get(arg0).getId();
+	public long getChildId(int groupPosition, int childPosition) {
+		return 0;
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup arg2) {
+	public View getChildView(int groupPosition, int childPosition,
+			boolean isLastChild, View convertView, ViewGroup parent) {
 		CellHolder cell = null;
 		if (convertView == null) {
 			cell = new CellHolder();
@@ -79,7 +150,7 @@ public class FriendCardAdapter extends BaseAdapter {
 		else {
 			cell = (CellHolder) convertView.getTag();
 		}
-		final CardIntroEntity model = cards.get(position);
+		final CardIntroEntity model = cards.get(groupPosition).get(childPosition);
 		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, CommonValue.DisplayOptions.default_options);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
@@ -111,16 +182,49 @@ public class FriendCardAdapter extends BaseAdapter {
 		convertView.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				showCardView(model);
+//				showCardView(model);
 			}
 		});
 		return convertView;
 	}
-	
-	private void showCardView(CardIntroEntity entity) {
-		Intent intent = new Intent(context, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
-		((WeFriendCard)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
+
+	@Override
+	public int getChildrenCount(int groupPosition) {
+		return cards.get(groupPosition).size();
+	}
+
+	@Override
+	public Object getGroup(int groupPosition) {
+		return null;
+	}
+
+	@Override
+	public int getGroupCount() {
+		return cards.size();
+	}
+
+	@Override
+	public long getGroupId(int groupPosition) {
+		return 0;
+	}
+
+	@Override
+	public View getGroupView(int groupPosition, boolean isExpanded,
+			View convertView, ViewGroup parent) {
+		if (convertView == null) {
+			convertView = inflater.inflate(R.layout.index_group_divider, null);
+		}
+		return convertView;
+	}
+
+	@Override
+	public boolean hasStableIds() {
+		return false;
+	}
+
+	@Override
+	public boolean isChildSelectable(int groupPosition, int childPosition) {
+		return false;
 	}
 	
 }

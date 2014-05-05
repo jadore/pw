@@ -6,9 +6,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.ProgressDialog;
+import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -24,6 +31,8 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -39,31 +48,29 @@ import bean.UserEntity;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
-import com.google.zxing.client.android.CaptureActivity;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 import config.QYRestClient;
-import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
 import ui.adapter.FriendCardAdapter;
-import widget.XListView;
-import widget.XListView.IXListViewListener;
 
-public class WeFriendCard extends AppActivity implements IXListViewListener, OnScrollListener, OnEditorActionListener{
+public class WeFriendCard extends AppActivity implements OnScrollListener, OnEditorActionListener{
 	private TextView messageView;
+	
+	private List<CardIntroEntity> mobiles = new ArrayList<CardIntroEntity>();
 	
 	private int lvDataState;
 	private int currentPage;
 	private ProgressDialog loadingPd;
-	private XListView xlistView;
+	
 	private List<CardIntroEntity> bilaterals = new ArrayList<CardIntroEntity>();
-	private FriendCardAdapter mBilateralAdapter;
+	
 	private TextView nobilateralView;
 	
 	private ImageView indicatorImageView;
@@ -75,6 +82,10 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 	private Button searchDeleteButton;
 	
 	private String keyword;
+	
+	private ExpandableListView xlistView;
+	private List<List<CardIntroEntity>> contactors = new ArrayList<List<CardIntroEntity>>();
+	private FriendCardAdapter mBilateralAdapter;
 	
 	@Override
 	public void onStart() {
@@ -100,6 +111,8 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wefriendcard);
+		contactors.add(mobiles);
+		contactors.add(bilaterals);
 		initUI();
 		currentPage = 1;
 		keyword = "";
@@ -137,31 +150,35 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		        return (float)Math.floor(input*frameCount)/frameCount;
 		    }
 		});
-		xlistView = (XListView)findViewById(R.id.xlistview);
-		xlistView.setXListViewListener(this, 0);
-        xlistView.setRefreshTime();
-        xlistView.setPullLoadEnable(false);
+		xlistView = (ExpandableListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
+        xlistView.setGroupIndicator(null);
         xlistView.addHeaderView(searchHeaderView, null, false);
         xlistView.setOnScrollListener(this);
-		bilaterals = new ArrayList<CardIntroEntity>();
-		mBilateralAdapter = new FriendCardAdapter(this, bilaterals);
+		mBilateralAdapter = new FriendCardAdapter(this, contactors);
 		xlistView.setAdapter(mBilateralAdapter);
-		
+		xlistView.expandGroup(0);
+		xlistView.expandGroup(1);
+		xlistView.setOnGroupClickListener(new OnGroupClickListener() {
+			@Override
+			public boolean onGroupClick(ExpandableListView arg0, View arg1, int arg2,
+					long arg3) {
+				return true;
+			}
+		});
 	}
 	
 	private void getFriendCardFromCache() {
+		MyAsyncQueryHandler asyncQuery = new MyAsyncQueryHandler(getContentResolver());
+		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
+		asyncQuery.startQuery(0, null, uri, null, null, null,
+				"sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
 		String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
 		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
 		if(entity == null){
-//			currentPage = 1;
-//			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-//			xlistView.startLoadMore();
 			return;
 		}
 		handleFriends(entity, UIHelper.LISTVIEW_ACTION_INIT);
-//		currentPage = 1;
-//		getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
 	}
 	
 	private void checkLogin() {
@@ -185,6 +202,14 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
+					WebView webview = (WebView) findViewById(R.id.webview);
+					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
+					webview.setWebViewClient(new WebViewClient() {
+						public boolean shouldOverrideUrlLoading(WebView view, String url) {
+							view.loadUrl(url);
+							return true;
+						};
+					});
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
@@ -238,20 +263,12 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 //					Tabbar.setMessagePao(entity);
 					if(entity != null){
 						messageView.setVisibility(View.VISIBLE);
-						int pao = Integer.valueOf(entity.news);
+						int pao = Integer.valueOf(entity.news) + Integer.valueOf(entity.card);
 						String num = pao>99?"99+":pao+"";
 						messageView.setText(num);
 						if (pao == 0) {
 							messageView.setVisibility(View.INVISIBLE);
 						}
-						WebView webview = (WebView) findViewById(R.id.webview);
-						webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
-						webview.setWebViewClient(new WebViewClient() {
-							public boolean shouldOverrideUrlLoading(WebView view, String url) {
-								view.loadUrl(url);
-								return true;
-							};
-						});
 					}
 				case CommonValue.USER_NOT_IN_ERROR:
 					break;
@@ -295,7 +312,7 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					handleFriends(entity, action);
+//					handleFriends(entity, action);
 					break;
 				default:
 //					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
@@ -321,8 +338,6 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 	
 	private void handleFriends(FriendCardListEntity entity, int action) {
 		nobilateralView.setVisibility(View.GONE);
-		xlistView.stopLoadMore();
-		xlistView.stopRefresh();
 		switch (action) {
 		case UIHelper.LISTVIEW_ACTION_INIT:
 		case UIHelper.LISTVIEW_ACTION_REFRESH:
@@ -335,17 +350,14 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		}
 		if(entity.ne >= 1){					
 			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-			xlistView.setPullLoadEnable(true);
 			mBilateralAdapter.notifyDataSetChanged();
 		}
 		else if (entity.ne == -1) {
 			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-			xlistView.setPullLoadEnable(false);
 			mBilateralAdapter.notifyDataSetChanged();
 		}
 		if(bilaterals.isEmpty()){
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-			xlistView.setPullLoadEnable(false);
 			nobilateralView.setVisibility(View.VISIBLE);
 			if (StringUtils.notEmpty(keyword)) {
 				nobilateralView.setText(R.string.friend_search_no);
@@ -373,24 +385,6 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
 		}
 	}
 	
-	@Override
-	public void onRefresh(int id) {
-		currentPage = 1;
-		keyword = "";
-		getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
-	}
-
-	@Override
-	public void onLoadMore(int id) {
-		if (lvDataState == UIHelper.LISTVIEW_DATA_EMPTY) {
-			getFriendCard(currentPage,"","", UIHelper.LISTVIEW_ACTION_INIT);
-		}
-		if (lvDataState == UIHelper.LISTVIEW_DATA_MORE) {
-			currentPage ++;
-			getFriendCard(currentPage,"","", UIHelper.LISTVIEW_ACTION_SCROLL);
-		}
-	}
-
 	@Override
 	public void onScroll(AbsListView view, int firstVisibleItem,
 			int visibleItemCount, int totalItemCount) {
@@ -467,4 +461,83 @@ public class WeFriendCard extends AppActivity implements IXListViewListener, OnS
             
 		}
     };
+    
+    
+    
+    /**
+	 * 数据库异步查询类AsyncQueryHandler
+	 * 
+	 * @author administrator
+	 * 
+	 */
+	private class MyAsyncQueryHandler extends AsyncQueryHandler {
+
+		public MyAsyncQueryHandler(ContentResolver cr) {
+			super(cr);
+		}
+
+		/**
+		 * 查询结束的回调函数
+		 */
+		@Override
+		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			if (cursor != null && cursor.getCount() > 0) {
+				cursor.moveToFirst();
+				for (int i = 0; i < cursor.getCount(); i++) {
+					cursor.moveToPosition(i);
+					
+					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
+				     	String phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
+//				     	phone = phone.replace(" ", "");
+//				     	phone = phone.replace("+86", "");
+//				     	phone = phone.replace("-", "");
+//			     		ContactBean cb = new ContactBean();
+//			     		
+//						cb.setDisplayName(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
+//						cb.setPhoneNum(phone);
+//						cb.setSortKey(cursor.getString(cursor.getColumnIndex("sort_key")));
+//						cb.setContactId(cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)));
+//						cb.setPhotoId(cursor.getLong(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_ID)));
+//						cb.setLookUpKey(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY)));
+//						list.add(cb);
+						CardIntroEntity ce = new CardIntroEntity();
+						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+						ce.phone = phone;
+						ce.cardSectionType = "mobile";
+						mobiles.add(ce);
+					}
+				}
+				if (mobiles.size() > 0) {
+//					contactors.set(0, mobiles);
+					mBilateralAdapter.notifyDataSetChanged();
+//					HashMap<String, Integer> alphaIndexer = new HashMap<String, Integer>();
+//					String[] sections = new String[list.size()];
+//
+//					for (int i =0; i <list.size(); i++) {
+//						String name = StringUtils.getAlpha(list.get(i).getSortKey());
+//						if(!alphaIndexer.containsKey(name)){ 
+//							alphaIndexer.put(name, i);
+//						}
+//					}
+//					
+//					Set<String> sectionLetters = alphaIndexer.keySet();
+//					ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
+//					Collections.sort(sectionList);
+//					sections = new String[sectionList.size()];
+//					sectionList.toArray(sections);
+//
+//					alpha.setAlphaIndexer(alphaIndexer);
+//					alpha.setVisibility(View.VISIBLE);
+//					UIHelper.dismissProgress(loadingPd);
+				}
+			}
+//			else {
+//				authority = false;
+//				UIHelper.dismissProgress(loadingPd);
+//				WarningDialog();
+//				return;
+//			}
+		}
+	}
 }

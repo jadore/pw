@@ -36,14 +36,15 @@
         <TextView
             android:id="@+id/messageView"
             android:layout_width="wrap_content"
-            android:layout_height="15dp"
+            android:layout_height="18dp"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="8dp"
             android:textSize="@dimen/message_count_size"
-            android:minWidth="15dp"
+            android:minWidth="20dp"
             android:background="@drawable/message_label"
-            android:gravity="center"
+            android:gravity="top|center_horizontal"
             android:visibility="invisible"
+            android:textColor="@color/white"
             />
         
         <TextView 
@@ -68,15 +69,16 @@
     </RelativeLayout>
     
     
-    <widget.XListView
+    <ExpandableListView
         android:layout_below="@+id/navLayout"
         android:id="@+id/xlistview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:divider="#00000000"
         android:footerDividersEnabled="false"
         android:headerDividersEnabled="false"
+        android:divider="@null"
         android:fadingEdge="none"
+        android:transcriptMode="disabled"
         android:cacheColorHint="#00000000"
         android:listSelector="#00000000" />
     
