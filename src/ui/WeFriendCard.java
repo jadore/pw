@@ -5,10 +5,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +20,7 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.LiveFolders;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -42,18 +47,22 @@ import bean.CardIntroEntity;
 import bean.Entity;
 import bean.FriendCardListEntity;
 import bean.MessageUnReadEntity;
+import bean.OpenidListEntity;
 import bean.Result;
 import bean.UserEntity;
 
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.gson.Gson;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
 import config.QYRestClient;
+import db.manager.WeFriendManager;
+import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
@@ -87,6 +96,9 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	private List<List<CardIntroEntity>> contactors = new ArrayList<List<CardIntroEntity>>();
 	private FriendCardAdapter mBilateralAdapter;
 	
+	MyAsyncQueryHandler asyncQuery;
+	Uri uri ;
+	
 	@Override
 	public void onStart() {
 	    super.onStart();
@@ -113,6 +125,8 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		setContentView(R.layout.wefriendcard);
 		contactors.add(mobiles);
 		contactors.add(bilaterals);
+		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
+		uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 		initUI();
 		currentPage = 1;
 		keyword = "";
@@ -169,16 +183,9 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	}
 	
 	private void getFriendCardFromCache() {
-		MyAsyncQueryHandler asyncQuery = new MyAsyncQueryHandler(getContentResolver());
-		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
-		asyncQuery.startQuery(0, null, uri, null, null, null,
-				"sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
-		String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
-		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
-		if(entity == null){
-			return;
-		}
-		handleFriends(entity, UIHelper.LISTVIEW_ACTION_INIT);
+		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
+		bilaterals.addAll(WeFriendManager.getInstance(this).getWeFriends());
+		mBilateralAdapter.notifyDataSetChanged();
 	}
 	
 	private void checkLogin() {
@@ -197,8 +204,8 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
 					showReg(user);
-					getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_REFRESH);
-					getUnReadMessage();
+					getAllFriend();
+//					getUnReadMessage();
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
@@ -295,6 +302,19 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				Utils.getMetaValue(this, "api_key"));
 	}
 	
+	private void getAllFriend() {
+		List<CardIntroEntity> temp = WeFriendManager.getInstance(this).getWeFriends();
+		if (temp.size() == 0) {
+			currentPage = 1;
+			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
+		}
+		else {
+			bilaterals.clear();
+			bilaterals.addAll(temp);
+			mBilateralAdapter.notifyDataSetChanged();
+			getAllOpenidFromServer();
+		}
+	}
 	
 	private void getFriendCard(int page, String kw, String count, final int action) {
 		if (!appContext.isNetworkConnected()) {
@@ -312,7 +332,7 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-//					handleFriends(entity, action);
+					handleFriends(entity, action);
 					break;
 				default:
 //					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
@@ -338,34 +358,42 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	
 	private void handleFriends(FriendCardListEntity entity, int action) {
 		nobilateralView.setVisibility(View.GONE);
-		switch (action) {
-		case UIHelper.LISTVIEW_ACTION_INIT:
-		case UIHelper.LISTVIEW_ACTION_REFRESH:
-			bilaterals.clear();
-			bilaterals.addAll(entity.u);
-			break;
-		case UIHelper.LISTVIEW_ACTION_SCROLL:
-			bilaterals.addAll(entity.u);
-			break;
+//		switch (action) {
+//		case UIHelper.LISTVIEW_ACTION_INIT:
+//		case UIHelper.LISTVIEW_ACTION_REFRESH:
+//			bilaterals.clear();
+//			bilaterals.addAll(entity.u);
+//			break;
+//		case UIHelper.LISTVIEW_ACTION_SCROLL:
+//			bilaterals.addAll(entity.u);
+//			break;
+//		}
+		Logger.i(entity.u.size()+"");
+		for (CardIntroEntity card : entity.u) {
+			WeFriendManager.getInstance(this).saveWeFriend(card);
 		}
 		if(entity.ne >= 1){					
-			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-			mBilateralAdapter.notifyDataSetChanged();
+//			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+//			mBilateralAdapter.notifyDataSetChanged();
+			++currentPage;
+			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 		else if (entity.ne == -1) {
-			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+//			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+			bilaterals.clear();
+			bilaterals.addAll(WeFriendManager.getInstance(this).getWeFriends());
 			mBilateralAdapter.notifyDataSetChanged();
 		}
-		if(bilaterals.isEmpty()){
-			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-			nobilateralView.setVisibility(View.VISIBLE);
-			if (StringUtils.notEmpty(keyword)) {
-				nobilateralView.setText(R.string.friend_search_no);
-			}
-			else {
-				nobilateralView.setText(R.string.friend_no);
-			}
-		}
+//		if(bilaterals.isEmpty()){
+//			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
+//			nobilateralView.setVisibility(View.VISIBLE);
+//			if (StringUtils.notEmpty(keyword)) {
+//				nobilateralView.setText(R.string.friend_search_no);
+//			}
+//			else {
+//				nobilateralView.setText(R.string.friend_no);
+//			}
+//		}
 	}
 	
 	public void ButtonClick(View v) {
@@ -374,7 +402,9 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			showMessage();
 			break;
 		case R.id.searchEditView:
-			editText.setCursorVisible(true);
+//			editText.setCursorVisible(true);
+            Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
+            startActivity(intent);
 			break;
 		case R.id.searchDeleteButton:
 			editText.setText("");
@@ -401,12 +431,22 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		
 		switch(actionID){  
         case EditorInfo.IME_ACTION_SEARCH:  
+        	
         	imm.hideSoftInputFromWindow(v.getWindowToken(), 0);  
     		editText.setCursorVisible(false);
             currentPage = 1;
             keyword = v.getText().toString();
-            loadingPd = UIHelper.showProgress(this, null, null, true);
-			getFriendCard(currentPage, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
+            if (StringUtils.empty(keyword)) {
+				return false;
+			}
+            Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
+            startActivity(intent);
+//            loadingPd = UIHelper.showProgress(this, null, null, true);
+//
+//            String sql = "display_name like "+"'%" + keyword + "%' or " + Phone.NUMBER + " like " +"'%" + keyword + "%'";
+//    		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
+//    		
+//    		searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
             break;  
         }  
 		return true;
@@ -425,35 +465,19 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
                 int count) {
         	if (s.length() > 0) {
             	searchDeleteButton.setVisibility(View.VISIBLE);
-            	String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
-        		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
-        		if(entity != null){
-        			if (entity.u.size() > 0) {
-        				List<CardIntroEntity> tempList = new ArrayList<CardIntroEntity>();
-                		for (CardIntroEntity friend : entity.u) {
-    						if (friend.realname.contains(s.toString()) ) {
-    							tempList.add(friend);
-    						}
-    					}
-                		if (tempList.size() > 0) {
-                			bilaterals.clear();
-                			bilaterals.addAll(tempList);
-    						lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-    						mBilateralAdapter.notifyDataSetChanged();
-    					}
-        			}
-        		}
+        		String sql = "display_name like "+"'%" + s.toString() + "%' or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%'";
+        		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
+        		
+        		bilaterals.clear();
+				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).searchWeFriendsByKeyword(s.toString()));
+				mBilateralAdapter.notifyDataSetChanged();
         	}
             else {
             	searchDeleteButton.setVisibility(View.INVISIBLE);
-            	String key = String.format("%s-%s", CommonValue.CacheKey.FriendCardList1, appContext.getLoginUid());
-        		FriendCardListEntity entity = (FriendCardListEntity) appContext.readObject(key);
-        		if(entity != null){
-        			if (entity.u.size() > 0) {
-        				currentPage = 1;
-        				handleFriends(entity, UIHelper.LISTVIEW_ACTION_INIT);
-        			}
-        		}
+        		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc");
+        		bilaterals.clear();
+				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
+				mBilateralAdapter.notifyDataSetChanged();
             }
         }
        
@@ -467,8 +491,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
     /**
 	 * 数据库异步查询类AsyncQueryHandler
 	 * 
-	 * @author administrator
-	 * 
 	 */
 	private class MyAsyncQueryHandler extends AsyncQueryHandler {
 
@@ -481,63 +503,182 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		 */
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			mobiles.clear();
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
-					
 					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
 					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
 				     	String phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
-//				     	phone = phone.replace(" ", "");
-//				     	phone = phone.replace("+86", "");
-//				     	phone = phone.replace("-", "");
-//			     		ContactBean cb = new ContactBean();
-//			     		
-//						cb.setDisplayName(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-//						cb.setPhoneNum(phone);
-//						cb.setSortKey(cursor.getString(cursor.getColumnIndex("sort_key")));
-//						cb.setContactId(cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)));
-//						cb.setPhotoId(cursor.getLong(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_ID)));
-//						cb.setLookUpKey(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY)));
-//						list.add(cb);
 						CardIntroEntity ce = new CardIntroEntity();
 						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
 						ce.phone = phone;
+						ce.code = ""+cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
 						ce.cardSectionType = "mobile";
 						mobiles.add(ce);
 					}
 				}
-				if (mobiles.size() > 0) {
-//					contactors.set(0, mobiles);
-					mBilateralAdapter.notifyDataSetChanged();
-//					HashMap<String, Integer> alphaIndexer = new HashMap<String, Integer>();
-//					String[] sections = new String[list.size()];
-//
-//					for (int i =0; i <list.size(); i++) {
-//						String name = StringUtils.getAlpha(list.get(i).getSortKey());
-//						if(!alphaIndexer.containsKey(name)){ 
-//							alphaIndexer.put(name, i);
-//						}
-//					}
-//					
-//					Set<String> sectionLetters = alphaIndexer.keySet();
-//					ArrayList<String> sectionList = new ArrayList<String>(sectionLetters);
-//					Collections.sort(sectionList);
-//					sections = new String[sectionList.size()];
-//					sectionList.toArray(sections);
-//
-//					alpha.setAlphaIndexer(alphaIndexer);
-//					alpha.setVisibility(View.VISIBLE);
-//					UIHelper.dismissProgress(loadingPd);
+			}
+			else {
+//				WarningDialog();
+			}
+			mBilateralAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	protected void WarningDialog() {
+		String message = "请在手机的[设置]->[应用]->[群友通讯录]->[权限管理]，允许群友通讯录访问你的联系人记录并重新运行程序";
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setMessage(message);
+		builder.setTitle("通讯录提示");
+		builder.setPositiveButton("确定", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+	   builder.create().show();
+	}
+	
+	private void getAllOpenidFromServer() {
+		
+		AppClient.getAllOpenid(this, appContext, new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				OpenidListEntity entity = (OpenidListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					if (!WeFriendCard.this.isFinishing()) {
+						List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+						for (String openid : temp) {
+							if (!entity.openids.contains(openid)) {
+								WeFriendManager.getInstance(WeFriendCard.this).deleteWeFriendBy(openid);
+							}
+						}
+						temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+						for (String openid : entity.openids) {
+							if (!temp.contains(openid)) {
+								CardIntroEntity model = new CardIntroEntity();
+								model.openid = openid;
+								WeFriendManager.getInstance(WeFriendCard.this).saveWeFriend(model);
+							}
+						}
+						getAllWeFriendbyOpenids();
+					}
+					break;
 				}
 			}
+			
+			@Override
+			public void onFailure(String message) {
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				
+			}
+		});
+	}
+	
+	private void getAllWeFriendbyOpenids() {
+		List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+		Gson gson = new Gson();
+		AppClient.getAllWeFriendByOpenid(this, appContext, gson.toJson(temp), new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				FriendCardListEntity entity = (FriendCardListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					for (CardIntroEntity model : entity.u) {
+						WeFriendManager.getInstance(WeFriendCard.this).updateWeFriend(model);
+					}
+					bilaterals.clear();
+					bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
+					mBilateralAdapter.notifyDataSetChanged();
+					break;
+				default:
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+	
+	private void searchFriendCard(int page, String kw, String count, final int action) {
+		if (!appContext.isNetworkConnected()) {
+			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+			return;
+		}
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		AppClient.searchFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				FriendCardListEntity entity = (FriendCardListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					handleSearchFriends(entity, action);
+					break;
+				default:
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				UIHelper.dismissProgress(loadingPd);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				UIHelper.dismissProgress(loadingPd);
+			}
+		});
+	}
+	
+	private void handleSearchFriends(FriendCardListEntity entity, int action) {
+//		nobilateralView.setVisibility(View.GONE);
+		switch (action) {
+		case UIHelper.LISTVIEW_ACTION_INIT:
+		case UIHelper.LISTVIEW_ACTION_REFRESH:
+			bilaterals.clear();
+			bilaterals.addAll(entity.u);
+			break;
+		case UIHelper.LISTVIEW_ACTION_SCROLL:
+			bilaterals.addAll(entity.u);
+			break;
+		}
+		if(entity.ne >= 1){					
+			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+		}
+		else if (entity.ne == -1) {
+			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+		}
+		if(bilaterals.isEmpty()){
+			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
+//			nobilateralView.setVisibility(View.VISIBLE);
+//			if (StringUtils.notEmpty(keyword)) {
+//				nobilateralView.setText(R.string.friend_search_no);
+//			}
 //			else {
-//				authority = false;
-//				UIHelper.dismissProgress(loadingPd);
-//				WarningDialog();
-//				return;
+//				nobilateralView.setText(R.string.friend_no);
 //			}
 		}
+		mBilateralAdapter.notifyDataSetChanged();
 	}
 }

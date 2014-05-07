@@ -66,7 +66,7 @@ public class FriendCardListEntity extends Entity {
 				JSONObject info = js.getJSONObject("info");
 				JSONArray bilateralArray = info.getJSONArray("u");
 				for (int i=0;i<bilateralArray.length();i++) {
-					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), "");
+					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), "二度好友");
 					data.u.add(phone);
 				}
 				data.ne = -1;
@@ -82,7 +82,7 @@ public class FriendCardListEntity extends Entity {
 			}
 		} catch (JSONException e) {
 			Logger.i(e);
-//			Logger.i(res);
+			Logger.i(res);
 			throw AppException.json(e);
 		}
 		return data;

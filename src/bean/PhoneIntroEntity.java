@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import com.google.gson.JsonObject;
 
 import tools.AppException;
+import tools.Logger;
 import tools.StringUtils;
 
 public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEntity> {
@@ -107,7 +108,9 @@ public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEnt
 				}
 			}
 			data.phoneSectionType = sectionType;
-			data.link = info.getString("link");
+			if (!info.isNull("link")) {
+				data.link = info.getString("link");
+			}
 			if (!info.isNull("hall")) {
 				data.hall = info.getString("hall");
 			}
@@ -123,6 +126,7 @@ public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEnt
 		    String memberTemp = StringUtils.notEmpty(data.member)?String.format("宗亲人数:%s", data.member):"";
 		    data.family_intro = String.format("%s%s%s%s", hallTemp, familyTemp, cityTemp, memberTemp);
 		} catch (JSONException e) {
+			Logger.i(e);
 			throw AppException.json(e);
 		}
 		return data;

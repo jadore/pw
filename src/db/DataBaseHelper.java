@@ -20,6 +20,37 @@ public class DataBaseHelper extends SDCardSQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL("CREATE TABLE [im_msg] ([_id] INTEGER NOT NULL  PRIMARY KEY AUTOINCREMENT, [chat_id] INTEGER, [msg_content] NVARCHAR, [openid] NVARCHAR, [room_id] NVARCHAR, [post_at] TEXT, [msg_time] TEXT, [msg_type] INTEGER, [msg_status] INTEGER, [media_type] INTEGER);");
+		db.execSQL("CREATE TABLE [wcb_phonebook] ("
+				+ "[openid] varchar(50) NOT NULL primary key,"
+				+ "[assist_openid] varchar(50), "
+				+ "[avatar] varchar(300) , "
+				+ "[sex] varchar(50) , "
+				+ "[state] varchar(50),  "
+				+ "[weibo] varchar(50) ,"
+				+ "[realname] varchar(50) ,"
+				+ "[font_family] varchar(50) ,"
+				+ "[pinyin] varchar(50) ,"
+				+ "[phone] varchar(50) ,"
+				+ "[email] varchar(200) ,"
+				+ "[department] varchar(50) ,"
+				+ "[position] varchar(50) ,"
+				+ "[birthday] varchar(50) ,"
+				+ "[address] text ,"
+				+ "[hits] varchar(50) ,"
+				+ "[certified] varchar(50) ,"
+				+ "[privacy] varchar(50) ,"
+				+ "[supply] text ,"
+				+ "[needs] text ,"
+				+ "[intro] text ,"
+				+ "[wechat] varchar(50) ,"
+				+ "[headimgurl] varchar(300) ,"
+				+ "[nickname] varchar(50) ,"
+				+ "[link] varchar(50) ,"
+				+ "[link2] varchar(50) ,"
+				+ "[code] varchar(50) ,"
+				+ "[isfriend] varchar(50) ,"
+				+ "[phoneDisplay] varchar(50) "
+				+ ");");
 	}
 
 	@Override

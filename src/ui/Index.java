@@ -18,6 +18,7 @@ import bean.FamilyListEntity;
 import bean.MessageUnReadEntity;
 import bean.PhoneIntroEntity;
 import bean.PhoneListEntity;
+import bean.RecommendListEntity;
 import bean.Result;
 import bean.UserEntity;
 import cn.sharesdk.framework.ShareSDK;
@@ -35,6 +36,7 @@ import config.AppClient;
 import config.AppClient.ClientCallback;
 import config.AppClient.FileCallback;
 import config.CommonValue;
+import db.manager.WeFriendManager;
 import android.R.integer;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -87,7 +89,7 @@ public class Index extends AppActivity {
 	private Button phoneButton;
 	private Button activityButton;
 	
-	private boolean isFirst = true;
+	
 	private static final int PAGE1 = 0;// 页面1
 	private static final int PAGE2 = 1;// 页面2
 	private ViewPager mPager;
@@ -98,6 +100,13 @@ public class Index extends AppActivity {
 	private IndexPhoneAdapter phoneAdapter;
 	
 	private ProgressDialog loadingPd;
+	
+	private XListView xListViewForSqure;
+	private List<PhoneIntroEntity> phonesForSqure = new ArrayList<PhoneIntroEntity>();
+	private IndexPhoneAdapter phoneAdapterForSqure;
+	private int lvDataState;
+	private int currentPage;
+	private boolean isSquare;
 	
 	@Override
 	public void onStart() {
@@ -123,6 +132,7 @@ public class Index extends AppActivity {
 		ShareSDK.initSDK(this);
 		initUI();
 		getCache();
+		isSquare = false;
 	}
 	
 	private void initUI() {
@@ -164,6 +174,13 @@ public class Index extends AppActivity {
 		xListView.setDividerHeight(0);
 		phoneAdapter = new IndexPhoneAdapter(this, phones);
 		xListView.setAdapter(phoneAdapter);
+		
+		xListViewForSqure = (XListView) lay1.findViewById(R.id.tab1_listView);
+		xListViewForSqure.setPullLoadEnable(false);
+		xListViewForSqure.setPullRefreshEnable(false);
+		xListViewForSqure.setDividerHeight(0);
+		phoneAdapterForSqure = new IndexPhoneAdapter(this, phonesForSqure);
+		xListViewForSqure.setAdapter(phoneAdapterForSqure);
 	}
 	
 	public void showMobileView() {
@@ -359,33 +376,62 @@ public class Index extends AppActivity {
 		});
 	}
 	
-//	private void getRecommendList() {
-//		AppClient.getRecommendList(appContext, new ClientCallback() {
-//			
-//			@Override
-//			public void onSuccess(Entity data) {
-//				RecommendListEntity entity = (RecommendListEntity)data;
+	private void getSquareList() {
+		loadingPd = UIHelper.showProgress(Index.this, null, null, true);
+		AppClient.getPhoneSquareList(appContext, currentPage+"", "", new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				UIHelper.dismissProgress(loadingPd);
+				RecommendListEntity entity = (RecommendListEntity)data;
 //				switch (entity.getError_code()) {
 //				case Result.RESULT_OK:
+					handlerSquare(entity);
+//					break;
+//				case CommonValue.USER_NOT_IN_ERROR:
+//					forceLogout();
 //					break;
 //				default:
-//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-//					showLogin();
 //					break;
 //				}
-//			}
-//			
-//			@Override
-//			public void onFailure(String message) {
-//				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-//			}
-//			@Override
-//			public void onError(Exception e) {
-//				e.printStackTrace();
-//				Logger.i(e);
-//			}
-//		});
-//	}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				// TODO Auto-generated method stub
+				UIHelper.dismissProgress(loadingPd);
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				// TODO Auto-generated method stub
+				UIHelper.dismissProgress(loadingPd);
+			}
+		});
+	}
+	
+	private void handlerSquare(RecommendListEntity entity) {
+//		switch (action) {
+//		case UIHelper.LISTVIEW_ACTION_INIT:
+//		case UIHelper.LISTVIEW_ACTION_REFRESH:
+			phonesForSqure.clear();
+			phonesForSqure.addAll(entity.squares);
+//			break;
+//		case UIHelper.LISTVIEW_ACTION_SCROLL:
+//			bilaterals.addAll(entity.u);
+//			break;
+//		}
+		if(entity.next >= 1){					
+//			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+//			mBilateralAdapter.notifyDataSetChanged();
+			++currentPage;
+//			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
+		}
+		else if (entity.next == -1) {
+//			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+		}
+		phoneAdapterForSqure.notifyDataSetChanged();
+	}
 	
 	// ViewPager页面切换监听
 	public class MyOnPageChangeListener implements OnPageChangeListener {
@@ -398,6 +444,10 @@ public class Index extends AppActivity {
 			case PAGE2:// 切换到页卡2
 				phoneButton.setSelected(false);
 				activityButton.setSelected(true);
+				if (!isSquare) {
+					isSquare = true;
+					getSquareList();
+				}
 				break;
 			}
 		}

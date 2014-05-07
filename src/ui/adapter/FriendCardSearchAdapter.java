@@ -31,7 +31,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class FriendCardAdapter extends BaseExpandableListAdapter {
+public class FriendCardSearchAdapter extends BaseExpandableListAdapter {
 	private Context context;
 	private LayoutInflater inflater;
 	private List<List<CardIntroEntity>> cards;
@@ -44,7 +44,11 @@ public class FriendCardAdapter extends BaseExpandableListAdapter {
 		Button callButton;
 	}
 	
-	public FriendCardAdapter(Context context, List<List<CardIntroEntity>> cards) {
+	static class SectionHolder {
+		TextView titleView;
+	}
+	
+	public FriendCardSearchAdapter(Context context, List<List<CardIntroEntity>> cards) {
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.cards = cards;
@@ -102,39 +106,15 @@ public class FriendCardAdapter extends BaseExpandableListAdapter {
 			cell.desView.setText(String.format("%s %s", model.department, model.position));
 		}
 		cell.alpha.setVisibility(View.GONE);
-//		if (StringUtils.empty(model.phone_display)) {
-//			cell.callButton.setVisibility(View.INVISIBLE);
-//		}
-//		else {
-//			if (model.phone_display.indexOf("*") != -1 ) {
-//				cell.callButton.setVisibility(View.INVISIBLE);
-//			}
-//			else {
-//				cell.callButton.setVisibility(View.VISIBLE);
-//			}
-//		}
-//		cell.callButton.setOnClickListener(new OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				Uri uri = Uri.parse("tel:" + model.phone);
-//				Intent it;
-//				try {
-//					it = new Intent(Intent.ACTION_VIEW, uri);
-//				} catch (Exception e) {
-//					it = new Intent(Intent.ACTION_DIAL, uri);
-//				}
-//				context.startActivity(it);
-//			}
-//		});
 		convertView.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				if (model.cardSectionType.equals("mobile")) {
-					showMobileView(model);
-				}
-				else {
-					showCardView(model);
-				}
+//				if (model.cardSectionType.equals("mobile")) {
+//					showMobileView(model);
+//				}
+//				else {
+//					showCardView(model);
+//				}
 			}
 		});
 		return convertView;
@@ -163,8 +143,18 @@ public class FriendCardAdapter extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+		SectionHolder cell = null;
 		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.index_group_divider, null);
+			cell = new SectionHolder();
+			convertView = inflater.inflate(R.layout.index_section, null);
+			cell.titleView = (TextView) convertView.findViewById(R.id.titleView);
+			convertView.setTag(cell);
+		}
+		else {
+			cell = (SectionHolder) convertView.getTag();
+		}
+		if (cards.get(groupPosition).size()>0) {
+			cell.titleView.setText(cards.get(groupPosition).get(0).cardSectionType);
 		}
 		return convertView;
 	}

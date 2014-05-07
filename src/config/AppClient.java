@@ -31,6 +31,7 @@ import bean.FamilyListEntity;
 import bean.FriendCardListEntity;
 import bean.MessageListEntity;
 import bean.MessageUnReadEntity;
+import bean.OpenidListEntity;
 import bean.PhoneListEntity;
 import bean.PhoneViewEntity;
 import bean.RecommendListEntity;
@@ -351,6 +352,31 @@ public class AppClient {
 		});
 	}
 	
+	public static void getPhoneSquareList(final MyApplication appContext, String page, String keyword, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		if (StringUtils.notEmpty(page)) {
+			params.add("page", page);
+		}
+		if (StringUtils.notEmpty(keyword)) {
+			params.add("keyword", keyword);
+		}
+		QYRestClient.post("phonebook/square"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					RecommendListEntity data = RecommendListEntity.parseSquare(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(data);
+				} catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
 	public static void getActivityList(final MyApplication appContext, final ClientCallback callback) {
 		QYRestClient.post("activity/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
@@ -462,7 +488,7 @@ public class AppClient {
 	
 	public static void getChatFriendCard(Context context, final MyApplication appContext, final String page, final String keyword, String count, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
-		if (!StringUtils.notEmpty(page)) {
+		if (StringUtils.notEmpty(page)) {
 			params.add("page", page);
 		}
 		if (StringUtils.notEmpty(keyword)) {
@@ -476,9 +502,72 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
-						saveCache(appContext, CommonValue.CacheKey.FriendCardList1, data);
-					}
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
+	public static void searchFriendCard(Context context, final MyApplication appContext, final String page, final String keyword, String count, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		if (StringUtils.notEmpty(page)) {
+			params.add("page", page);
+		}
+		if (StringUtils.notEmpty(keyword)) {
+			params.add("keyword", keyword);
+		}
+		if (StringUtils.notEmpty(count)) {
+			params.add("count", count);
+		}
+		QYRestClient.post(context, "network/search"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
+	public static void getAllOpenid(Context context, final MyApplication appContext, final ClientCallback callback) {
+		QYRestClient.post(context, "card/summary"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					OpenidListEntity data = OpenidListEntity.parse(DecodeUtil.decode(new String(content)));
+					callback.onSuccess(data);
+				}catch (Exception e) {
+					callback.onError(e);
+				}
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	
+	public static void getAllWeFriendByOpenid(Context context, final MyApplication appContext, String json, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		params.add("openids", json);
+		QYRestClient.post(context, "card/friendinfo"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+				try{
+					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
 					callback.onError(e);

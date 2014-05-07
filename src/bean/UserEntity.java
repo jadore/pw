@@ -17,7 +17,14 @@ public class UserEntity extends Entity{
 	public String _sign;
 	public String username;
 	
+	public String credit;
+	public String news;
+	public String card;
+	public String deg1;
+	public String deg2;
+	
 	public static UserEntity parse(String res) throws IOException, AppException {
+		Logger.i(res);
 		UserEntity data = new UserEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -34,6 +41,21 @@ public class UserEntity extends Entity{
 				}
 				if (!info.isNull("username")) {
 					data.username = info.getString("username");
+				}
+				if (!info.isNull("credit")) {
+					data.credit = info.getString("credit");
+				}
+				if (!info.isNull("news")) {
+					data.news = info.getString("news");
+				}
+				if (!info.isNull("card")) {
+					data.card = info.getString("card");
+				}
+				if (!info.isNull("deg1")) {
+					data.deg1 = info.getString("deg1");
+				}
+				if (!info.isNull("deg2")) {
+					data.deg2 = info.getString("deg2");
 				}
 			}
 			else {
