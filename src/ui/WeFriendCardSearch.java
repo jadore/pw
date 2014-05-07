@@ -296,7 +296,9 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         		contactors.clear();
         		mBilateralAdapter.notifyDataSetChanged();
             	searchDeleteButton.setVisibility(View.VISIBLE);
-        		String sql = "display_name like "+"'%" + s.toString() + "%' or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%'";
+        		String sql = "display_name like "+"'%" + s.toString() + "%' "
+        				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
+        				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
         		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
         	}
             else {
