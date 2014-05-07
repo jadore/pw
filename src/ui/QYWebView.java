@@ -103,6 +103,7 @@ public class QYWebView extends AppActivity  {
 	
 	private SharedPreferences shared;
 	private SharedPreferences.Editor editor;
+	
 	@Override
 	public void onStart() {
 	    super.onStart();

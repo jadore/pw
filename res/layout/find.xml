@@ -2,20 +2,70 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/background_color"
     android:orientation="vertical" >
     
-    <Button 
-        android:id="@+id/scanit"
-        android:onClick="ButtonClick"
+    <RelativeLayout 
+        android:layout_height="44dp"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginTop="15dp"
-        android:background="#4e7398"
-        android:text="扫一扫"
-        android:textColor="@color/white"
-        />
-
+        android:background="@color/nav_color"
+        android:id="@+id/navLayout"
+        >
+        <TextView 
+            android:id="@+id/titleBarView"
+            android:layout_width="wrap_content"
+      		android:layout_height="wrap_content"
+            android:text="微信互动"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textSize="@dimen/navbar_title_size"
+            />
+        
+        <ImageView
+            android:layout_centerVertical="true"
+            android:id="@+id/xindicator"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_toRightOf="@+id/titleBarView"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            android:background="@drawable/round_1"/>
+        
+    </RelativeLayout>
+	<RelativeLayout 
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+     	>
+	    <WebView 
+	       	android:id="@+id/webview"
+	       	android:layout_width="match_parent"
+	      	android:layout_height="match_parent"
+	      	/>
+	    
+		<TextView 
+	   	    android:id="@+id/new_data_toast_message"
+	   	    android:visibility="invisible"
+	        android:layout_width="fill_parent"
+	    	android:layout_height="48dp"
+	    	android:background="#71a0d0"
+	    	android:gravity="center"
+	        android:textSize="@dimen/navbar_button_text_size"
+	        android:textColor="@color/white"
+	        android:clickable="true"
+	        android:onClick="ButtonClick"
+	        />
+		
+	    <Button 
+	        android:id="@+id/loadAgain"
+	        android:layout_width="66dp"
+	        android:layout_height="35dp"
+	        android:layout_centerInParent="true"
+	        android:text="再次访问"
+	        android:textColor="@color/white"
+	        android:background="@drawable/card_view_btn"
+	        android:visibility="invisible"
+	        android:onClick="ButtonClick"
+	        android:textSize="@dimen/navbar_button_text_size"
+	        />
+	</RelativeLayout>
 </LinearLayout>

@@ -72,8 +72,9 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
 	}
 
-	  @Override
+	@Override
 	public void onStop() {
+		setResult(RESULT_OK);
 	    super.onStop();
 	    QYRestClient.getIntance().cancelRequests(this, true);
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
@@ -99,6 +100,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	
 	private void initUI() {
 		editText = (EditText) findViewById(R.id.searchEditView);
+		editText.setHint("搜索"+appContext.getDeg2()+"位二度好友");
 		editText.setOnEditorActionListener(this);
 		editText.addTextChangedListener(TWPN);
 		searchDeleteButton = (Button) findViewById(R.id.searchDeleteButton);

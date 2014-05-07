@@ -45,17 +45,13 @@ public class UserEntity extends Entity{
 				if (!info.isNull("credit")) {
 					data.credit = info.getString("credit");
 				}
-				if (!info.isNull("news")) {
-					data.news = info.getString("news");
+				if (!info.isNull("message")) {
+					data.news = info.getJSONObject("message").getString("news");
+					data.card = info.getJSONObject("message").getString("card");
 				}
-				if (!info.isNull("card")) {
-					data.card = info.getString("card");
-				}
-				if (!info.isNull("deg1")) {
-					data.deg1 = info.getString("deg1");
-				}
-				if (!info.isNull("deg2")) {
-					data.deg2 = info.getString("deg2");
+				if (!info.isNull("friend")) {
+					data.deg1 = info.getJSONObject("friend").getString("deg1");
+					data.deg2 = info.getJSONObject("friend").getString("deg2");
 				}
 			}
 			else {

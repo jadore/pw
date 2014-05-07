@@ -66,6 +66,22 @@
             android:layout_marginLeft="8dp"
             android:visibility="invisible"
             android:background="@drawable/round_1"/>
+        
+        <!-- <Button
+            android:id="@+id/rightBarButton"
+            android:layout_width="90dp"
+            android:layout_height="44dp"
+            android:drawableLeft="@android:drawable/ic_menu_search"
+            android:background="@null"
+            android:layout_centerVertical="true"
+            android:text="搜索"
+            android:textColor="@color/white"
+            android:textSize="@dimen/navbar_button_text_size"
+            android:drawablePadding="-5dp"
+            android:paddingLeft="12dp"
+            android:onClick="ButtonClick"
+            android:layout_alignParentRight="true"
+            /> -->
     </RelativeLayout>
     
     

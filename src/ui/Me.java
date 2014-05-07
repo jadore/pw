@@ -43,6 +43,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ExpandableListView.OnGroupClickListener;
 
@@ -54,6 +55,8 @@ public class Me extends AppActivity{
 	private ProgressDialog loadingPd;
 	
 	private ImageView avatarView;
+	private TextView nameTV;
+	private TextView creditTV;
 	private DisplayImageOptions avatar_options = new DisplayImageOptions.Builder()
 	.bitmapConfig(Bitmap.Config.RGB_565)
 	.cacheInMemory(true)
@@ -89,6 +92,10 @@ public class Me extends AppActivity{
 		iphoneTreeView.addFooterView(footer);
 		View header = inflater.inflate(R.layout.more_headerview, null);
 		avatarView = (ImageView) header.findViewById(R.id.avatar);
+		nameTV = (TextView) header.findViewById(R.id.title);
+		creditTV = (TextView) header.findViewById(R.id.jifen);
+		nameTV.setText(appContext.getNickname());
+		creditTV.setText("我的积分: "+appContext.getCredits());
 		iphoneTreeView.addHeaderView(header);
 		cards = new ArrayList<List<CardIntroEntity>>();
 		mCardAdapter = new MeCardAdapter(iphoneTreeView, this, cards);

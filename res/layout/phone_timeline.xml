@@ -48,10 +48,11 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:id="@+id/rightBarButton"        
-           	android:layout_width="30dp"      
-          	android:layout_height="30dp"
-          	android:background="@android:drawable/ic_dialog_map"
+           	android:layout_width="40dp"      
+          	android:layout_height="40dp"
+          	android:background="@android:drawable/ic_menu_view"
           	android:onClick="ButtonClick"
+          	android:layout_marginRight="12dp"
             />
     </RelativeLayout>
 	

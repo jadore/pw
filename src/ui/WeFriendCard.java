@@ -114,6 +114,10 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	}
 	  
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	}
+	  
+	@Override
 	protected void onDestroy() {
 		QYRestClient.getIntance().cancelRequests(this, true);
 		super.onDestroy();
@@ -148,9 +152,17 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	private void initUI() {
 		messageView = (TextView) findViewById(R.id.messageView);
 		searchHeaderView = getLayoutInflater().inflate(R.layout.search_headview, null);
+		searchHeaderView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
+	            startActivityForResult(intent, 12);
+			}
+		});
 		editText = (EditText) searchHeaderView.findViewById(R.id.searchEditView);
-		editText.setOnEditorActionListener(this);
-		editText.addTextChangedListener(TWPN);
+//		editText.setOnEditorActionListener(this);
+//		editText.addTextChangedListener(TWPN);
+		editText.setFocusable(false);
 		searchDeleteButton = (Button) searchHeaderView.findViewById(R.id.searchDeleteButton);
 		
 		nobilateralView = (TextView) findViewById(R.id.noting_view);
@@ -203,6 +215,7 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
+					editText.setHint("搜索"+appContext.getDeg2()+"位二度好友");
 					showReg(user);
 					getAllFriend();
 //					getUnReadMessage();
@@ -402,15 +415,17 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			showMessage();
 			break;
 		case R.id.searchEditView:
-//			editText.setCursorVisible(true);
-            Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
-            startActivity(intent);
+			Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
+            startActivityForResult(intent, 12);
 			break;
 		case R.id.searchDeleteButton:
 			editText.setText("");
 			editText.setCursorVisible(false);
 			imm.hideSoftInputFromWindow(v.getWindowToken(), 0);  
 			searchDeleteButton.setVisibility(View.INVISIBLE);
+			break;
+		case R.id.rightBarButton:
+			
 			break;
 		}
 	}

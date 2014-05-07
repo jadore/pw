@@ -129,14 +129,16 @@ public class MyApplication extends AppContext {
 				setProperty("user.face", user.headimgurl);
 				setProperty("user.hashcode", user.hash);
 				setProperty("user.sign", user._sign);
+				
+				setProperty("user.credit", user.credit);
+				setProperty("user.deg1", user.deg1);
+				setProperty("user.deg2", user.deg2);
+				setProperty("user.card", user.card);
+				setProperty("user.news", user.news);
 			}
 		});		
 	}
 
-	/**
-	 * 获取登录用户id
-	 * @return
-	 */
 	public String getLoginUid() {
 		return (getProperty("user.uid"));
 	}
@@ -147,6 +149,26 @@ public class MyApplication extends AppContext {
 	
 	public String getLoginSign() {
 		return (getProperty("user.sign"));
+	}
+	
+	public String getCredits() {
+		return (getProperty("user.credit"));
+	}
+	
+	public String getDeg1() {
+		return (getProperty("user.deg1"));
+	}
+	
+	public String getDeg2() {
+		return (getProperty("user.deg2"));
+	}
+	
+	public String getCard() {
+		return (getProperty("user.card"));
+	}
+	
+	public String getNews() {
+		return (getProperty("user.news"));
 	}
 	
 	public String getMessageInterupt() {
