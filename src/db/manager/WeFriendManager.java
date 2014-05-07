@@ -133,7 +133,31 @@ public class WeFriendManager {
 	
 	public List<CardIntroEntity> searchWeFriendsByKeyword(String keyword) {
 		String sql;
-		sql = "select * from wcb_phonebook where realname like '%" + keyword +"%' or pinyin like '%" + keyword +"%';";
+		if (StringUtils.isChineseName(keyword)) {
+			sql = "select * from wcb_phonebook where realname like '%" + keyword +"%'"
+					+" or pinyin like '%" + keyword +"%'"
+					+" or department like '%" + keyword +"%'"
+					+" or position like '%" + keyword +"%'"
+					+" or supply like '%" + keyword +"%'"
+					+" or intro like '%" + keyword +"%'"
+					+" or wechat like '%" + keyword +"%'"
+					+" or address like '%" + keyword +"%'"
+					+ ";";
+		}
+		else {
+			String py = keyword;
+			py = py.replace("", "%");
+			sql = "select * from wcb_phonebook where realname like '%" + keyword +"%'"
+					+" or pinyin like '%" + keyword +"%'"
+					+" or department like '%" + keyword +"%'"
+					+" or position like '%" + keyword +"%'"
+					+" or supply like '%" + keyword +"%'"
+					+" or intro like '%" + keyword +"%'"
+					+" or wechat like '%" + keyword +"%'"
+					+" or address like '%" + keyword +"%'"
+					+" or pinyin like '" + py + "'"
+					+ ";";
+		}
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<CardIntroEntity> list = st.queryForList(
 				new RowMapper<CardIntroEntity>() {
