@@ -88,7 +88,7 @@ public class MyLetterListView extends View
 				{
 					listener.onTouchingLetterChanged(b[c]);
 					choose = c;
-					invalidate();
+//					invalidate();
 				}
 			}
 
@@ -100,14 +100,14 @@ public class MyLetterListView extends View
 				{
 					listener.onTouchingLetterChanged(b[c]);
 					choose = c;
-					invalidate();
+//					invalidate();
 				}
 			}
 			break;
 		case MotionEvent.ACTION_UP:
 			showBkg = false;
 			choose = -1;
-			invalidate();
+//			invalidate();
 			break;
 		}
 		return true;

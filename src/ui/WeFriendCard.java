@@ -596,7 +596,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				overlay.setText(sections[position]);
 				overlay.setVisibility(View.VISIBLE);
 				touchhandler.removeCallbacks(overlayThread);
-				touchhandler.postDelayed(overlayThread, 1000);
+				touchhandler.postDelayed(overlayThread, 500);
 			}
 		}
 	}	
