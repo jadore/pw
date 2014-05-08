@@ -256,6 +256,7 @@ public class WeFriendManager {
 	
 	public boolean isOpenidExist(String openid) {
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		return st.isExistsByField("wcb_phonebook", "openid", openid);
+		int count = st.getCount("select * from wcb_phonebook where openid=?", new String[]{openid});
+		return count>0?true:false;
 	}
 }

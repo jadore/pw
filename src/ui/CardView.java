@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import service.AddMobileService;
 import sms.MessageBoxList;
 import tools.AppException;
 import tools.AppManager;
@@ -12,32 +13,39 @@ import tools.BaseIntentUtil;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
+import ui.QYWebView.MobileReceiver;
 import ui.adapter.CardViewAdapter;
-
 import bean.CardIntroEntity;
 import bean.ContactBean;
 import bean.Entity;
 import bean.KeyValue;
 import bean.Result;
-
 import cn.sharesdk.onekeyshare.OnekeyShare;
 import cn.sharesdk.wechat.friends.Wechat;
 import cn.sharesdk.wechat.moments.WechatMoments;
+
+import com.crashlytics.android.Crashlytics;
+import com.google.analytics.tracking.android.EasyTracker;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.QYRestClient;
 import config.AppClient.ClientCallback;
 import config.CommonValue;
-
 import android.R.string;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.AsyncQueryHandler;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -59,7 +67,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class CardView extends AppActivity implements OnItemClickListener  {
-	private AsyncQueryHandler asyncQuery;
 	private CardIntroEntity card;
 	private TextView titleBarView;
 	private ImageView avatarImageView;
@@ -76,10 +83,34 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	private Button exchangeButton;
 	private TextView exchangeView;
 	
+	private MobileReceiver mobileReceiver;
+	
+	@Override
+	public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this);  
+	    
+	}
+	
+	@Override
+	public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this);  
+	}
+	
+
+	@Override
+	protected void onDestroy() {
+		QYRestClient.getIntance().cancelRequests(this, true);
+		unregisterGetReceiver();
+		super.onDestroy();
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.card_view);
+		registerGetReceiver();
 		initUI();
 		initData();
 	}
@@ -107,12 +138,9 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	}
 	
 	private void initData() {
-		asyncQuery = new MyAsyncQueryHandler(this.getContentResolver());
 		card = (CardIntroEntity) getIntent().getSerializableExtra(CommonValue.CardViewIntentKeyValue.CardView);
 		setData(card);
-//		if (card.willRefresh) {
-			getCard(card.code);
-//		}
+		getCard(card.code);
 	}
 	
 	private void setData(CardIntroEntity entity) {
@@ -123,29 +151,29 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 				editMyMobileButton.setVisibility(View.VISIBLE);
 			}
 			else {
-				saveMobileButton.setVisibility(View.VISIBLE);
 				editMyMobileButton.setVisibility(View.GONE);
-				Logger.i(entity.isfriend);
-				if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)) {
-					callMobileButton.setVisibility(View.VISIBLE);
-				}
-				else {
-					callMobileButton.setVisibility(View.GONE);
+				if (StringUtils.notEmpty(entity.isfriend)) {
+					if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
+						exchangeButton.setVisibility(View.VISIBLE);
+						callMobileButton.setVisibility(View.GONE);
+						saveMobileButton.setVisibility(View.GONE);
+					}
+					else if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
+						exchangeButton.setVisibility(View.GONE);
+						exchangeView.setVisibility(View.VISIBLE);
+						callMobileButton.setVisibility(View.GONE);
+						saveMobileButton.setVisibility(View.GONE);
+					}
+					else {
+						callMobileButton.setVisibility(View.VISIBLE);
+						saveMobileButton.setVisibility(View.VISIBLE);
+					}
 				}
 			}
 		}
 		
-		if (StringUtils.notEmpty(entity.isfriend)) {
-			if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_No)) {
-				exchangeButton.setVisibility(View.VISIBLE);
-			}
-			else if (entity.isfriend.equals(CommonValue.PhonebookLimitRight.Friend_Wait)) {
-				exchangeButton.setVisibility(View.GONE);
-				exchangeView.setVisibility(View.VISIBLE);
-			}
-		}
 		titleBarView.setText(entity.realname);
-		imageLoader.displayImage(entity.headimgurl, avatarImageView, CommonValue.DisplayOptions.avatar_options);
+		imageLoader.displayImage(entity.avatar, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 		nameView.setText(entity.realname);
 		titleView.setText(entity.department +" " +entity.position);
 		summarys.clear();
@@ -296,7 +324,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			showShare(false, WechatMoments.NAME);
 			break;
 		case R.id.saveContactButton:
-			addContact();
+			addContact(card);
 			break;
 		case R.id.editMyMobile:
 			String url1 = String.format("%s/card/setting/id/%s", CommonValue.BASE_URL, card.code);
@@ -363,105 +391,47 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 		}
 	}
 	
-	public void addContact(){
-		Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; // 联系人的Uri
-		String[] projection = { 
-				ContactsContract.CommonDataKinds.Phone._ID,
-				ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-				ContactsContract.CommonDataKinds.Phone.DATA1,
-				"sort_key",
-				ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-				ContactsContract.CommonDataKinds.Phone.PHOTO_ID,
-				ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
-		}; 
+	public void addContact(CardIntroEntity entity){
 		loadingPd = UIHelper.showProgress(this, null, null, true);
-		asyncQuery.startQuery(0, null, uri, projection, null, null,
-				"sort_key COLLATE LOCALIZED asc");
+		AddMobileService.actionStartPAY(this, entity, true);
     }
 	
-	
-	private class MyAsyncQueryHandler extends AsyncQueryHandler {
-
-		public MyAsyncQueryHandler(ContentResolver cr) {
-			super(cr);
-		}
-		@Override
-		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+	class MobileReceiver extends BroadcastReceiver {
+		public void onReceive(Context context, Intent intent) {
 			UIHelper.dismissProgress(loadingPd);
-			try {
-				if (isPhoneExit(cursor)) {
-					UIHelper.ToastMessage(getApplicationContext(), "名片已存在", Toast.LENGTH_SHORT);
-				}
-				else {//insert
-					insert();
-					UIHelper.ToastMessage(getApplicationContext(), "名片保存成功", Toast.LENGTH_SHORT);
-				}
-			} catch (Exception e) {
-				((AppException)e).makeToast(getApplicationContext());
+			int type = intent.getIntExtra(CommonValue.ContactOperationResult.ContactOperationResultType, CommonValue.ContactOperationResult.SAVE_FAILURE);
+			String message = "";
+			switch (type) {
+			case CommonValue.ContactOperationResult.EXIST:
+				message = "名片已保存了";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.SAVE_FAILURE:
+				message = "保存名片失败";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.SAVE_SUCCESS:
+				message = "保存名片成功";
+				WarningDialog(message);
+				break;
+			case CommonValue.ContactOperationResult.NOT_AUTHORITY:
+				message = "请在手机的[设置]->[应用]->[群友通讯录]->[权限管理]，允许群友通讯录访问你的联系人记录并重新运行程序";
+				WarningDialog(message);
+				break;
 			}
-			
 		}
 	}
 	
-	private boolean isPhoneExit(Cursor cursor) {
-		if (cursor != null && cursor.getCount() > 0) {
-			cursor.moveToFirst();
-			for (int i = 0; i < cursor.getCount(); i++) {
-				cursor.moveToPosition(i);
-				String number = cursor.getString(2);
-				number = number.replace("-", "");
-				number = number.replace("+86", "");
-				if (number.indexOf(card.phone) != -1) {
-					return true;
-				}
-			}
-		}
-		return false;
+	private void registerGetReceiver() {
+		mobileReceiver =  new  MobileReceiver();
+        IntentFilter postFilter = new IntentFilter();
+        postFilter.addAction(CommonValue.ContactOperationResult.ContactBCAction);
+        registerReceiver(mobileReceiver, postFilter);
 	}
 	
-	private void insert() {
-		ContentValues values = new ContentValues();
-        //首先向RawContacts.CONTENT_URI执行一个空值插入，目的是获取系统返回的rawContactId
-        Uri rawContactUri = this.getContentResolver().insert(RawContacts.CONTENT_URI, values);
-        long rawContactId = ContentUris.parseId(rawContactUri);
-        
-        values.clear();
-        values.put(Data.RAW_CONTACT_ID, rawContactId);
-        values.put(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
-        values.put(StructuredName.GIVEN_NAME, card.realname);
-        this.getContentResolver().insert(
-                android.provider.ContactsContract.Data.CONTENT_URI, values);
-        
-        values.clear();
-        values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-        values.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
-        values.put(Phone.NUMBER, card.phone);
-        values.put(Phone.TYPE, Phone.TYPE_MOBILE);
-        this.getContentResolver().insert(
-                android.provider.ContactsContract.Data.CONTENT_URI, values);
-
-        if (StringUtils.notEmpty(card.email)) {
-            values.clear();
-            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-            values.put(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
-            values.put(Email.DATA, card.email);
-            values.put(Email.TYPE, Email.TYPE_WORK);
-            this.getContentResolver().insert(
-                    android.provider.ContactsContract.Data.CONTENT_URI, values);
-		}
-        
-        if (StringUtils.notEmpty(card.department)) {
-            values.clear();
-            values.put(android.provider.ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactId);
-            values.put(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
-            values.put(Organization.COMPANY, card.department);
-            values.put(Organization.TITLE, card.position);  
-            values.put(Organization.TYPE, Organization.TYPE_WORK);  
-            this.getContentResolver().insert(
-                    android.provider.ContactsContract.Data.CONTENT_URI, values);
-		}
+	private void unregisterGetReceiver() {
+		unregisterReceiver(mobileReceiver);
 	}
-
 	
 	private void showCreate(String url, int RequestCode) {
 		Intent intent = new Intent(this,QYWebView.class);
@@ -555,4 +525,25 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			break;
 		}
 	}
+	
+	protected void WarningDialog(String message) {
+		try {
+			if (CardView.this.isFinishing()) {
+				return;
+			}
+			AlertDialog.Builder builder = new Builder(this);
+			builder.setMessage(message);
+			builder.setPositiveButton("确定", new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+		   builder.create().show();
+		}
+		catch (Exception e) {
+			Crashlytics.logException(e);
+		}
+	}
+	
 }

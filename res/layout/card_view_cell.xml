@@ -6,10 +6,11 @@
     android:background="@color/transparent" >
     <TextView 
         android:id="@+id/title"
+        android:layout_marginLeft="15dp"
         android:layout_width="80dp"
         android:layout_height="20dp"
         android:layout_marginTop="10dp"
-        android:textSize="13sp"
+        android:textSize="@dimen/cell_title_size"
         android:textColor="#088ec1"
         android:text="华南区"
         android:gravity="right|top"
@@ -24,7 +25,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:gravity="left|top"
-        android:textSize="13sp"
+        android:textSize="@dimen/cell_title_size"
         android:textColor="#3b3b3b"
         android:text="人数 20   点击数 200asfasdfsdfasdfsadfsadfasdfasdfsadfasdfasdfasdf"
         />

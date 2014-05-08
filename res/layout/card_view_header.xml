@@ -21,9 +21,10 @@
         android:layout_height="20dp"
         android:layout_marginTop="1dp"
         android:layout_marginLeft="14dp"
-        android:textSize="16sp"
+        android:textSize="@dimen/cell_title_size"
         android:textColor="#2b2b2b"
         android:text="华南区社会化媒体市场通讯录"
+        android:layout_marginRight="15dp"
         />
     
     <TextView 
@@ -33,9 +34,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:textSize="14sp"
+        android:textSize="@dimen/cell_subtitle_size"
         android:textColor="#999999"
         android:text="人数 20   点击数 200"
+        android:layout_marginRight="15dp"
         />
 
 </RelativeLayout>

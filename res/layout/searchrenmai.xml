@@ -66,8 +66,10 @@
 	    android:visibility="invisible"
 	    android:onClick="ButtonClick"
 	    />
+
 </RelativeLayout>
 
+        
     <ListView
         android:layout_below="@+id/navLayout"
         android:id="@+id/xlistview"

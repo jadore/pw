@@ -78,21 +78,6 @@ public class FriendCardSearchAdapter extends BaseAdapter {
 		.build();
 	}
 	
-	private void showCardView(CardIntroEntity entity) {
-		Intent intent = new Intent(context, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
-		((WeFriendCardSearch)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
-	}
-	
-	private void showMobileView(CardIntroEntity entity) {
-		Uri uri = ContactsContract.Contacts.CONTENT_URI;
-		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
-		Intent intent2 = new Intent();
-		intent2.setAction(Intent.ACTION_VIEW);
-		intent2.setData(personUri);
-		context.startActivity(intent2);
-	}
-
 	@Override
 	public int getCount() {
 		return cards.size();
@@ -100,7 +85,7 @@ public class FriendCardSearchAdapter extends BaseAdapter {
 
 	@Override
 	public Object getItem(int position) {
-		return null;
+		return cards.get(position);
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import com.google.analytics.tracking.android.EasyTracker;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.CommonValue;
 import config.CommonValue.LianXiRenType;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
@@ -19,6 +20,8 @@ import db.manager.WeFriendManager;
 import android.app.ProgressDialog;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,14 +34,14 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AbsListView.OnScrollListener;
-import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.TextView.OnEditorActionListener;
 import tools.AppManager;
 import tools.Logger;
@@ -46,7 +49,7 @@ import tools.StringUtils;
 import tools.UIHelper;
 import ui.adapter.FriendCardSearchAdapter;
 
-public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener{
+public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener, OnItemClickListener{
 	private int lvDataState;
 	private int currentPage;
 	private ProgressDialog loadingPd;
@@ -78,7 +81,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	public void onStop() {
 		setResult(RESULT_OK);
 	    super.onStop();
-	    QYRestClient.getIntance().cancelRequests(this, true);
+	    QYRestClient.getIntance().cancelAllRequests(true);;
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
 	    
 	}
@@ -112,6 +115,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         xlistView.setOnScrollListener(this);
 		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors, imageLoader);
 		xlistView.setAdapter(mBilateralAdapter);
+		xlistView.setOnItemClickListener(this);
 	}
 	
 	public void ButtonClick(View v) {
@@ -176,6 +180,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				contactors.addAll(bilaterals);
 				mBilateralAdapter.notifyDataSetChanged();
 			}
+			QYRestClient.getIntance().cancelAllRequests(true);
 			searchFriendCard(1, keyword, 200+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 	}
@@ -209,9 +214,10 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		});
 	}
 	
-	private void handleSearchFriends(FriendCardListEntity entity, int action) {
+	private synchronized void handleSearchFriends(FriendCardListEntity entity, int action) {
 		List<CardIntroEntity> temp = new ArrayList<CardIntroEntity>();
 		temp.addAll(entity.u);
+		Logger.i(temp.size()+"");
 		for (CardIntroEntity card : entity.u) {
 			if (WeFriendManager.getInstance(this).isOpenidExist(card.openid)) {
 				temp.remove(card);
@@ -289,7 +295,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         	}
             else {
             	keyword = "";
-            	QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
+            	QYRestClient.getIntance().cancelAllRequests(true);
             	contactors.clear();
             	searchDeleteButton.setVisibility(View.INVISIBLE);
 				mBilateralAdapter.notifyDataSetChanged();
@@ -309,5 +315,31 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	@Override
 	public void onScrollStateChanged(AbsListView arg0, int arg1) {
 		closeInput();
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View arg1, int position, long arg3) {
+		CardIntroEntity model = (CardIntroEntity) parent.getAdapter().getItem(position);
+		if (model.cardSectionType.equals(LianXiRenType.mobile)) {
+			showMobileView(model);
+		}
+		else {
+			showCardView(model);
+		}
+	}
+	
+	private void showCardView(CardIntroEntity entity) {
+		Intent intent = new Intent(context, CardView.class);
+		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
+	}
+	
+	private void showMobileView(CardIntroEntity entity) {
+		Uri uri = ContactsContract.Contacts.CONTENT_URI;
+		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
+		Intent intent2 = new Intent();
+		intent2.setAction(Intent.ACTION_VIEW);
+		intent2.setData(personUri);
+		context.startActivity(intent2);
 	}
 }
