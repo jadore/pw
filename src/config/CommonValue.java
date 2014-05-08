@@ -25,6 +25,12 @@ public class CommonValue {
 	
 	public static final String KEY_GUIDE_SHOWN = "preferences_guide_shown";
 	
+	public interface LianXiRenType {
+		String mobile = "电话本";
+		String yidu = "一度好友";
+		String erdu = "二度好友";
+	}
+	
 	public interface subTitle {
 		String subtitle1 = "查看手机通讯录";
 		String subtitle2 = "查看交换名片的朋友";
@@ -45,6 +51,7 @@ public class CommonValue {
 		String FriendCardList = "FriendCardList";
 		String FriendCardList1 = "FriendCardList1";
 		String MessageList = "MessageList";
+		String SquareList = "SquareList";
 		
 		String MessageUnRead = "MessageUnRead";
 		String ChatterInfo = "ChatterInfo";
@@ -58,31 +65,31 @@ public class CommonValue {
 	
 	// options
 	public interface DisplayOptions {
-		public DisplayImageOptions default_options =
-//		= new DisplayImageOptions.Builder()
-//				.bitmapConfig(Bitmap.Config.RGB_565)
-//				.showImageOnLoading(R.drawable.ic_launcher)
-//				.showImageForEmptyUri(R.drawable.ic_launcher)
-//				.showImageOnFail(R.drawable.ic_launcher)
-//				.cacheInMemory(true)
-//				.cacheOnDisc(true)
-//				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
-//				.displayer(new BitmapDisplayer() {
-//					@Override
-//					public void display(Bitmap bitmap, ImageAware imageAware,
-//							LoadedFrom loadedFrom) {
-//						imageAware.setImageBitmap(bitmap);
-//					}
-//				})
-//				.build();
-		new DisplayImageOptions.Builder()
-		.showImageOnLoading(R.drawable.ic_launcher)
-		.showImageForEmptyUri(R.drawable.ic_launcher)
-		.showImageOnFail(R.drawable.ic_launcher)
-		.cacheInMemory(true)
-		.cacheOnDisc(true)
-		.bitmapConfig(Bitmap.Config.RGB_565)
-		.build();
+		public DisplayImageOptions default_options 
+		= new DisplayImageOptions.Builder()
+				.bitmapConfig(Bitmap.Config.RGB_565)
+				.showImageOnLoading(R.drawable.ic_launcher)
+				.showImageForEmptyUri(R.drawable.ic_launcher)
+				.showImageOnFail(R.drawable.ic_launcher)
+				.cacheInMemory(true)
+				.cacheOnDisc(true)
+				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
+				.displayer(new BitmapDisplayer() {
+					@Override
+					public void display(Bitmap bitmap, ImageAware imageAware,
+							LoadedFrom loadedFrom) {
+						imageAware.setImageBitmap(bitmap);
+					}
+				})
+				.build();
+//		new DisplayImageOptions.Builder()
+//		.showImageOnLoading(R.drawable.ic_launcher)
+//		.showImageForEmptyUri(R.drawable.ic_launcher)
+//		.showImageOnFail(R.drawable.ic_launcher)
+//		.cacheInMemory(true)
+//		.cacheOnDisc(true)
+//		.bitmapConfig(Bitmap.Config.RGB_565)
+//		.build();
 		
 		public DisplayImageOptions avatar_options = new DisplayImageOptions.Builder()
 		.bitmapConfig(Bitmap.Config.RGB_565)

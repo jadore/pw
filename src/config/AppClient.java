@@ -352,7 +352,7 @@ public class AppClient {
 		});
 	}
 	
-	public static void getPhoneSquareList(final MyApplication appContext, String page, String keyword, final ClientCallback callback) {
+	public static void getPhoneSquareList(final MyApplication appContext, final String page, final String keyword, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		if (StringUtils.notEmpty(page)) {
 			params.add("page", page);
@@ -365,6 +365,9 @@ public class AppClient {
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
 					RecommendListEntity data = RecommendListEntity.parseSquare(DecodeUtil.decode(new String(content)));
+					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
+						saveCache(appContext, CommonValue.CacheKey.SquareList, data);
+					}
 					callback.onSuccess(data);
 				} catch (Exception e) {
 					callback.onError(e);
@@ -501,6 +504,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
+					Logger.i("get");
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {
@@ -509,6 +513,7 @@ public class AppClient {
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				Logger.i(statusCode+"");
 				callback.onFailure("网络不给力，请重新尝试");
 			}
 		});
@@ -567,6 +572,7 @@ public class AppClient {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
+					Logger.i("all1");
 					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
 					callback.onSuccess(data);
 				}catch (Exception e) {

@@ -1,7 +1,11 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,43 +14,40 @@ import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.LiveFolders;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 import baidupush.Utils;
 import bean.CardIntroEntity;
 import bean.Entity;
 import bean.FriendCardListEntity;
-import bean.MessageUnReadEntity;
 import bean.OpenidListEntity;
 import bean.Result;
 import bean.UserEntity;
@@ -60,16 +61,18 @@ import com.vikaa.mycontact.R;
 import config.AppClient;
 import config.CommonValue;
 import config.AppClient.ClientCallback;
+import config.CommonValue.LianXiRenType;
 import config.QYRestClient;
 import db.manager.WeFriendManager;
-import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
 import ui.adapter.FriendCardAdapter;
+import widget.MyLetterListView;
+import widget.MyLetterListView.OnTouchingLetterChangedListener;
 
-public class WeFriendCard extends AppActivity implements OnScrollListener, OnEditorActionListener{
+public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	private TextView messageView;
 	
 	private List<CardIntroEntity> mobiles = new ArrayList<CardIntroEntity>();
@@ -92,12 +95,16 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	
 	private String keyword;
 	
-	private ExpandableListView xlistView;
-	private List<List<CardIntroEntity>> contactors = new ArrayList<List<CardIntroEntity>>();
+	private ListView xlistView;
+	private List<CardIntroEntity> contactors = new ArrayList<CardIntroEntity>();
 	private FriendCardAdapter mBilateralAdapter;
 	
-	MyAsyncQueryHandler asyncQuery;
-	Uri uri ;
+	private MyAsyncQueryHandler asyncQuery;
+	private Uri uri ;
+	private List<String> contactids;
+	
+	private List<String> needUpdateOpenids = new ArrayList<String>();
+	private static final int count = 200;
 	
 	@Override
 	public void onStart() {
@@ -108,13 +115,12 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	  @Override
 	public void onStop() {
 	    super.onStop();
-	    QYRestClient.getIntance().cancelRequests(this, true);
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
-	    
 	}
 	  
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		letterListView.setVisibility(View.VISIBLE);
 	}
 	  
 	@Override
@@ -127,8 +133,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wefriendcard);
-		contactors.add(mobiles);
-		contactors.add(bilaterals);
 		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
 		uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 		initUI();
@@ -150,18 +154,18 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	}
 	
 	private void initUI() {
+		letterListView = (MyLetterListView) findViewById(R.id.ContactLetterListView);
 		messageView = (TextView) findViewById(R.id.messageView);
 		searchHeaderView = getLayoutInflater().inflate(R.layout.search_headview, null);
 		searchHeaderView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
+				letterListView.setVisibility(View.INVISIBLE);
 				Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
 	            startActivityForResult(intent, 12);
 			}
 		});
 		editText = (EditText) searchHeaderView.findViewById(R.id.searchEditView);
-//		editText.setOnEditorActionListener(this);
-//		editText.addTextChangedListener(TWPN);
 		editText.setFocusable(false);
 		searchDeleteButton = (Button) searchHeaderView.findViewById(R.id.searchDeleteButton);
 		
@@ -176,41 +180,30 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		        return (float)Math.floor(input*frameCount)/frameCount;
 		    }
 		});
-		xlistView = (ExpandableListView)findViewById(R.id.xlistview);
+		letterListView.setOnTouchingLetterChangedListener(new LetterListViewListener());
+		alphaIndexer = new HashMap<String, Integer>();
+		touchhandler = new Handler();
+		overlayThread = new OverlayThread();
+		initOverlay();
+		
+		xlistView = (ListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
-        xlistView.setGroupIndicator(null);
         xlistView.addHeaderView(searchHeaderView, null, false);
-        xlistView.setOnScrollListener(this);
-		mBilateralAdapter = new FriendCardAdapter(this, contactors);
+		mBilateralAdapter = new FriendCardAdapter(this, contactors, imageLoader);
 		xlistView.setAdapter(mBilateralAdapter);
-		xlistView.expandGroup(0);
-		xlistView.expandGroup(1);
-		xlistView.setOnGroupClickListener(new OnGroupClickListener() {
-			@Override
-			public boolean onGroupClick(ExpandableListView arg0, View arg1, int arg2,
-					long arg3) {
-				return true;
-			}
-		});
+		xlistView.setOnItemClickListener(this);
 	}
 	
 	private void getFriendCardFromCache() {
-		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc"); // 按照sort_key升序查询
-		bilaterals.addAll(WeFriendManager.getInstance(this).getWeFriends());
-		mBilateralAdapter.notifyDataSetChanged();
+		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc"); 
 	}
 	
 	private void checkLogin() {
 		loadingPd = UIHelper.showProgress(this, null, null, true);
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-    	
 		AppClient.autoLogin(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 				UserEntity user = (UserEntity)data;
 				switch (user.getError_code()) {
 				case Result.RESULT_OK:
@@ -218,18 +211,17 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 					editText.setHint("搜索"+appContext.getDeg2()+"位二度好友");
 					showReg(user);
 					getAllFriend();
-//					getUnReadMessage();
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
-					WebView webview = (WebView) findViewById(R.id.webview);
-					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
-					webview.setWebViewClient(new WebViewClient() {
-						public boolean shouldOverrideUrlLoading(WebView view, String url) {
-							view.loadUrl(url);
-							return true;
-						};
-					});
+//					WebView webview = (WebView) findViewById(R.id.webview);
+//					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
+//					webview.setWebViewClient(new WebViewClient() {
+//						public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//							view.loadUrl(url);
+//							return true;
+//						};
+//					});
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
@@ -242,15 +234,11 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			@Override
 			public void onFailure(String message) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 				Logger.i(e);
 			}
 		});
@@ -273,42 +261,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		startActivity(intent);
 	}
 	
-	private void getUnReadMessage() {
-		AppClient.getUnReadMessage(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				MessageUnReadEntity entity = (MessageUnReadEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-//					Tabbar.setMessagePao(entity);
-					if(entity != null){
-						messageView.setVisibility(View.VISIBLE);
-						int pao = Integer.valueOf(entity.news) + Integer.valueOf(entity.card);
-						String num = pao>99?"99+":pao+"";
-						messageView.setText(num);
-						if (pao == 0) {
-							messageView.setVisibility(View.INVISIBLE);
-						}
-					}
-				case CommonValue.USER_NOT_IN_ERROR:
-					break;
-				default:
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				e.printStackTrace();
-				Logger.i(e);
-			}
-		});
-	}
-	
 	private void blindBaidu() {
 		PushManager.startWork(getApplicationContext(),
 				PushConstants.LOGIN_TYPE_API_KEY, 
@@ -316,17 +268,35 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	}
 	
 	private void getAllFriend() {
-		List<CardIntroEntity> temp = WeFriendManager.getInstance(this).getWeFriends();
-		if (temp.size() == 0) {
-			currentPage = 1;
-			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
-		}
-		else {
-			bilaterals.clear();
-			bilaterals.addAll(temp);
-			mBilateralAdapter.notifyDataSetChanged();
-			getAllOpenidFromServer();
-		}
+		final Handler handler2 = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				if (msg.what == 1) {
+					loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null, true);
+					currentPage = 1;
+					getFriendCard(currentPage, "", count+"", UIHelper.LISTVIEW_ACTION_INIT);
+				}
+				else {
+					if (!appContext.isNetworkConnected()) {
+			    		return;
+			    	}
+					getAllOpenidFromServer();
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				int temp = WeFriendManager.getInstance(WeFriendCard.this).getWeFriendCount();
+				if (temp == 0) {
+					handler2.sendEmptyMessage(1);
+				}
+				else {
+			        handler2.sendEmptyMessageDelayed(2, 60*1000);
+				}
+			}
+		});
 	}
 	
 	private void getFriendCard(int page, String kw, String count, final int action) {
@@ -334,8 +304,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-    	indicatorImageView.startAnimation(indicatorAnimation);
-    	indicatorImageView.setVisibility(View.VISIBLE);
 		AppClient.getChatFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -356,57 +324,40 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			@Override
 			public void onFailure(String message) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 			}
 		});
 	}
 	
 	private void handleFriends(FriendCardListEntity entity, int action) {
-		nobilateralView.setVisibility(View.GONE);
-//		switch (action) {
-//		case UIHelper.LISTVIEW_ACTION_INIT:
-//		case UIHelper.LISTVIEW_ACTION_REFRESH:
-//			bilaterals.clear();
-//			bilaterals.addAll(entity.u);
-//			break;
-//		case UIHelper.LISTVIEW_ACTION_SCROLL:
-//			bilaterals.addAll(entity.u);
-//			break;
-//		}
 		Logger.i(entity.u.size()+"");
-		for (CardIntroEntity card : entity.u) {
-			WeFriendManager.getInstance(this).saveWeFriend(card);
-		}
+		saveListInDB(entity);
 		if(entity.ne >= 1){					
-//			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-//			mBilateralAdapter.notifyDataSetChanged();
 			++currentPage;
-			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
+			getFriendCard(currentPage, "", count+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 		else if (entity.ne == -1) {
-//			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-			bilaterals.clear();
-			bilaterals.addAll(WeFriendManager.getInstance(this).getWeFriends());
+			UIHelper.dismissProgress(loadingPd);
+			contactors.removeAll(bilaterals);
 			mBilateralAdapter.notifyDataSetChanged();
+			getWeFriendsFromDB();
 		}
-//		if(bilaterals.isEmpty()){
-//			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-//			nobilateralView.setVisibility(View.VISIBLE);
-//			if (StringUtils.notEmpty(keyword)) {
-//				nobilateralView.setText(R.string.friend_search_no);
-//			}
-//			else {
-//				nobilateralView.setText(R.string.friend_no);
-//			}
-//		}
+	}
+	
+	private void saveListInDB(final FriendCardListEntity entity) {
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				for (CardIntroEntity card : entity.u) {
+					WeFriendManager.getInstance(WeFriendCard.this).saveWeFriend(card);
+				}
+			}
+		});
 	}
 	
 	public void ButtonClick(View v) {
@@ -415,6 +366,7 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			showMessage();
 			break;
 		case R.id.searchEditView:
+			letterListView.setVisibility(View.INVISIBLE);
 			Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
             startActivityForResult(intent, 12);
 			break;
@@ -430,79 +382,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 		}
 	}
 	
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem,
-			int visibleItemCount, int totalItemCount) {
-		
-	}
-
-	@Override
-	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);  
-		editText.setCursorVisible(false);
-	}
-
-	public boolean onEditorAction(TextView v, int actionID, KeyEvent event) {
-		
-		switch(actionID){  
-        case EditorInfo.IME_ACTION_SEARCH:  
-        	
-        	imm.hideSoftInputFromWindow(v.getWindowToken(), 0);  
-    		editText.setCursorVisible(false);
-            currentPage = 1;
-            keyword = v.getText().toString();
-            if (StringUtils.empty(keyword)) {
-				return false;
-			}
-            Intent intent = new Intent(WeFriendCard.this, WeFriendCardSearch.class);
-            startActivity(intent);
-//            loadingPd = UIHelper.showProgress(this, null, null, true);
-//
-//            String sql = "display_name like "+"'%" + keyword + "%' or " + Phone.NUMBER + " like " +"'%" + keyword + "%'";
-//    		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
-//    		
-//    		searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
-            break;  
-        }  
-		return true;
-	}
-	
-	TextWatcher TWPN = new TextWatcher() {
-        private CharSequence temp;
-        private int editStart ;
-        private int editEnd ;
-        public void beforeTextChanged(CharSequence s, int arg1, int arg2,
-                int arg3) {
-            temp = s;
-        }
-       
-        public void onTextChanged(CharSequence s, int start, int before,
-                int count) {
-        	if (s.length() > 0) {
-            	searchDeleteButton.setVisibility(View.VISIBLE);
-        		String sql = "display_name like "+"'%" + s.toString() + "%' or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%'";
-        		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
-        		
-        		bilaterals.clear();
-				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).searchWeFriendsByKeyword(s.toString()));
-				mBilateralAdapter.notifyDataSetChanged();
-        	}
-            else {
-            	searchDeleteButton.setVisibility(View.INVISIBLE);
-        		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc");
-        		bilaterals.clear();
-				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
-				mBilateralAdapter.notifyDataSetChanged();
-            }
-        }
-       
-		public void afterTextChanged(Editable s) {
-            
-		}
-    };
-    
-    
-    
     /**
 	 * 数据库异步查询类AsyncQueryHandler
 	 * 
@@ -521,6 +400,7 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 			mobiles.clear();
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
+				contactids = new ArrayList<String>();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
 					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
@@ -530,16 +410,60 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
 						ce.phone = phone;
 						ce.code = ""+cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
-						ce.cardSectionType = "mobile";
-						mobiles.add(ce);
+						ce.cardSectionType = LianXiRenType.mobile;
+						ce.department = "来自手机通讯录";
+						ce.position = "";
+						ce.avatar = "";
+						ce.pinyin = cursor.getString(cursor.getColumnIndex("sort_key"));
+						ce.py = StringUtils.getAlpha(ce.pinyin);
+						if (!contactids.contains(ce.code)) {
+							mobiles.add(ce);
+							contactids.add(ce.code);
+						}
 					}
 				}
 			}
 			else {
 //				WarningDialog();
 			}
+			contactors.addAll(mobiles);
+			Collections.sort(contactors);
 			mBilateralAdapter.notifyDataSetChanged();
+			getWeFriendsFromDB();
 		}
+	}
+	
+	private void getWeFriendsFromDB() {
+		final Handler handler1 = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				mBilateralAdapter.notifyDataSetChanged();
+				UIHelper.dismissProgress(loadingPd);
+			}
+		};
+		loadingPd = UIHelper.showProgress(this, null, null, true);
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				bilaterals.clear();
+				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
+				contactors.addAll(bilaterals);
+				Collections.sort(contactors);
+				alphaIndexer .clear();
+				sections = new String[contactors.size()];
+				for (int i = 0; i < contactors.size(); i++) {
+					String currentStr = contactors.get(i).pinyin.substring(0, 1).toLowerCase();
+					String previewStr = (i - 1) >= 0 ? contactors.get(i - 1).pinyin.substring(0, 1).toLowerCase() : " ";
+					if (!previewStr.equals(currentStr)) {
+						String name = contactors.get(i).pinyin.substring(0, 1).toUpperCase();
+						alphaIndexer.put(name, i);
+						sections[i] = name;
+					}
+				}
+				handler1.sendEmptyMessage(1);
+			}
+		});
 	}
 	
 	protected void WarningDialog() {
@@ -557,7 +481,6 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 	}
 	
 	private void getAllOpenidFromServer() {
-		
 		AppClient.getAllOpenid(this, appContext, new ClientCallback() {
 			
 			@Override
@@ -565,23 +488,7 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				OpenidListEntity entity = (OpenidListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					if (!WeFriendCard.this.isFinishing()) {
-						List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
-						for (String openid : temp) {
-							if (!entity.openids.contains(openid)) {
-								WeFriendManager.getInstance(WeFriendCard.this).deleteWeFriendBy(openid);
-							}
-						}
-						temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
-						for (String openid : entity.openids) {
-							if (!temp.contains(openid)) {
-								CardIntroEntity model = new CardIntroEntity();
-								model.openid = openid;
-								WeFriendManager.getInstance(WeFriendCard.this).saveWeFriend(model);
-							}
-						}
-						getAllWeFriendbyOpenids();
-					}
+					handleOpenid(entity);
 					break;
 				}
 			}
@@ -596,104 +503,142 @@ public class WeFriendCard extends AppActivity implements OnScrollListener, OnEdi
 				
 			}
 		});
+	}
+	
+	private void handleOpenid(final OpenidListEntity entity) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				getAllWeFriendbyOpenids();
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+				for (String openid : temp) {
+					if (!entity.openids.contains(openid)) {
+						WeFriendManager.getInstance(WeFriendCard.this).deleteWeFriendBy(openid);
+					}
+				}
+				temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+				needUpdateOpenids.clear();
+				for (String openid : entity.openids) {
+					if (!temp.contains(openid)) {
+						needUpdateOpenids.add(openid);
+					}
+				}
+				if (needUpdateOpenids.size() > 0) {
+					handler.sendEmptyMessage(1);
+				}
+			}
+		});
+		
 	}
 	
 	private void getAllWeFriendbyOpenids() {
-		List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
 		Gson gson = new Gson();
-		AppClient.getAllWeFriendByOpenid(this, appContext, gson.toJson(temp), new ClientCallback() {
+		AppClient.getAllWeFriendByOpenid(this, appContext, gson.toJson(needUpdateOpenids), new ClientCallback() {
 			
 			@Override
 			public void onSuccess(Entity data) {
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					for (CardIntroEntity model : entity.u) {
-						WeFriendManager.getInstance(WeFriendCard.this).updateWeFriend(model);
-					}
-					bilaterals.clear();
-					bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
-					mBilateralAdapter.notifyDataSetChanged();
+					Logger.i("all2");
+					saveListInDB(entity);
+//					bilaterals.clear();
+//					bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
+//					mBilateralAdapter.notifyDataSetChanged();
 					break;
 				default:
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-	}
-	
-	private void searchFriendCard(int page, String kw, String count, final int action) {
-		if (!appContext.isNetworkConnected()) {
-			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
-			return;
-		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
-		AppClient.searchFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
-				FriendCardListEntity entity = (FriendCardListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					handleSearchFriends(entity, action);
-					break;
-				default:
+					Logger.i(entity.getMessage());
 					break;
 				}
 			}
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+				
 			}
 			
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+				
 			}
 		});
 	}
 	
-	private void handleSearchFriends(FriendCardListEntity entity, int action) {
-//		nobilateralView.setVisibility(View.GONE);
-		switch (action) {
-		case UIHelper.LISTVIEW_ACTION_INIT:
-		case UIHelper.LISTVIEW_ACTION_REFRESH:
-			bilaterals.clear();
-			bilaterals.addAll(entity.u);
-			break;
-		case UIHelper.LISTVIEW_ACTION_SCROLL:
-			bilaterals.addAll(entity.u);
-			break;
+	
+	private Handler touchhandler;
+	private OverlayThread overlayThread;
+	private TextView overlay;
+	private String[] sections;
+	MyLetterListView letterListView = null;
+	private HashMap<String, Integer> alphaIndexer;
+	
+	private class OverlayThread implements Runnable {
+
+		@Override
+		public void run() {
+			overlay.setVisibility(View.GONE);
 		}
-		if(entity.ne >= 1){					
-			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
+	}
+	
+	private class LetterListViewListener implements OnTouchingLetterChangedListener {
+		@Override
+		public void onTouchingLetterChanged(final String s) {
+			if (alphaIndexer.get(s) != null) {
+				int position = alphaIndexer.get(s);
+				int xposition = (position + 1);
+				xlistView.setSelection(xposition);
+				overlay.setText(sections[position]);
+				overlay.setVisibility(View.VISIBLE);
+				touchhandler.removeCallbacks(overlayThread);
+				touchhandler.postDelayed(overlayThread, 1000);
+			}
 		}
-		else if (entity.ne == -1) {
-			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+	}	
+	
+	private void initOverlay() {
+		LayoutInflater inflater = LayoutInflater.from(this);
+		overlay = (TextView) inflater.inflate(R.layout.overlay, null);
+		overlay.setVisibility(View.INVISIBLE);
+		WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				WindowManager.LayoutParams.TYPE_APPLICATION,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+						| WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+				PixelFormat.TRANSLUCENT);
+		WindowManager windowManager = (WindowManager) this
+				.getSystemService(Context.WINDOW_SERVICE);
+		windowManager.addView(overlay, lp);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View convertView, int position, long arg3) {
+		CardIntroEntity model = (CardIntroEntity) parent.getAdapter().getItem(position);
+		if (model.cardSectionType.equals(LianXiRenType.mobile)) {
+			showMobileView(model);
 		}
-		if(bilaterals.isEmpty()){
-			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
-//			nobilateralView.setVisibility(View.VISIBLE);
-//			if (StringUtils.notEmpty(keyword)) {
-//				nobilateralView.setText(R.string.friend_search_no);
-//			}
-//			else {
-//				nobilateralView.setText(R.string.friend_no);
-//			}
+		else {
+			showCardView(model);
 		}
-		mBilateralAdapter.notifyDataSetChanged();
+	}
+	
+	private void showCardView(CardIntroEntity entity) {
+		Intent intent = new Intent(context, CardView.class);
+		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+		((WeFriendCard)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
+	}
+	
+	private void showMobileView(CardIntroEntity entity) {
+		Uri uri = ContactsContract.Contacts.CONTENT_URI;
+		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
+		Intent intent2 = new Intent();
+		intent2.setAction(Intent.ACTION_VIEW);
+		intent2.setData(personUri);
+		context.startActivity(intent2);
 	}
 }

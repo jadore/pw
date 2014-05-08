@@ -49,7 +49,8 @@ public class DataBaseHelper extends SDCardSQLiteOpenHelper {
 				+ "[link2] varchar(50) ,"
 				+ "[code] varchar(50) ,"
 				+ "[isfriend] varchar(50) ,"
-				+ "[phoneDisplay] varchar(50) "
+				+ "[phoneDisplay] varchar(50), "
+				+ "[py] varchar(50) "
 				+ ");");
 	}
 

@@ -35,7 +35,7 @@ public class QYRestClient {
 	  }
 
 	  private static String getAbsoluteUrl(String relativeUrl) {
-		  client.setTimeout(10*1000);
+		  client.setTimeout(60*1000);
 		  client.setMaxConnections(5);
 		  if (relativeUrl.contains("http")) {
 			  return relativeUrl;

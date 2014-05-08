@@ -24,7 +24,6 @@ public class UserEntity extends Entity{
 	public String deg2;
 	
 	public static UserEntity parse(String res) throws IOException, AppException {
-		Logger.i(res);
 		UserEntity data = new UserEntity();
 		try {
 			JSONObject js = new JSONObject(res);

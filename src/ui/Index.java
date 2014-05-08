@@ -80,9 +80,10 @@ import tools.UpdateManager;
 import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IndexPhoneAdapter;
 import widget.XListView;
+import widget.XListView.IXListViewListener;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 
-public class Index extends AppActivity {
+public class Index extends AppActivity implements IXListViewListener{
 	private ImageView indicatorImageView;
 	private Animation indicatorAnimation;
 	
@@ -266,6 +267,7 @@ public class Index extends AppActivity {
 	private void getCache() {
 		getPhoneListFromCache();
 		getPhoneList();
+		getSquareListFromCache();
 	}
 	
 	private void getPhoneListFromCache() {
@@ -274,7 +276,14 @@ public class Index extends AppActivity {
 		if(entity != null){
 			handlerPhoneSection(entity);
 		}
-		
+	}
+	
+	private void getSquareListFromCache() {
+		String key = String.format("%s-%s", CommonValue.CacheKey.SquareList, appContext.getLoginUid());
+		RecommendListEntity entity = (RecommendListEntity) appContext.readObject(key);
+		if(entity != null){
+			handlerSquare(entity, UIHelper.LISTVIEW_ACTION_INIT);
+		}
 	}
 	
 	private void handlerPhoneSection(PhoneListEntity entity) {
@@ -376,7 +385,7 @@ public class Index extends AppActivity {
 		});
 	}
 	
-	private void getSquareList() {
+	private void getSquareList(final int action) {
 		loadingPd = UIHelper.showProgress(Index.this, null, null, true);
 		AppClient.getPhoneSquareList(appContext, currentPage+"", "", new ClientCallback() {
 			
@@ -386,7 +395,7 @@ public class Index extends AppActivity {
 				RecommendListEntity entity = (RecommendListEntity)data;
 //				switch (entity.getError_code()) {
 //				case Result.RESULT_OK:
-					handlerSquare(entity);
+					handlerSquare(entity, action);
 //					break;
 //				case CommonValue.USER_NOT_IN_ERROR:
 //					forceLogout();
@@ -410,25 +419,22 @@ public class Index extends AppActivity {
 		});
 	}
 	
-	private void handlerSquare(RecommendListEntity entity) {
-//		switch (action) {
-//		case UIHelper.LISTVIEW_ACTION_INIT:
-//		case UIHelper.LISTVIEW_ACTION_REFRESH:
+	private void handlerSquare(RecommendListEntity entity, int action) {
+		switch (action) {
+		case UIHelper.LISTVIEW_ACTION_INIT:
+		case UIHelper.LISTVIEW_ACTION_REFRESH:
 			phonesForSqure.clear();
 			phonesForSqure.addAll(entity.squares);
-//			break;
-//		case UIHelper.LISTVIEW_ACTION_SCROLL:
-//			bilaterals.addAll(entity.u);
-//			break;
-//		}
+			break;
+		case UIHelper.LISTVIEW_ACTION_SCROLL:
+			phonesForSqure.addAll(entity.squares);
+			break;
+		}
 		if(entity.next >= 1){					
-//			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-//			mBilateralAdapter.notifyDataSetChanged();
-			++currentPage;
-//			getFriendCard(currentPage, "", 1000+"", UIHelper.LISTVIEW_ACTION_INIT);
+			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
 		}
 		else if (entity.next == -1) {
-//			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 		}
 		phoneAdapterForSqure.notifyDataSetChanged();
 	}
@@ -446,7 +452,7 @@ public class Index extends AppActivity {
 				activityButton.setSelected(true);
 				if (!isSquare) {
 					isSquare = true;
-					getSquareList();
+					getSquareList(UIHelper.LISTVIEW_ACTION_INIT);
 				}
 				break;
 			}
@@ -540,6 +546,21 @@ public class Index extends AppActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode != RESULT_OK) {
 			return;
+		}
+	}
+
+	@Override
+	public void onRefresh(int id) {
+		currentPage = 1;
+		getSquareList(UIHelper.LISTVIEW_ACTION_REFRESH);
+	}
+
+	@Override
+	public void onLoadMore(int id) {
+		if (lvDataState == UIHelper.LISTVIEW_DATA_MORE) {
+			lvDataState = UIHelper.LISTVIEW_DATA_LOADING;
+			currentPage++;
+			getSquareList(UIHelper.LISTVIEW_ACTION_SCROLL);
 		}
 	}
 	

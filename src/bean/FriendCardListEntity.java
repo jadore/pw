@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import config.CommonValue.LianXiRenType;
 import tools.AppException;
 import tools.Logger;
 
@@ -57,7 +58,6 @@ public class FriendCardListEntity extends Entity {
 	public List<CardIntroEntity> u = new ArrayList<CardIntroEntity>();
 	public int ne;
 	public static FriendCardListEntity parseF(String res) throws IOException, AppException {
-//		Logger.i(res);
 		FriendCardListEntity data = new FriendCardListEntity();
 		try {
 			JSONObject js = new JSONObject(res);
@@ -66,7 +66,7 @@ public class FriendCardListEntity extends Entity {
 				JSONObject info = js.getJSONObject("info");
 				JSONArray bilateralArray = info.getJSONArray("u");
 				for (int i=0;i<bilateralArray.length();i++) {
-					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), "二度好友");
+					CardIntroEntity phone = CardIntroEntity.parseFC(bilateralArray.getJSONObject(i), LianXiRenType.erdu);
 					data.u.add(phone);
 				}
 				data.ne = -1;

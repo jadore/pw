@@ -68,7 +68,7 @@
 	    />
 </RelativeLayout>
 
-    <ExpandableListView
+    <ListView
         android:layout_below="@+id/navLayout"
         android:id="@+id/xlistview"
         android:layout_width="fill_parent"

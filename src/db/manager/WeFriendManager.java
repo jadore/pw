@@ -15,6 +15,7 @@ import android.content.Context;
 import android.database.Cursor;
 import config.MyApplication;
 import config.CommonValue.CardSectionType;
+import config.CommonValue.LianXiRenType;
 import db.DBManager;
 import db.SQLiteTemplate;
 import db.SQLiteTemplate.RowMapper;
@@ -86,9 +87,14 @@ public class WeFriendManager {
 		contentValues.put("code", model.code);
 		contentValues.put("isfriend", model.isfriend);
 		contentValues.put("phoneDisplay", model.phone_display);
+		contentValues.put("py", model.py);
 		return st.insert("wcb_phonebook", contentValues);
 	}
 	
+	public int getWeFriendCount() {
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		return st.getCount("select * from wcb_phonebook", null);
+	}
 	
 	/**
 	 * 获取所有CardIntroEntity
@@ -111,18 +117,19 @@ public class WeFriendManager {
 						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
 						data.department = cursor.getString(cursor.getColumnIndex("department"));
 						data.position = cursor.getString(cursor.getColumnIndex("position"));;
-						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
-						data.address = cursor.getString(cursor.getColumnIndex("address"));
-						data.certified = cursor.getString(cursor.getColumnIndex("certified"));
-						data.supply= cursor.getString(cursor.getColumnIndex("supply"));
-						data.intro = cursor.getString(cursor.getColumnIndex("intro"));
-						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
-						data.link = cursor.getString(cursor.getColumnIndex("link"));
+//						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
+//						data.address = cursor.getString(cursor.getColumnIndex("address"));
+//						data.certified = cursor.getString(cursor.getColumnIndex("certified"));
+//						data.supply= cursor.getString(cursor.getColumnIndex("supply"));
+//						data.intro = cursor.getString(cursor.getColumnIndex("intro"));
+//						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
+//						data.link = cursor.getString(cursor.getColumnIndex("link"));
 						data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
 						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
-						data.cardSectionType = "";
+						data.cardSectionType = LianXiRenType.yidu;
 						data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
 						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
+						data.py = cursor.getString(cursor.getColumnIndex("py"));
 						return data;
 					}
 				}, 
@@ -168,9 +175,10 @@ public class WeFriendManager {
 						data.link = cursor.getString(cursor.getColumnIndex("link"));
 						data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
 						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
-						data.cardSectionType = "一度好友";
+						data.cardSectionType = LianXiRenType.yidu;
 						data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
 						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
+						data.py = cursor.getString(cursor.getColumnIndex("py"));
 						return data;
 					}
 				}, 
@@ -242,6 +250,7 @@ public class WeFriendManager {
 		contentValues.put("code", model.code);
 		contentValues.put("isfriend", model.isfriend);
 		contentValues.put("phoneDisplay", model.phone_display);
+		contentValues.put("py", model.py);
 		st.update("wcb_phonebook", contentValues, "openid=?", new String[]{model.openid});
 	}
 	

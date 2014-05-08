@@ -2,18 +2,18 @@ package bean;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import config.CommonValue;
-
 import tools.AppException;
 import tools.Logger;
 import tools.StringUtils;
 
-public class CardIntroEntity extends Entity {
+public class CardIntroEntity extends Entity implements Comparable<CardIntroEntity> {
 	public String openid;//": "oYTgBuITFr_rlDTx7VLiPvrt-D_s",
 	public String weibo;//": "伟章Ho",
 	public String realname;//": "何伟章1",
@@ -34,6 +34,7 @@ public class CardIntroEntity extends Entity {
 	public String link;
 	public String headimgurl;
 	public String pinyin;
+	public String py;
 	
 	public String avatar;
 	
@@ -298,10 +299,19 @@ public class CardIntroEntity extends Entity {
 			data.cardSectionType = sectionType;
 			data.willRefresh = false;
 			data.pinyin = info.getString("p");
+			data.py = StringUtils.getAlpha(data.pinyin);
 			data.isfriend = info.getString("is");
 		} catch (JSONException e) {
 			throw AppException.json(e);
 		}
 		return data;
+	}
+
+	@Override
+	public int compareTo(CardIntroEntity another) {
+		if (null == this.py ) {
+			return -1;
+		}
+		return this.py.compareToIgnoreCase(another.py);
 	}
 }
