@@ -12,6 +12,7 @@ import com.google.analytics.tracking.android.EasyTracker;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
+import config.CommonValue.LianXiRenType;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
 import db.manager.WeFriendManager;
@@ -33,6 +34,7 @@ import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AbsListView.OnScrollListener;
@@ -45,12 +47,11 @@ import tools.UIHelper;
 import ui.adapter.FriendCardSearchAdapter;
 
 public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener{
-	
-	private List<CardIntroEntity> mobiles = new ArrayList<CardIntroEntity>();
 	private int lvDataState;
 	private int currentPage;
 	private ProgressDialog loadingPd;
 	
+	private List<CardIntroEntity> mobiles = new ArrayList<CardIntroEntity>();
 	private List<CardIntroEntity> bilaterals = new ArrayList<CardIntroEntity>();
 	private List<CardIntroEntity> networks = new ArrayList<CardIntroEntity>();
 	
@@ -59,12 +60,13 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	
 	private String keyword;
 	
-	private ExpandableListView xlistView;
-	private List<List<CardIntroEntity>> contactors = new ArrayList<List<CardIntroEntity>>();
+	private ListView xlistView;
+	private List<CardIntroEntity> contactors = new ArrayList<CardIntroEntity>();
 	private FriendCardSearchAdapter mBilateralAdapter;
 	
-	MyAsyncQueryHandler asyncQuery;
-	Uri uri ;
+	private MyAsyncQueryHandler asyncQuery;
+	private Uri uri ;
+	private List<String> contactids = new ArrayList<String>();
 	
 	@Override
 	public void onStart() {
@@ -105,19 +107,11 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		editText.addTextChangedListener(TWPN);
 		searchDeleteButton = (Button) findViewById(R.id.searchDeleteButton);
 		
-		xlistView = (ExpandableListView)findViewById(R.id.xlistview);
+		xlistView = (ListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
-        xlistView.setGroupIndicator(null);
         xlistView.setOnScrollListener(this);
-		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors);
+		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors, imageLoader);
 		xlistView.setAdapter(mBilateralAdapter);
-		xlistView.setOnGroupClickListener(new OnGroupClickListener() {
-			@Override
-			public boolean onGroupClick(ExpandableListView arg0, View arg1, int arg2,
-					long arg3) {
-				return true;
-			}
-		});
 	}
 	
 	public void ButtonClick(View v) {
@@ -151,6 +145,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 			mobiles.clear();
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
+				contactids.clear();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
 					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
@@ -160,31 +155,28 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
 						ce.phone = phone;
 						ce.code = ""+cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
-						ce.cardSectionType = "电话本";
-						mobiles.add(ce);
+						ce.cardSectionType = LianXiRenType.mobile;
+						ce.department = "来自手机通讯录";
+						ce.position = "";
+						if (!contactids.contains(ce.code)) {
+							mobiles.add(ce);
+							contactids.add(ce.code);
+						}
 					}
 				}
 			}
 			if (mobiles.size() > 0) {
-				contactors.add(mobiles);
-				for (int i = 0; i < contactors.size(); i++) {
-					xlistView.expandGroup(i);
-				}
+				contactors.addAll(mobiles);
 				mBilateralAdapter.notifyDataSetChanged();
 			}
-			for (int i = 0; i < contactors.size(); i++) {
-				xlistView.expandGroup(i);
-			}
-			bilaterals .clear();
+			
+			bilaterals.clear();
 			bilaterals.addAll(WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword));
 			if (bilaterals.size()>0 ) {
-				contactors.add(bilaterals);
-				for (int i = 0; i < contactors.size(); i++) {
-					xlistView.expandGroup(i);
-				}
+				contactors.addAll(bilaterals);
 				mBilateralAdapter.notifyDataSetChanged();
 			}
-			searchFriendCard(1, keyword, 300+"", UIHelper.LISTVIEW_ACTION_INIT);
+			searchFriendCard(1, keyword, 200+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 	}
 	
@@ -192,7 +184,6 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		if (!appContext.isNetworkConnected()) {
 			return;
 		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
 		AppClient.searchFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -209,19 +200,16 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
 			}
 		});
 	}
 	
 	private void handleSearchFriends(FriendCardListEntity entity, int action) {
-//		nobilateralView.setVisibility(View.GONE);
 		List<CardIntroEntity> temp = new ArrayList<CardIntroEntity>();
 		temp.addAll(entity.u);
 		for (CardIntroEntity card : entity.u) {
@@ -246,16 +234,14 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 		}
 		
-		if(networks.isEmpty()){
+		if(networks.isEmpty() || StringUtils.empty(keyword)){
+			networks.clear();
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
 		}
 		else {
-			contactors.add(networks);
+			contactors.addAll(networks);
+			mBilateralAdapter.notifyDataSetChanged();
 		}
-		for (int i = 0; i < contactors.size(); i++) {
-			xlistView.expandGroup(i);
-		}
-		mBilateralAdapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -302,6 +288,8 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
         	}
             else {
+            	keyword = "";
+            	QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
             	contactors.clear();
             	searchDeleteButton.setVisibility(View.INVISIBLE);
 				mBilateralAdapter.notifyDataSetChanged();
