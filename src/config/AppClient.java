@@ -183,12 +183,7 @@ public class AppClient {
 				if (StringUtils.notEmpty(baiduUserId)) {
 					Utils.setBind(context, true);
 				}
-				try {
-					Logger.i(DecodeUtil.decode(new String(content)));
-				} catch (AppException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				Logger.i(DecodeUtil.decode(new String(content)));
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -205,11 +200,7 @@ public class AppClient {
 			
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-				try {
-					Logger.i(DecodeUtil.decode(new String(responseBody)));
-				} catch (AppException e) {
-					e.printStackTrace();
-				}
+				Logger.i(DecodeUtil.decode(new String(responseBody)));
 			}
 			
 			@Override
@@ -943,11 +934,7 @@ public class AppClient {
 			
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-				try {
-					Logger.i(DecodeUtil.decode(new String(responseBody)));
-				} catch (AppException e) {
-					e.printStackTrace();
-				}
+				Logger.i(DecodeUtil.decode(new String(responseBody)));
 			}
 			
 			@Override

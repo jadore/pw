@@ -79,6 +79,7 @@ import tools.UIHelper;
 import tools.UpdateManager;
 import ui.adapter.IndexPagerAdapter;
 import ui.adapter.IndexPhoneAdapter;
+import ui.adapter.IndexSquareAdapter;
 import widget.XListView;
 import widget.XListView.IXListViewListener;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
@@ -106,7 +107,7 @@ public class Index extends AppActivity implements IXListViewListener{
 	
 	private XListView xListViewForSqure;
 	private List<PhoneIntroEntity> phonesForSqure = new ArrayList<PhoneIntroEntity>();
-	private IndexPhoneAdapter phoneAdapterForSqure;
+	private IndexSquareAdapter phoneAdapterForSqure;
 	private int lvDataState;
 	private int currentPage;
 	private boolean isSquare;
@@ -182,7 +183,7 @@ public class Index extends AppActivity implements IXListViewListener{
 		xListViewForSqure.setPullLoadEnable(false);
 		xListViewForSqure.setPullRefreshEnable(false);
 		xListViewForSqure.setDividerHeight(0);
-		phoneAdapterForSqure = new IndexPhoneAdapter(this, phonesForSqure);
+		phoneAdapterForSqure = new IndexSquareAdapter(this, phonesForSqure);
 		xListViewForSqure.setAdapter(phoneAdapterForSqure);
 	}
 	
@@ -282,9 +283,7 @@ public class Index extends AppActivity implements IXListViewListener{
 	
 	private void getCache() {
 		getPhoneListFromCache();
-		getActivityListFromCache();
 		getPhoneList();
-		getActivityList();
 		getSquareListFromCache();
 	}
 	
@@ -294,6 +293,7 @@ public class Index extends AppActivity implements IXListViewListener{
 		if(entity != null){
 			handlerPhoneSection(entity);
 		}
+		getActivityListFromCache();
 	}
 	
 	private void getPhoneList() {
@@ -308,7 +308,7 @@ public class Index extends AppActivity implements IXListViewListener{
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
 					handlerPhoneSection(entity);
-					phoneAdapter.notifyDataSetChanged();
+					getActivityList();
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();

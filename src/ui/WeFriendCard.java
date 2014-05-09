@@ -69,6 +69,7 @@ import config.AppClient.ClientCallback;
 import config.CommonValue.LianXiRenType;
 import config.QYRestClient;
 import db.manager.WeFriendManager;
+import tools.AppManager;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
@@ -133,7 +134,8 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	  
 	@Override
 	protected void onDestroy() {
-		QYRestClient.getIntance().cancelRequests(this, true);
+		QYRestClient.getIntance().cancelAllRequests(true);
+		System.gc();
 		super.onDestroy();
 	}
 	  
@@ -149,7 +151,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		currentPage = 1;
 		keyword = "";
 		imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-		getFriendCardFromCache();
 		Handler jumpHandler = new Handler();
         jumpHandler.postDelayed(new Runnable() {
 			public void run() {
@@ -157,6 +158,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 		    		return;
 		    	}
+				getFriendCardFromCache();
 				UpdateManager.getUpdateManager().checkAppUpdate(WeFriendCard.this, false);
 				checkLogin();
 			}
@@ -313,11 +315,13 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-//		loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null);
+		if (!loadingPd.isShowing()) {
+			loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null);
+		}
 		AppClient.getChatFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
@@ -456,10 +460,10 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			@Override
 			public void handleMessage(Message msg) {
 				mBilateralAdapter.notifyDataSetChanged();
-//				UIHelper.dismissProgress(loadingPd);
+				UIHelper.dismissProgress(loadingPd);
 			}
 		};
-//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		loadingPd = UIHelper.showProgress(this, null, null, true);
 		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 		singleThreadExecutor.execute(new Runnable() {
 			@Override
@@ -467,7 +471,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				contactors.remove(bilaterals);
 				bilaterals.clear();
 				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
-				Logger.i(bilaterals.size()+"");
 				contactors.addAll(bilaterals);
 				Collections.sort(contactors);
 				alphaIndexer .clear();

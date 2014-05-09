@@ -69,7 +69,7 @@ public class DataBaseHelper extends SDCardSQLiteOpenHelper {
 				+ "[city] varchar(50), "
 				+ "[country] varchar(50) "
 				+ ");");
-		db.execSQL("create index [wcb_phonebook_index] on [wcb_phonebook] (openid);");
+//		db.execSQL("create index [wcb_phonebook_index] on [wcb_phonebook] (openid);");
 	}
 
 	@Override
