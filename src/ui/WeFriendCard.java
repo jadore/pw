@@ -36,6 +36,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -55,6 +57,7 @@ import bean.UserEntity;
 import com.baidu.android.pushservice.PushConstants;
 import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.gson.Gson;
 import com.vikaa.mycontact.R;
 
@@ -104,7 +107,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	private List<String> contactids;
 	
 	private List<String> needUpdateOpenids = new ArrayList<String>();
-	private static final int count = 200;
+	private static final int count = 500;
 	
 	@Override
 	public void onStart() {
@@ -189,13 +192,13 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		xlistView = (ListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
         xlistView.addHeaderView(searchHeaderView, null, false);
-		mBilateralAdapter = new FriendCardAdapter(this, contactors, imageLoader);
+		mBilateralAdapter = new FriendCardAdapter(this, contactors);
 		xlistView.setAdapter(mBilateralAdapter);
 		xlistView.setOnItemClickListener(this);
 	}
 	
 	private void getFriendCardFromCache() {
-		asyncQuery.startQuery(0, null, uri, null, null, null, "sort_key COLLATE LOCALIZED asc"); 
+		asyncQuery.startQuery(0, null, uri, projection, null, null, "sort_key COLLATE LOCALIZED asc"); 
 	}
 	
 	private void checkLogin() {
@@ -214,14 +217,14 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 					if (!Utils.hasBind(getApplicationContext())) {
 						blindBaidu();
 					}
-//					WebView webview = (WebView) findViewById(R.id.webview);
-//					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
-//					webview.setWebViewClient(new WebViewClient() {
-//						public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//							view.loadUrl(url);
-//							return true;
-//						};
-//					});
+					WebView webview = (WebView) findViewById(R.id.webview);
+					webview.loadUrl(CommonValue.BASE_URL + "/home/app" + "?_sign=" + appContext.getLoginSign())  ;
+					webview.setWebViewClient(new WebViewClient() {
+						public boolean shouldOverrideUrlLoading(WebView view, String url) {
+							view.loadUrl(url);
+							return true;
+						};
+					});
 					break;
 				case CommonValue.USER_NOT_IN_ERROR:
 					forceLogout();
@@ -272,7 +275,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			@Override
 			public void handleMessage(Message msg) {
 				if (msg.what == 1) {
-					loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null, true);
 					currentPage = 1;
 					getFriendCard(currentPage, "", count+"", UIHelper.LISTVIEW_ACTION_INIT);
 				}
@@ -293,7 +295,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 					handler2.sendEmptyMessage(1);
 				}
 				else {
-			        handler2.sendEmptyMessageDelayed(2, 60*1000);
+			        handler2.sendEmptyMessageDelayed(2, 1000);
 				}
 			}
 		});
@@ -304,12 +306,11 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
+		loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null, true);
 		AppClient.getChatFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
 				UIHelper.dismissProgress(loadingPd);
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
@@ -334,7 +335,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	}
 	
 	private void handleFriends(FriendCardListEntity entity, int action) {
-		Logger.i(entity.u.size()+"");
 		saveListInDB(entity);
 		if(entity.ne >= 1){					
 			++currentPage;
@@ -342,9 +342,17 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		}
 		else if (entity.ne == -1) {
 			UIHelper.dismissProgress(loadingPd);
-			contactors.removeAll(bilaterals);
-			mBilateralAdapter.notifyDataSetChanged();
-			getWeFriendsFromDB();
+			int delay = 1000;
+			if (currentPage == 1) {
+				delay = 3*delay;
+			}
+			Handler jumpHandler = new Handler();
+	        jumpHandler.postDelayed(new Runnable() {
+				public void run() {
+					Logger.i("load all");
+					getWeFriendsFromDB();
+				}
+			}, delay);
 		}
 	}
 	
@@ -356,6 +364,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				for (CardIntroEntity card : entity.u) {
 					WeFriendManager.getInstance(WeFriendCard.this).saveWeFriend(card);
 				}
+				Logger.i("save all");
 			}
 		});
 	}
@@ -382,19 +391,19 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		}
 	}
 	
-    /**
-	 * 数据库异步查询类AsyncQueryHandler
-	 * 
-	 */
+	private String[] projection = {Data.MIMETYPE, Phone.NUMBER, "display_name", "contact_id", "sort_key", "photo_thumb_uri"};
+	private final static int MIMETYPE_INDEX = 0;
+	private final static int NUMBER_INDEX = 1;
+	private final static int NAME_INDEX = 2;
+	private final static int ID_INDEX = 3;
+	private final static int SORT_INDEX = 4;
+	private final static int PHOTO_INDEX = 5;
 	private class MyAsyncQueryHandler extends AsyncQueryHandler {
 
 		public MyAsyncQueryHandler(ContentResolver cr) {
 			super(cr);
 		}
 
-		/**
-		 * 查询结束的回调函数
-		 */
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
 			mobiles.clear();
@@ -403,18 +412,17 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				contactids = new ArrayList<String>();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
-					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+					String mimetype = cursor.getString(MIMETYPE_INDEX);
 					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
-				     	String phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
 						CardIntroEntity ce = new CardIntroEntity();
-						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-						ce.phone = phone;
-						ce.code = ""+cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
+						ce.realname = cursor.getString(NAME_INDEX);
+						ce.phone = cursor.getString(NUMBER_INDEX);
+						ce.code = ""+cursor.getInt(ID_INDEX);
+						ce.pinyin = cursor.getString(SORT_INDEX);
 						ce.cardSectionType = LianXiRenType.mobile;
+						ce.avatar = cursor.getString(PHOTO_INDEX);
 						ce.department = "来自手机通讯录";
 						ce.position = "";
-						ce.avatar = "";
-						ce.pinyin = cursor.getString(cursor.getColumnIndex("sort_key"));
 						ce.py = StringUtils.getAlpha(ce.pinyin);
 						if (!contactids.contains(ce.code)) {
 							mobiles.add(ce);
@@ -429,6 +437,9 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			contactors.addAll(mobiles);
 			Collections.sort(contactors);
 			mBilateralAdapter.notifyDataSetChanged();
+			if (!appContext.isLogin()) {
+				return;
+			}
 			getWeFriendsFromDB();
 		}
 	}
@@ -438,16 +449,18 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			@Override
 			public void handleMessage(Message msg) {
 				mBilateralAdapter.notifyDataSetChanged();
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
 			}
 		};
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
 		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 		singleThreadExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
+				contactors.remove(bilaterals);
 				bilaterals.clear();
 				bilaterals.addAll(WeFriendManager.getInstance(WeFriendCard.this).getWeFriends());
+				Logger.i(bilaterals.size()+"");
 				contactors.addAll(bilaterals);
 				Collections.sort(contactors);
 				alphaIndexer .clear();
@@ -595,9 +608,13 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				xlistView.setSelection(xposition);
 				overlay.setText(sections[position]);
 				overlay.setVisibility(View.VISIBLE);
-				touchhandler.removeCallbacks(overlayThread);
-				touchhandler.postDelayed(overlayThread, 500);
+//				touchhandler.removeCallbacks(overlayThread);
+//				touchhandler.postDelayed(overlayThread, 1500);
 			}
+		}
+		@Override
+		public void onTouchingUp() {
+			overlay.setVisibility(View.GONE);
 		}
 	}	
 	
@@ -628,12 +645,28 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	}
 	
 	private void showCardView(CardIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看名片："+entity.link,   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Intent intent = new Intent(context, CardView.class);
 		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
 		((WeFriendCard)context).startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMobileView(CardIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看手机名片",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Uri uri = ContactsContract.Contacts.CONTENT_URI;
 		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
 		Intent intent2 = new Intent();

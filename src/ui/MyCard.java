@@ -70,14 +70,17 @@ public class MyCard extends AppActivity{
 	                   null)            // Event value
 	      .build()
 		);
-		Intent intent = new Intent(this, QYWebView.class);
-		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
+//		Intent intent = new Intent(this, QYWebView.class);
+//		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
+//		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
+		Intent intent = new Intent(context, CardView.class);
+		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void initUI() {
 		xListView = (ListView) findViewById(R.id.xlistview);
-		xAdapter = new MyCardAdapter(this, cards);
+		xAdapter = new MyCardAdapter(this, cards, imageLoader);
 		xListView.setAdapter(xAdapter);
 	}
 	

@@ -28,11 +28,21 @@
             android:id="@+id/titleBarView"
             android:layout_width="wrap_content"
       		android:layout_height="wrap_content"
-            android:text="群友通讯录"
+            android:text="详细资料"
             android:layout_centerInParent="true"
             android:textColor="@color/white"
             android:textSize="18sp"
             />
+        
+        <ImageView
+            android:layout_centerVertical="true"
+            android:id="@+id/xindicator"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_toRightOf="@+id/titleBarView"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            android:background="@drawable/round_1"/>
     </RelativeLayout>
     
     <ListView

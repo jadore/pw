@@ -114,6 +114,14 @@ public class SettingCardAdapter extends BaseExpandableListAdapter{
 				});
 			}
 		}
+		else {
+			convertView.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					((Setting)context).logout();
+				}
+			});
+		}
 		return convertView;
 	}
 }

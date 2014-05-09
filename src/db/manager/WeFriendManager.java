@@ -1,20 +1,13 @@
 package db.manager;
 
-import im.bean.IMMessage;
-import im.bean.IMMessage.JSBubbleMessageStatus;
-
-import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.List;
 
-import bean.CardIntroEntity;
 import tools.Logger;
-import tools.StringUtils;
+import bean.CardIntroEntity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import config.MyApplication;
-import config.CommonValue.CardSectionType;
 import config.CommonValue.LianXiRenType;
 import db.DBManager;
 import db.SQLiteTemplate;
@@ -33,6 +26,7 @@ public class WeFriendManager {
 	private static DBManager manager = null;
 
 	private WeFriendManager(Context context) {
+		Logger.i(MyApplication.getInstance().getLoginUid());
 		manager = DBManager.getInstance(context, MyApplication.getInstance().getLoginUid());
 	}
 
@@ -93,7 +87,7 @@ public class WeFriendManager {
 	
 	public int getWeFriendCount() {
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		return st.getCount("select * from wcb_phonebook", null);
+		return st.getCount("select realname from wcb_phonebook", null);
 	}
 	
 	/**
@@ -102,7 +96,7 @@ public class WeFriendManager {
 	 */
 	public List<CardIntroEntity> getWeFriends() {
 		String sql;
-		sql = "select * from wcb_phonebook";
+		sql = "select code, openid, realname, department, position, avatar, pinyin, py from wcb_phonebook";
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
 		List<CardIntroEntity> list = st.queryForList(
 				new RowMapper<CardIntroEntity>() {
@@ -113,8 +107,8 @@ public class WeFriendManager {
 						data.code = cursor.getString(cursor.getColumnIndex("code"));
 						data.openid = cursor.getString(cursor.getColumnIndex("openid"));
 						data.realname = cursor.getString(cursor.getColumnIndex("realname"));
-						data.phone = cursor.getString(cursor.getColumnIndex("phone"));
-						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
+//						data.phone = cursor.getString(cursor.getColumnIndex("phone"));
+//						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
 						data.department = cursor.getString(cursor.getColumnIndex("department"));
 						data.position = cursor.getString(cursor.getColumnIndex("position"));;
 //						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
@@ -125,10 +119,10 @@ public class WeFriendManager {
 //						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
 //						data.link = cursor.getString(cursor.getColumnIndex("link"));
 						data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
-						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
+//						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
 						data.cardSectionType = LianXiRenType.yidu;
 						data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
-						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
+//						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
 						data.py = cursor.getString(cursor.getColumnIndex("py"));
 						return data;
 					}
@@ -138,11 +132,62 @@ public class WeFriendManager {
 		return list;
 	}
 	
+	public CardIntroEntity getCardByOpenid(String openid) {
+		String sql = "select * from wcb_phonebook where openid=?";
+		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
+		return st.queryForObject(new RowMapper<CardIntroEntity>() {
+			@Override
+			public CardIntroEntity mapRow(Cursor cursor, int index) {
+				CardIntroEntity data = new CardIntroEntity();
+				data.code = cursor.getString(cursor.getColumnIndex("code"));
+				data.openid = cursor.getString(cursor.getColumnIndex("openid"));
+				data.realname = cursor.getString(cursor.getColumnIndex("realname"));
+				data.phone = cursor.getString(cursor.getColumnIndex("phone"));
+				data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
+				data.department = cursor.getString(cursor.getColumnIndex("department"));
+				data.position = cursor.getString(cursor.getColumnIndex("position"));;
+				data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
+				data.address = cursor.getString(cursor.getColumnIndex("address"));
+				data.certified = cursor.getString(cursor.getColumnIndex("certified"));
+				data.supply= cursor.getString(cursor.getColumnIndex("supply"));
+				data.intro = cursor.getString(cursor.getColumnIndex("intro"));
+				data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
+				data.link = cursor.getString(cursor.getColumnIndex("link"));
+				data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
+				data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
+				data.cardSectionType = LianXiRenType.yidu;
+				data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
+				data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
+				data.py = cursor.getString(cursor.getColumnIndex("py"));
+				data. hometown =  cursor.getString(cursor.getColumnIndex("hometown"));
+				data. interest =  cursor.getString(cursor.getColumnIndex("interest"));
+				data. school=  cursor.getString(cursor.getColumnIndex("school"));
+				data. homepage=  cursor.getString(cursor.getColumnIndex("homepage"));
+				data. company_site=  cursor.getString(cursor.getColumnIndex("company_site"));
+				data. qq=  cursor.getString(cursor.getColumnIndex("qq"));
+				data. intentionen=  cursor.getString(cursor.getColumnIndex("intentionen"));
+				data. tencent=  cursor.getString(cursor.getColumnIndex("tencent"));
+				data. renren=  cursor.getString(cursor.getColumnIndex("renren"));
+				data. zhihu=  cursor.getString(cursor.getColumnIndex("zhihu"));
+				data. qzone=  cursor.getString(cursor.getColumnIndex("qzone"));
+				data. facebook=  cursor.getString(cursor.getColumnIndex("facebook"));
+				data. diandian=  cursor.getString(cursor.getColumnIndex("diandian"));
+				data. twitter=  cursor.getString(cursor.getColumnIndex("twitter"));
+				data.province= cursor.getString(cursor.getColumnIndex("twitter"));
+				data.city= cursor.getString(cursor.getColumnIndex("city"));
+				data.country= cursor.getString(cursor.getColumnIndex("city"));
+				return data;
+			}
+		}, 
+		sql, 
+		new String[]{openid});
+	}
+	
 	public List<CardIntroEntity> searchWeFriendsByKeyword(String keyword) {
 		String sql;
 		String py = keyword;
 		py = py.replace("", "%");
-		sql = "select * from wcb_phonebook where realname like '%" + keyword +"%'"
+		sql = "select code, openid, realname, department, position, avatar, pinyin, py from wcb_phonebook where realname like '%" + keyword +"%'"
 				+" or pinyin like '%" + keyword +"%'"
 				+" or department like '%" + keyword +"%'"
 				+" or position like '%" + keyword +"%'"
@@ -162,22 +207,22 @@ public class WeFriendManager {
 						data.code = cursor.getString(cursor.getColumnIndex("code"));
 						data.openid = cursor.getString(cursor.getColumnIndex("openid"));
 						data.realname = cursor.getString(cursor.getColumnIndex("realname"));
-						data.phone = cursor.getString(cursor.getColumnIndex("phone"));
-						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
+//						data.phone = cursor.getString(cursor.getColumnIndex("phone"));
+//						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
 						data.department = cursor.getString(cursor.getColumnIndex("department"));
 						data.position = cursor.getString(cursor.getColumnIndex("position"));;
-						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
-						data.address = cursor.getString(cursor.getColumnIndex("address"));
-						data.certified = cursor.getString(cursor.getColumnIndex("certified"));
-						data.supply= cursor.getString(cursor.getColumnIndex("supply"));
-						data.intro = cursor.getString(cursor.getColumnIndex("intro"));
-						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
-						data.link = cursor.getString(cursor.getColumnIndex("link"));
+//						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
+//						data.address = cursor.getString(cursor.getColumnIndex("address"));
+//						data.certified = cursor.getString(cursor.getColumnIndex("certified"));
+//						data.supply= cursor.getString(cursor.getColumnIndex("supply"));
+//						data.intro = cursor.getString(cursor.getColumnIndex("intro"));
+//						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
+//						data.link = cursor.getString(cursor.getColumnIndex("link"));
 						data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
-						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
+//						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
 						data.cardSectionType = LianXiRenType.yidu;
 						data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
-						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
+//						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
 						data.py = cursor.getString(cursor.getColumnIndex("py"));
 						return data;
 					}
@@ -251,12 +296,29 @@ public class WeFriendManager {
 		contentValues.put("isfriend", model.isfriend);
 		contentValues.put("phoneDisplay", model.phone_display);
 		contentValues.put("py", model.py);
+		contentValues.put("hometown",  model.hometown);
+		contentValues.put("interest", model.interest);
+		contentValues.put("school", model.school);
+		contentValues.put("homepage", model.homepage);
+		contentValues.put("company_site", model.company_site);
+		contentValues.put("qq", model.qq);
+		contentValues.put("intentionen", model.intentionen);
+		contentValues.put("tencent", model.tencent);
+		contentValues.put("renren", model.renren);
+		contentValues.put("zhihu", model.zhihu);
+		contentValues.put("qzone", model.qzone);
+		contentValues.put("facebook", model.facebook);
+		contentValues.put("diandian", model.diandian);
+		contentValues.put("twitter", model.twitter);
+		contentValues.put("province", model.province);
+		contentValues.put("city", model.city);
+		contentValues.put("country", model.country);
 		st.update("wcb_phonebook", contentValues, "openid=?", new String[]{model.openid});
 	}
 	
 	public boolean isOpenidExist(String openid) {
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		int count = st.getCount("select * from wcb_phonebook where openid=?", new String[]{openid});
+		int count = st.getCount("select realname from wcb_phonebook where openid=?", new String[]{openid});
 		return count>0?true:false;
 	}
 }

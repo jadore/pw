@@ -131,6 +131,7 @@ public class CommonValue {
 		String VSectionType = "名片加V认证";
 		String FeedbackSectionType = "信息反馈";
 		String SettingsSectionType = "设置";
+		String LogoutSectionType = "退出";
 	}
 	
 	public interface CardViewIntentKeyValue {

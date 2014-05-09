@@ -3,31 +3,60 @@ package ui.adapter;
 import java.util.List;
 
 import ui.MyCard;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.LoadedFrom;
+import com.nostra13.universalimageloader.core.display.BitmapDisplayer;
+import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.vikaa.mycontact.R;
 
 import bean.CardIntroEntity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MyCardAdapter extends BaseAdapter{
 	private Context context;
 	private LayoutInflater inflater;
 	private List<CardIntroEntity> cards;
+	private ImageLoader imageLoader;
+	private DisplayImageOptions displayOptions ;
 	
 	static class CellHolder {
+		ImageView avatarImageView;
 		TextView titleView;
 		TextView desView;
 	}
 	
-	public MyCardAdapter(Context context, List<CardIntroEntity> cards) {
+	public MyCardAdapter(Context context, List<CardIntroEntity> cards, ImageLoader imageLoader) {
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.cards = cards;
+		this.imageLoader = imageLoader;
+		this.displayOptions = new DisplayImageOptions.Builder()
+		.bitmapConfig(Bitmap.Config.RGB_565)
+		.showImageOnLoading(R.drawable.ic_launcher)
+		.showImageForEmptyUri(R.drawable.ic_launcher)
+		.showImageOnFail(R.drawable.ic_launcher)
+		.cacheInMemory(true)
+		.cacheOnDisc(true)
+		.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
+		.displayer(new BitmapDisplayer() {
+			@Override
+			public void display(Bitmap bitmap, ImageAware imageAware,
+					LoadedFrom loadedFrom) {
+				imageAware.setImageBitmap(bitmap);
+			}
+		})
+		.build();
 	}
 	
 	@Override
@@ -51,6 +80,7 @@ public class MyCardAdapter extends BaseAdapter{
 		if (convertView == null) {
 			cell = new CellHolder();
 			convertView = inflater.inflate(R.layout.index_cell, null);
+			cell.avatarImageView = (ImageView) convertView.findViewById(R.id.avatarImageView);
 			cell.titleView = (TextView) convertView.findViewById(R.id.title);
 			cell.desView = (TextView) convertView.findViewById(R.id.des);
 			convertView.setTag(cell);
@@ -61,6 +91,7 @@ public class MyCardAdapter extends BaseAdapter{
 		final CardIntroEntity model = cards.get(position);
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
+		this.imageLoader.displayImage(model.avatar, cell.avatarImageView, this.displayOptions);
 		convertView.setOnClickListener(new OnClickListener() {
 			
 			@Override

@@ -97,7 +97,9 @@ public class Index extends AppActivity implements IXListViewListener{
 	private List<View> mListViews;// Tab页面
 	
 	private XListView xListView;
+	private List<PhoneIntroEntity> allPhonebook = new ArrayList<PhoneIntroEntity>();
 	private List<PhoneIntroEntity> phones = new ArrayList<PhoneIntroEntity>();
+	private List<PhoneIntroEntity> activitys = new ArrayList<PhoneIntroEntity>();
 	private IndexPhoneAdapter phoneAdapter;
 	
 	private ProgressDialog loadingPd;
@@ -173,7 +175,7 @@ public class Index extends AppActivity implements IXListViewListener{
 		xListView.setPullLoadEnable(false);
 		xListView.setPullRefreshEnable(false);
 		xListView.setDividerHeight(0);
-		phoneAdapter = new IndexPhoneAdapter(this, phones);
+		phoneAdapter = new IndexPhoneAdapter(this, allPhonebook);
 		xListView.setAdapter(phoneAdapter);
 		
 		xListViewForSqure = (XListView) lay1.findViewById(R.id.tab1_listView);
@@ -266,7 +268,9 @@ public class Index extends AppActivity implements IXListViewListener{
 	
 	private void getCache() {
 		getPhoneListFromCache();
+		getActivityListFromCache();
 		getPhoneList();
+		getActivityList();
 		getSquareListFromCache();
 	}
 	
@@ -278,6 +282,54 @@ public class Index extends AppActivity implements IXListViewListener{
 		}
 	}
 	
+	private void getPhoneList() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+		AppClient.getPhoneList(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				PhoneListEntity entity = (PhoneListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					handlerPhoneSection(entity);
+					phoneAdapter.notifyDataSetChanged();
+					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
+				default:
+//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				Logger.i(e);
+			}
+		});
+	}
+	
+	private void handlerPhoneSection(PhoneListEntity entity) {
+		allPhonebook.removeAll(phones);
+		phones.clear();
+		phones.addAll(entity.owned);
+		phones.addAll(entity.joined);
+		allPhonebook.addAll(phones);
+		Collections.sort(allPhonebook);
+		phoneAdapter.notifyDataSetChanged();
+	}
+	
 	private void getSquareListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.SquareList, appContext.getLoginUid());
 		RecommendListEntity entity = (RecommendListEntity) appContext.readObject(key);
@@ -286,15 +338,118 @@ public class Index extends AppActivity implements IXListViewListener{
 		}
 	}
 	
-	private void handlerPhoneSection(PhoneListEntity entity) {
-		phones.clear();
-		if (entity.owned.size()>0) {
-			phones.addAll(entity.owned);
+	private void getSquareList(final int action) {
+//		loadingPd = UIHelper.showProgress(Index.this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+		AppClient.getPhoneSquareList(appContext, currentPage+"", "", new ClientCallback() {
+			
+			@Override
+			public void onSuccess(Entity data) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+//				UIHelper.dismissProgress(loadingPd);
+				RecommendListEntity entity = (RecommendListEntity)data;
+//				switch (entity.getError_code()) {
+//				case Result.RESULT_OK:
+					handlerSquare(entity, action);
+//					break;
+//				case CommonValue.USER_NOT_IN_ERROR:
+//					forceLogout();
+//					break;
+//				default:
+//					break;
+//				}
+			}
+			
+			@Override
+			public void onFailure(String message) {
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+			}
+			
+			@Override
+			public void onError(Exception e) {
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+			}
+		});
+	}
+	
+	private void handlerSquare(RecommendListEntity entity, int action) {
+		switch (action) {
+		case UIHelper.LISTVIEW_ACTION_INIT:
+		case UIHelper.LISTVIEW_ACTION_REFRESH:
+			phonesForSqure.clear();
+			phonesForSqure.addAll(entity.squares);
+			break;
+		case UIHelper.LISTVIEW_ACTION_SCROLL:
+			phonesForSqure.addAll(entity.squares);
+			break;
 		}
-		if (entity.joined.size()>0) {
-			phones.addAll(entity.joined);
+		if(entity.next >= 1){					
+			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
 		}
-		Collections.sort(phones);
+		else if (entity.next == -1) {
+			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
+		}
+		phoneAdapterForSqure.notifyDataSetChanged();
+	}
+	
+	private void getActivityListFromCache() {
+		String key = String.format("%s-%s", CommonValue.CacheKey.ActivityList, appContext.getLoginUid());
+		ActivityListEntity entity = (ActivityListEntity) appContext.readObject(key);
+		if(entity != null){
+			handlerActivitySection(entity);
+		}
+	}
+	
+	private void getActivityList() {
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
+		AppClient.getActivityList(appContext, new ClientCallback() {
+			@Override
+			public void onSuccess(Entity data) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				ActivityListEntity entity = (ActivityListEntity)data;
+				switch (entity.getError_code()) {
+				case Result.RESULT_OK:
+					handlerActivitySection(entity);
+					break;
+				case CommonValue.USER_NOT_IN_ERROR:
+					forceLogout();
+					break;
+				default:
+					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
+					break;
+				}
+			}
+
+			@Override
+			public void onFailure(String message) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+			}
+			@Override
+			public void onError(Exception e) {
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
+				Logger.i(e);
+			}
+		});
+	}
+	
+	private void handlerActivitySection(ActivityListEntity entity) {
+		allPhonebook.removeAll(activitys);
+		activitys.clear();
+		activitys.addAll(entity.owned);
+		activitys.addAll(entity.joined);
+		allPhonebook.addAll(activitys);
+		Collections.sort(allPhonebook);
 		phoneAdapter.notifyDataSetChanged();
 	}
 	
@@ -345,98 +500,6 @@ public class Index extends AppActivity implements IXListViewListener{
 		Intent intent = new Intent(this,QYWebView.class);
 		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, url);
         startActivityForResult(intent, RequestCode);
-	}
-	
-	private void getPhoneList() {
-		indicatorImageView.setVisibility(View.VISIBLE);
-    	indicatorImageView.startAnimation(indicatorAnimation);
-		AppClient.getPhoneList(appContext, new ClientCallback() {
-			@Override
-			public void onSuccess(Entity data) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				PhoneListEntity entity = (PhoneListEntity)data;
-				switch (entity.getError_code()) {
-				case Result.RESULT_OK:
-					handlerPhoneSection(entity);
-					phoneAdapter.notifyDataSetChanged();
-					break;
-				case CommonValue.USER_NOT_IN_ERROR:
-					forceLogout();
-					break;
-				default:
-//					UIHelper.ToastMessage(getApplicationContext(), entity.getMessage(), Toast.LENGTH_SHORT);
-					break;
-				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
-			}
-			@Override
-			public void onError(Exception e) {
-				indicatorImageView.clearAnimation();
-				indicatorImageView.setVisibility(View.INVISIBLE);
-				Logger.i(e);
-			}
-		});
-	}
-	
-	private void getSquareList(final int action) {
-		loadingPd = UIHelper.showProgress(Index.this, null, null, true);
-		AppClient.getPhoneSquareList(appContext, currentPage+"", "", new ClientCallback() {
-			
-			@Override
-			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
-				RecommendListEntity entity = (RecommendListEntity)data;
-//				switch (entity.getError_code()) {
-//				case Result.RESULT_OK:
-					handlerSquare(entity, action);
-//					break;
-//				case CommonValue.USER_NOT_IN_ERROR:
-//					forceLogout();
-//					break;
-//				default:
-//					break;
-//				}
-			}
-			
-			@Override
-			public void onFailure(String message) {
-				// TODO Auto-generated method stub
-				UIHelper.dismissProgress(loadingPd);
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				// TODO Auto-generated method stub
-				UIHelper.dismissProgress(loadingPd);
-			}
-		});
-	}
-	
-	private void handlerSquare(RecommendListEntity entity, int action) {
-		switch (action) {
-		case UIHelper.LISTVIEW_ACTION_INIT:
-		case UIHelper.LISTVIEW_ACTION_REFRESH:
-			phonesForSqure.clear();
-			phonesForSqure.addAll(entity.squares);
-			break;
-		case UIHelper.LISTVIEW_ACTION_SCROLL:
-			phonesForSqure.addAll(entity.squares);
-			break;
-		}
-		if(entity.next >= 1){					
-			lvDataState = UIHelper.LISTVIEW_DATA_MORE;
-		}
-		else if (entity.next == -1) {
-			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
-		}
-		phoneAdapterForSqure.notifyDataSetChanged();
 	}
 	
 	// ViewPager页面切换监听

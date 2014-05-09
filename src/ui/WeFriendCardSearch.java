@@ -9,6 +9,7 @@ import bean.FriendCardListEntity;
 import bean.Result;
 
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -81,7 +82,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	public void onStop() {
 		setResult(RESULT_OK);
 	    super.onStop();
-	    QYRestClient.getIntance().cancelAllRequests(true);;
+	    QYRestClient.getIntance().cancelRequests(this, true);
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
 	    
 	}
@@ -113,7 +114,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		xlistView = (ListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
         xlistView.setOnScrollListener(this);
-		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors, imageLoader);
+		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors);
 		xlistView.setAdapter(mBilateralAdapter);
 		xlistView.setOnItemClickListener(this);
 	}
@@ -136,6 +137,13 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		}
 	}
 	
+	private String[] projection = {Data.MIMETYPE, Phone.NUMBER, "display_name", "contact_id", "sort_key", "photo_thumb_uri"};
+	private final static int MIMETYPE_INDEX = 0;
+	private final static int NUMBER_INDEX = 1;
+	private final static int NAME_INDEX = 2;
+	private final static int ID_INDEX = 3;
+	private final static int SORT_INDEX = 4;
+	private final static int PHOTO_INDEX = 5;
 	private class MyAsyncQueryHandler extends AsyncQueryHandler {
 
 		public MyAsyncQueryHandler(ContentResolver cr) {
@@ -152,16 +160,18 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				contactids.clear();
 				for (int i = 0; i < cursor.getCount(); i++) {
 					cursor.moveToPosition(i);
-					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+					String mimetype = cursor.getString(MIMETYPE_INDEX);
 					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
-				     	String phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
 						CardIntroEntity ce = new CardIntroEntity();
-						ce.realname = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-						ce.phone = phone;
-						ce.code = ""+cursor.getInt(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
+						ce.realname = cursor.getString(NAME_INDEX);
+						ce.phone = cursor.getString(NUMBER_INDEX);
+						ce.code = ""+cursor.getInt(ID_INDEX);
+						ce.pinyin = cursor.getString(SORT_INDEX);
 						ce.cardSectionType = LianXiRenType.mobile;
+						ce.avatar = cursor.getString(PHOTO_INDEX);
 						ce.department = "来自手机通讯录";
 						ce.position = "";
+						ce.py = StringUtils.getAlpha(ce.pinyin);
 						if (!contactids.contains(ce.code)) {
 							mobiles.add(ce);
 							contactids.add(ce.code);
@@ -181,6 +191,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				mBilateralAdapter.notifyDataSetChanged();
 			}
 			QYRestClient.getIntance().cancelAllRequests(true);
+//			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
 			searchFriendCard(1, keyword, 200+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 	}
@@ -291,11 +302,12 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         		String sql = "display_name like "+"'%" + s.toString() + "%' "
         				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
         				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
-        		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
+        		asyncQuery.startQuery(0, null, uri, projection, sql, null, "sort_key COLLATE LOCALIZED asc");
         	}
             else {
             	keyword = "";
             	QYRestClient.getIntance().cancelAllRequests(true);
+//            	QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
             	contactors.clear();
             	searchDeleteButton.setVisibility(View.INVISIBLE);
 				mBilateralAdapter.notifyDataSetChanged();
@@ -329,12 +341,28 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	}
 	
 	private void showCardView(CardIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看名片："+entity.link,   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Intent intent = new Intent(context, CardView.class);
 		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
 	private void showMobileView(CardIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看手机名片",   // Event label
+	                   null)            // Event value
+	      .build()
+		);
 		Uri uri = ContactsContract.Contacts.CONTENT_URI;
 		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
 		Intent intent2 = new Intent();

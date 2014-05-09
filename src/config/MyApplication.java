@@ -9,6 +9,7 @@ import pomelo.PomeloClient;
 
 import com.loopj.android.http.PersistentCookieStore;
 import com.nostra13.universalimageloader.utils.L;
+import com.squareup.picasso.Picasso;
 import com.vikaa.mycontact.BuildConfig;
 
 import service.QYEnterService;
@@ -79,6 +80,7 @@ public class MyApplication extends AppContext {
 			L.enableLogging();
 		}
 		Logger.setDebug(BuildConfig.DEBUG);
+		Picasso.with(mApplication).setDebugging(BuildConfig.DEBUG);
 		mNotificationManager = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
 		CookieStore cookieStore = new PersistentCookieStore(this);  
 		QYRestClient.getIntance().setCookieStore(cookieStore);

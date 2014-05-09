@@ -50,13 +50,30 @@ public class DataBaseHelper extends SDCardSQLiteOpenHelper {
 				+ "[code] varchar(50) ,"
 				+ "[isfriend] varchar(50) ,"
 				+ "[phoneDisplay] varchar(50), "
-				+ "[py] varchar(50) "
+				+ "[py] varchar(50), "
+				+ "[hometown] varchar(50), "
+				+ "[interest] text ,"
+				+ "[school] varchar(50) ,"
+				+ "[homepage] varchar(100) ,"
+				+ "[company_site] varchar(100) ,"
+				+ "[qq] varchar(50) ,"
+				+ "[intentionen] varchar(100) ,"
+				+ "[tencent] varchar(50) ,"
+				+ "[renren] varchar(50) ,"
+				+ "[zhihu] varchar(50), "
+				+ "[qzone] varchar(50), "
+				+ "[facebook] varchar(50), "
+				+ "[diandian] varchar(50), "
+				+ "[twitter] varchar(50), "
+				+ "[province] varchar(50), "
+				+ "[city] varchar(50), "
+				+ "[country] varchar(50) "
 				+ ");");
+		db.execSQL("create index [wcb_phonebook_index] on [wcb_phonebook] (openid);");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
 	}
 
 	@Override

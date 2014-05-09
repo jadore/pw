@@ -32,6 +32,7 @@ import config.AppClient;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
 import config.CommonValue;
+import db.manager.WeFriendManager;
 import android.R.string;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -58,6 +59,9 @@ import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -84,6 +88,9 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	private TextView exchangeView;
 	
 	private MobileReceiver mobileReceiver;
+	
+	private ImageView indicatorImageView;
+	private Animation indicatorAnimation;
 	
 	@Override
 	public void onStart() {
@@ -116,6 +123,16 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	}
 	
 	private void initUI() {
+		indicatorImageView = (ImageView) findViewById(R.id.xindicator);
+		indicatorAnimation = AnimationUtils.loadAnimation(this, R.anim.refresh_button_rotation);
+		indicatorAnimation.setDuration(500);
+		indicatorAnimation.setInterpolator(new Interpolator() {
+		    private final int frameCount = 10;
+		    @Override
+		    public float getInterpolation(float input) {
+		        return (float)Math.floor(input*frameCount)/frameCount;
+		    }
+		});
 		titleBarView = (TextView) findViewById(R.id.titleBarView);
 		LayoutInflater inflater = LayoutInflater.from(this);
 		View header = inflater.inflate(R.layout.card_view_header, null);
@@ -139,7 +156,13 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	
 	private void initData() {
 		card = (CardIntroEntity) getIntent().getSerializableExtra(CommonValue.CardViewIntentKeyValue.CardView);
-		setData(card);
+		CardIntroEntity data = WeFriendManager.getInstance(this).getCardByOpenid(card.openid);
+		if ( data != null ) {
+			setData(data);
+		}
+		else {
+			setData(card);
+		}
 		getCard(card.code);
 	}
 	
@@ -172,7 +195,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			}
 		}
 		
-		titleBarView.setText(entity.realname);
+		
 		imageLoader.displayImage(entity.avatar, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 		nameView.setText(entity.realname);
 		titleView.setText(entity.department +" " +entity.position);
@@ -336,6 +359,10 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 		case R.id.callContactButton:
 			callMobile(card.phone);
 			break;
+		case R.id.lookupContactButton:
+			String url2 = String.format("%s/card/%s", CommonValue.BASE_URL, card.code);
+			showCreate(url2, CommonValue.CardViewUrlRequest.editCard);
+			break;
 		}
 	}
 	
@@ -344,14 +371,19 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.getCard(appContext, code, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				CardIntroEntity entity = (CardIntroEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
+					WeFriendManager.getInstance(CardView.this).updateWeFriend(entity);
 					setData(entity);
 					break;
 				default:
@@ -362,12 +394,16 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				((AppException)e).makeToast(getApplicationContext());
 			}
 		});
@@ -440,11 +476,15 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	}
 	
 	private void exchangeCard(final CardIntroEntity model) {
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+//		loadingPd = UIHelper.showProgress(this, null, null, true);
+		indicatorImageView.setVisibility(View.VISIBLE);
+    	indicatorImageView.startAnimation(indicatorAnimation);
 		AppClient.followCard(appContext, model.openid, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				switch (data.getError_code()) {
 				case Result.RESULT_OK:
 					model.isfriend = CommonValue.PhonebookLimitRight.Friend_Wait;
@@ -458,12 +498,16 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			}
 			@Override
 			public void onFailure(String message) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onError(Exception e) {
-				UIHelper.dismissProgress(loadingPd);
+//				UIHelper.dismissProgress(loadingPd);
+				indicatorImageView.clearAnimation();
+				indicatorImageView.setVisibility(View.INVISIBLE);
 			}
 		});
 	}

@@ -161,7 +161,6 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 	public static CardIntroEntity parse(String res) throws IOException, AppException {
 		CardIntroEntity data = new CardIntroEntity();
 		try {
-			Logger.i(res);
 			JSONObject js = new JSONObject(res);
 			if(js.getInt("status") == 1) {
 				data.error_code = Result.RESULT_OK;
@@ -202,7 +201,10 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 				data. facebook= info.getString("twitter");
 				data. diandian= info.getString("twitter");
 				data. twitter= info.getString("twitter");
-				data.isfriend = info.getString("isfriend");
+				data. isfriend = info.getString("isfriend");
+				data.pinyin = info.getString("pinyin");
+				data.py = StringUtils.getAlpha(data.pinyin);
+				data.code = info.getString("code");
 			}
 			else {
 				data.error_code = 11;
@@ -311,6 +313,9 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 	public int compareTo(CardIntroEntity another) {
 		if (null == this.py ) {
 			return -1;
+		}
+		if (null == another.py) {
+			return 1;
 		}
 		return this.py.compareToIgnoreCase(another.py);
 	}

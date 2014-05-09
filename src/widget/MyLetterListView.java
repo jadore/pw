@@ -108,6 +108,7 @@ public class MyLetterListView extends View
 			showBkg = false;
 			choose = -1;
 //			invalidate();
+			listener.onTouchingUp();;
 			break;
 		}
 		return true;
@@ -127,5 +128,6 @@ public class MyLetterListView extends View
 	public interface OnTouchingLetterChangedListener
 	{
 		public void onTouchingLetterChanged(String s);
+		public void onTouchingUp();
 	}
 }

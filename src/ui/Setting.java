@@ -18,6 +18,8 @@ import com.vikaa.mycontact.R;
 
 import config.AppClient;
 import config.CommonValue;
+import db.manager.MessageManager;
+import db.manager.WeFriendManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -105,6 +107,14 @@ public class Setting extends AppActivity{
 		op31.cardSectionType = CommonValue.CardSectionType .SettingsSectionType;
 		ops3.add(op31);
 		cards.add(ops3);
+		
+		List<CardIntroEntity> ops4 = new ArrayList<CardIntroEntity>();
+		CardIntroEntity op41 = new CardIntroEntity();
+		op41.realname = "退出账号";
+		op41.position = "";
+		op41.cardSectionType = CommonValue.CardSectionType .LogoutSectionType;
+		ops4.add(op41);
+		cards.add(ops4);
 	}
 	
 	
@@ -116,15 +126,17 @@ public class Setting extends AppActivity{
 				AppClient.Logout(appContext);
 				CookieStore cookieStore = new PersistentCookieStore(Setting.this);  
 				cookieStore.clear();
-				AppManager.getAppManager().finishAllActivity();
 				appContext.setUserLogout();
-				if (appContext.getPolemoClient()!=null) {
-					appContext.getPolemoClient().disconnect();
-				}
-				if (isServiceRunning()) {
-					Intent intent1 = new Intent(Setting.this, IPolemoService.class);
-					stopService(intent1);
-				}
+				WeFriendManager.destroy();
+				MessageManager.destroy();
+				AppManager.getAppManager().finishAllActivity();
+//				if (appContext.getPolemoClient()!=null) {
+//					appContext.getPolemoClient().disconnect();
+//				}
+//				if (isServiceRunning()) {
+//					Intent intent1 = new Intent(Setting.this, IPolemoService.class);
+//					stopService(intent1);
+//				}
 				Intent intent = new Intent(Setting.this, LoginCode1.class);
 				startActivity(intent);
 			}

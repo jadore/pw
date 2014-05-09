@@ -60,6 +60,7 @@
 		android:layout_marginRight="15dp"
 		android:layout_alignParentRight="true"
 		android:background="@drawable/cell_accessory"
+		android:visibility="invisible"
         />
 	</RelativeLayout>
 	<View 
