@@ -25,6 +25,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -109,15 +111,18 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	private List<String> needUpdateOpenids = new ArrayList<String>();
 	private static final int count = 500;
 	
+	private WakeLock mWakeLock;
 	@Override
 	public void onStart() {
 	    super.onStart();
+	    mWakeLock.acquire(); 
 	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
 	}
 
 	  @Override
 	public void onStop() {
 	    super.onStop();
+	    mWakeLock.release();
 	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
 	}
 	  
@@ -136,6 +141,8 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wefriendcard);
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "qy");
 		asyncQuery = new MyAsyncQueryHandler(getContentResolver());
 		uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 		initUI();
@@ -306,7 +313,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
-		loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null, true);
+//		loadingPd = UIHelper.showProgress(WeFriendCard.this, null, null);
 		AppClient.getChatFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {

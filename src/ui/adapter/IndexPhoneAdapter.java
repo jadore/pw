@@ -6,6 +6,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
+import config.CommonValue.PhoneSectionType;
 import bean.PhoneIntroEntity;
 import ui.Index;
 import ui.MyCard;
@@ -74,7 +75,13 @@ public class IndexPhoneAdapter extends BaseAdapter {
 		convertView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				((Index)context).showPhoneTimeline(model);
+				if (model.phoneSectionType.equals(PhoneSectionType.OwnedSectionType) 
+						|| model.phoneSectionType.equals(PhoneSectionType.JoinedSectionType)) {
+					((Index)context).showPhoneViewWeb(model);
+				}
+				else {
+					((Index)context).showActivityViewWeb(model);
+				}
 			}
 		});
 		return convertView;

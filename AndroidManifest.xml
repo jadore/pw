@@ -39,6 +39,7 @@
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
     <!-- Don't require camera, as this requires a rear camera. This allows it to work on the Nexus 7 -->
 	<uses-feature android:name="android.hardware.camera" android:required="false"/>

@@ -212,6 +212,20 @@ public class Index extends AppActivity implements IXListViewListener{
 		startActivity(intent);
 	}
 	
+	public void showActivityViewWeb(PhoneIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看聚会："+entity.link,   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, entity.link);
+	    startActivityForResult(intent, CommonValue.ActivityViewUrlRequest.editActivity);
+	}
+	
 	public void showPhoneViewWeb(PhoneIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder

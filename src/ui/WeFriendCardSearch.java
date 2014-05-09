@@ -39,6 +39,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,11 +52,11 @@ import tools.StringUtils;
 import tools.UIHelper;
 import ui.adapter.FriendCardSearchAdapter;
 
-public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener, OnItemClickListener{
+public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener{
 	private int lvDataState;
 	private int currentPage;
 	private ProgressDialog loadingPd;
-	
+	private List<CardIntroEntity> tempMobiles = new ArrayList<CardIntroEntity>(); 
 	private List<CardIntroEntity> mobiles = new ArrayList<CardIntroEntity>();
 	private List<CardIntroEntity> bilaterals = new ArrayList<CardIntroEntity>();
 	private List<CardIntroEntity> networks = new ArrayList<CardIntroEntity>();
@@ -64,8 +66,8 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	
 	private String keyword;
 	
-	private ListView xlistView;
-	private List<CardIntroEntity> contactors = new ArrayList<CardIntroEntity>();
+	private ExpandableListView xlistView;
+	private List<List<CardIntroEntity>> contactors = new ArrayList<List<CardIntroEntity>>();
 	private FriendCardSearchAdapter mBilateralAdapter;
 	
 	private MyAsyncQueryHandler asyncQuery;
@@ -111,12 +113,25 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		editText.addTextChangedListener(TWPN);
 		searchDeleteButton = (Button) findViewById(R.id.searchDeleteButton);
 		
-		xlistView = (ListView)findViewById(R.id.xlistview);
+		xlistView = (ExpandableListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
+        xlistView.setGroupIndicator(null);
         xlistView.setOnScrollListener(this);
+        contactors.add(mobiles);
+        contactors.add(bilaterals);
+        contactors.add(networks);
 		mBilateralAdapter = new FriendCardSearchAdapter(this, contactors);
 		xlistView.setAdapter(mBilateralAdapter);
-		xlistView.setOnItemClickListener(this);
+		xlistView.expandGroup(0);
+		xlistView.expandGroup(1);
+		xlistView.expandGroup(2);
+		xlistView.setOnGroupClickListener(new OnGroupClickListener() {
+			@Override
+			public boolean onGroupClick(ExpandableListView arg0, View arg1, int arg2,
+					long arg3) {
+				return true;
+			}
+		});
 	}
 	
 	public void ButtonClick(View v) {
@@ -154,7 +169,9 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		 */
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			tempMobiles.clear();
 			mobiles.clear();
+			mBilateralAdapter.notifyDataSetChanged();
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				contactids.clear();
@@ -173,26 +190,16 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 						ce.position = "";
 						ce.py = StringUtils.getAlpha(ce.pinyin);
 						if (!contactids.contains(ce.code)) {
-							mobiles.add(ce);
+							tempMobiles.add(ce);
 							contactids.add(ce.code);
 						}
 					}
 				}
 			}
-			if (mobiles.size() > 0) {
-				contactors.addAll(mobiles);
+			if (tempMobiles.size() > 0) {
+				mobiles.addAll(tempMobiles);
 				mBilateralAdapter.notifyDataSetChanged();
 			}
-			
-			bilaterals.clear();
-			bilaterals.addAll(WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword));
-			if (bilaterals.size()>0 ) {
-				contactors.addAll(bilaterals);
-				mBilateralAdapter.notifyDataSetChanged();
-			}
-			QYRestClient.getIntance().cancelAllRequests(true);
-//			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
-			searchFriendCard(1, keyword, 200+"", UIHelper.LISTVIEW_ACTION_INIT);
 		}
 	}
 	
@@ -228,7 +235,6 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	private synchronized void handleSearchFriends(FriendCardListEntity entity, int action) {
 		List<CardIntroEntity> temp = new ArrayList<CardIntroEntity>();
 		temp.addAll(entity.u);
-		Logger.i(temp.size()+"");
 		for (CardIntroEntity card : entity.u) {
 			if (WeFriendManager.getInstance(this).isOpenidExist(card.openid)) {
 				temp.remove(card);
@@ -250,15 +256,11 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		else if (entity.ne == -1) {
 			lvDataState = UIHelper.LISTVIEW_DATA_FULL;
 		}
-		
 		if(networks.isEmpty() || StringUtils.empty(keyword)){
 			networks.clear();
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
 		}
-		else {
-			contactors.addAll(networks);
-			mBilateralAdapter.notifyDataSetChanged();
-		}
+		mBilateralAdapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -272,11 +274,6 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
             if (StringUtils.empty(keyword)) {
 				return false;
 			}
-//            loadingPd = UIHelper.showProgress(this, null, null, true);
-//            contactors.clear();
-//            String sql = "display_name like "+"'%" + keyword + "%' or " + Phone.NUMBER + " like " +"'%" + keyword + "%'";
-//    		asyncQuery.startQuery(0, null, uri, null, sql, null, "sort_key COLLATE LOCALIZED asc");
-    		
 //    		searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
             break;  
         }  
@@ -284,33 +281,43 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	}
 	
 	TextWatcher TWPN = new TextWatcher() {
-        private CharSequence temp;
-        private int editStart ;
-        private int editEnd ;
+//        private CharSequence temp;
+//        private int editStart ;
+//        private int editEnd ;
         public void beforeTextChanged(CharSequence s, int arg1, int arg2,
                 int arg3) {
-            temp = s;
+//            temp = s;
         }
        
         public void onTextChanged(CharSequence s, int start, int before,
                 int count) {
         	if (s.length() > 0) {
         		keyword = s.toString();
-        		contactors.clear();
-        		mBilateralAdapter.notifyDataSetChanged();
             	searchDeleteButton.setVisibility(View.VISIBLE);
         		String sql = "display_name like "+"'%" + s.toString() + "%' "
         				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
         				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
         		asyncQuery.startQuery(0, null, uri, projection, sql, null, "sort_key COLLATE LOCALIZED asc");
+        		bilaterals.clear();
+        		mBilateralAdapter.notifyDataSetChanged();
+    			bilaterals.addAll(WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword));
+    			if (bilaterals.size()>0 ) {
+    				mBilateralAdapter.notifyDataSetChanged();
+    			}
+    			QYRestClient.getIntance().cancelAllRequests(true);
+//    			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
+    			searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
         	}
             else {
-            	keyword = "";
             	QYRestClient.getIntance().cancelAllRequests(true);
+            	keyword = "";
+            	mobiles.clear();
+            	bilaterals.clear();
+            	networks.clear();
+            	mBilateralAdapter.notifyDataSetChanged();
 //            	QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
-            	contactors.clear();
             	searchDeleteButton.setVisibility(View.INVISIBLE);
-				mBilateralAdapter.notifyDataSetChanged();
+				
             }
         }
        
@@ -329,17 +336,6 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		closeInput();
 	}
 
-	@Override
-	public void onItemClick(AdapterView<?> parent, View arg1, int position, long arg3) {
-		CardIntroEntity model = (CardIntroEntity) parent.getAdapter().getItem(position);
-		if (model.cardSectionType.equals(LianXiRenType.mobile)) {
-			showMobileView(model);
-		}
-		else {
-			showCardView(model);
-		}
-	}
-	
 	private void showCardView(CardIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
