@@ -193,26 +193,15 @@ public class WeFriendManager {
 					@Override
 					public CardIntroEntity mapRow(Cursor cursor, int index) {
 						CardIntroEntity data = new CardIntroEntity();
-						data.code = cursor.getString(cursor.getColumnIndex("code"));
-						data.openid = cursor.getString(cursor.getColumnIndex("openid"));
-						data.realname = cursor.getString(cursor.getColumnIndex("realname"));
-//						data.phone = cursor.getString(cursor.getColumnIndex("phone"));
-//						data.privacy = cursor.getString(cursor.getColumnIndex("privacy"));
-						data.department = cursor.getString(cursor.getColumnIndex("department"));
-						data.position = cursor.getString(cursor.getColumnIndex("position"));;
-//						data.birthday = cursor.getString(cursor.getColumnIndex("birthday"));
-//						data.address = cursor.getString(cursor.getColumnIndex("address"));
-//						data.certified = cursor.getString(cursor.getColumnIndex("certified"));
-//						data.supply= cursor.getString(cursor.getColumnIndex("supply"));
-//						data.intro = cursor.getString(cursor.getColumnIndex("intro"));
-//						data.wechat= cursor.getString(cursor.getColumnIndex("wechat"));
-//						data.link = cursor.getString(cursor.getColumnIndex("link"));
-						data.avatar = cursor.getString(cursor.getColumnIndex("avatar"));
-//						data.phone_display = cursor.getString(cursor.getColumnIndex("phoneDisplay"));
+						data.code = cursor.getString(0);
+						data.openid = cursor.getString(1);
+						data.realname = cursor.getString(2);
+						data.department = cursor.getString(3);
+						data.position = cursor.getString(4);;
+						data.avatar = cursor.getString(5);
 						data.cardSectionType = LianXiRenType.yidu;
-						data.pinyin = cursor.getString(cursor.getColumnIndex("pinyin"));
-//						data.isfriend = cursor.getString(cursor.getColumnIndex("isfriend"));
-						data.py = cursor.getString(cursor.getColumnIndex("py"));
+						data.pinyin = cursor.getString(6);
+						data.py = cursor.getString(7);
 						return data;
 					}
 				}, 

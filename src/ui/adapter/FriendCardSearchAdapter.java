@@ -84,7 +84,7 @@ public class FriendCardSearchAdapter extends BaseExpandableListAdapter {
 //			cell.alpha.setText(currentStr);
 //		}
 //		else {
-			cell.alpha.setVisibility(View.GONE);
+		cell.alpha.setVisibility(View.GONE);
 //		}
 		return convertView;
 	}

@@ -3,6 +3,8 @@ package ui;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import bean.CardIntroEntity;
 import bean.Entity;
@@ -28,6 +30,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -174,7 +178,37 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 //			tempMobiles.clear();
 //			mobiles.clear();
 //			mBilateralAdapter.notifyDataSetChanged();
-			new MobileTask().execute(cursor);
+//			new MobileTask().execute(cursor);
+			tempMobiles.clear();
+			if (cursor != null && cursor.getCount() > 0) {
+				cursor.moveToFirst();
+				contactids.clear();
+				for (int i = 0; i < cursor.getCount(); i++) {
+					cursor.moveToPosition(i);
+					String mimetype = cursor.getString(MIMETYPE_INDEX);
+					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
+						CardIntroEntity ce = new CardIntroEntity();
+						ce.realname = cursor.getString(NAME_INDEX);
+						ce.phone = cursor.getString(NUMBER_INDEX);
+						ce.code = ""+cursor.getInt(ID_INDEX);
+						ce.pinyin = cursor.getString(SORT_INDEX);
+						ce.cardSectionType = LianXiRenType.mobile;
+						ce.avatar = cursor.getString(PHOTO_INDEX);
+						ce.department = "来自手机通讯录";
+						ce.position = "";
+						ce.py = StringUtils.getAlpha(ce.pinyin);
+						if (!contactids.contains(ce.code)) {
+							tempMobiles.add(ce);
+							contactids.add(ce.code);
+						}
+					}
+				}
+			}
+			mobiles.clear();
+			if (StringUtils.notEmpty(keyword)) {
+				mobiles.addAll(tempMobiles);
+			}
+			mBilateralAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -220,20 +254,44 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		}
 	}
 	
-	private class DBQuery extends AsyncTask<String, Void, List<CardIntroEntity>> {
-
-		@Override
-		protected List<CardIntroEntity> doInBackground(String... params) {
-			return WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(params[0]);
-		}
-		@Override
-		protected void onPostExecute(List<CardIntroEntity> result) {
-			bilaterals.clear();
-			if (StringUtils.notEmpty(keyword)) {
-				bilaterals.addAll(result);
+//	private class DBQuery extends AsyncTask<String, Void, List<CardIntroEntity>> {
+//
+//		@Override
+//		protected List<CardIntroEntity> doInBackground(String... params) {
+//			return WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(params[0]);
+//		}
+//		@Override
+//		protected void onPostExecute(List<CardIntroEntity> result) {
+//			bilaterals.clear();
+//			if (StringUtils.notEmpty(keyword)) {
+//				bilaterals.addAll(result);
+//			}
+//			mBilateralAdapter.notifyDataSetChanged();
+//		}
+//	}
+	ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+	private void queryWeFriendsFromDB(final String key) {
+		final Handler handler1 = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				if (key.equals(keyword)) {
+					bilaterals.clear();
+					if (StringUtils.notEmpty(keyword)) {
+						bilaterals.addAll((List<CardIntroEntity>)msg.obj);
+					}
+					mBilateralAdapter.notifyDataSetChanged();
+				}
 			}
-			mBilateralAdapter.notifyDataSetChanged();
-		}
+		};
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				List<CardIntroEntity> res = WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword);
+				msg.obj = res;
+				handler1.sendMessage(msg);
+			}
+		});
 	}
 	
 	private void searchFriendCard(int page, String kw, String count, final int action) {
@@ -327,11 +385,13 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         	if (s.length() > 0) {
         		keyword = s.toString();
             	searchDeleteButton.setVisibility(View.VISIBLE);
+            	asyncQuery.cancelOperation(0);
         		String sql = "display_name like "+"'%" + s.toString() + "%' "
         				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
         				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
         		asyncQuery.startQuery(0, null, uri, projection, sql, null, "sort_key COLLATE LOCALIZED asc");
-    			new DBQuery().execute(keyword);
+//    			new DBQuery().execute(keyword);
+        		queryWeFriendsFromDB(keyword);
     			QYRestClient.getIntance().cancelAllRequests(true);
 //    			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
     			searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
