@@ -22,6 +22,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.graphics.PixelFormat;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -61,6 +62,7 @@ import com.baidu.android.pushservice.PushManager;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
 import com.google.gson.Gson;
+import com.nostra13.universalimageloader.utils.L;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -109,7 +111,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	private Uri uri ;
 	private List<String> contactids;
 	
-	private List<String> needUpdateOpenids = new ArrayList<String>();
 	private static final int count = 500;
 	
 	private WakeLock mWakeLock;
@@ -154,11 +155,11 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		Handler jumpHandler = new Handler();
         jumpHandler.postDelayed(new Runnable() {
 			public void run() {
+				getFriendCardFromCache();
 				if (!appContext.isNetworkConnected()) {
 		    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 		    		return;
 		    	}
-				getFriendCardFromCache();
 				UpdateManager.getUpdateManager().checkAppUpdate(WeFriendCard.this, false);
 				checkLogin();
 			}
@@ -194,8 +195,6 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		});
 		letterListView.setOnTouchingLetterChangedListener(new LetterListViewListener());
 		alphaIndexer = new HashMap<String, Integer>();
-		touchhandler = new Handler();
-		overlayThread = new OverlayThread();
 		initOverlay();
 		
 		xlistView = (ListView)findViewById(R.id.xlistview);
@@ -304,7 +303,7 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 					handler2.sendEmptyMessage(1);
 				}
 				else {
-			        handler2.sendEmptyMessageDelayed(2, 1000);
+			        handler2.sendEmptyMessageDelayed(2, 10000);
 				}
 			}
 		});
@@ -418,6 +417,50 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
 			mobiles.clear();
+//			if (cursor != null && cursor.getCount() > 0) {
+//				cursor.moveToFirst();
+//				contactids = new ArrayList<String>();
+//				for (int i = 0; i < cursor.getCount(); i++) {
+//					cursor.moveToPosition(i);
+//					String mimetype = cursor.getString(MIMETYPE_INDEX);
+//					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
+//						CardIntroEntity ce = new CardIntroEntity();
+//						ce.realname = cursor.getString(NAME_INDEX);
+//						ce.phone = cursor.getString(NUMBER_INDEX);
+//						ce.code = ""+cursor.getInt(ID_INDEX);
+//						ce.pinyin = cursor.getString(SORT_INDEX);
+//						ce.cardSectionType = LianXiRenType.mobile;
+//						ce.avatar = cursor.getString(PHOTO_INDEX);
+//						ce.department = "来自手机通讯录";
+//						ce.position = "";
+//						ce.py = StringUtils.getAlpha(ce.pinyin);
+//						if (!contactids.contains(ce.code)) {
+//							mobiles.add(ce);
+//							contactids.add(ce.code);
+//						}
+//					}
+//				}
+//			}
+//			else {
+////				WarningDialog();
+//			}
+//			cursor.close();
+//			contactors.addAll(mobiles);
+//			Collections.sort(contactors);
+//			mBilateralAdapter.notifyDataSetChanged();
+			new MobileTask().execute(cursor);
+			if (!appContext.isLogin()) {
+				return;
+			}
+			getWeFriendsFromDB();
+		}
+	}
+	
+	private class MobileTask extends AsyncTask<Cursor, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Cursor... params) {
+			Cursor cursor = params[0];
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				contactids = new ArrayList<String>();
@@ -442,16 +485,28 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 					}
 				}
 			}
-			else {
-//				WarningDialog();
-			}
+			cursor.close();
 			contactors.addAll(mobiles);
 			Collections.sort(contactors);
-			mBilateralAdapter.notifyDataSetChanged();
-			if (!appContext.isLogin()) {
-				return;
+			alphaIndexer .clear();
+			for (int i = 0; i < contactors.size(); i++) {
+				String currentStr = contactors.get(i).py;
+				String previewStr = (i - 1) >= 0 ? contactors.get(i - 1).py : " ";
+				if (!previewStr.equals(currentStr)) {
+					if (currentStr.equals("~")) {
+						alphaIndexer.put("#", i);
+					}
+					else {
+						alphaIndexer.put(currentStr, i);
+					}
+				}
 			}
-			getWeFriendsFromDB();
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mBilateralAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -474,14 +529,16 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				contactors.addAll(bilaterals);
 				Collections.sort(contactors);
 				alphaIndexer .clear();
-				sections = new String[contactors.size()];
 				for (int i = 0; i < contactors.size(); i++) {
-					String currentStr = contactors.get(i).pinyin.substring(0, 1).toLowerCase();
-					String previewStr = (i - 1) >= 0 ? contactors.get(i - 1).pinyin.substring(0, 1).toLowerCase() : " ";
+					String currentStr = contactors.get(i).py;
+					String previewStr = (i - 1) >= 0 ? contactors.get(i - 1).py : " ";
 					if (!previewStr.equals(currentStr)) {
-						String name = contactors.get(i).pinyin.substring(0, 1).toUpperCase();
-						alphaIndexer.put(name, i);
-						sections[i] = name;
+						if (currentStr.equals("~")) {
+							alphaIndexer.put("#", i);
+						}
+						else {
+							alphaIndexer.put(currentStr, i);
+						}
 					}
 				}
 				handler1.sendEmptyMessage(1);
@@ -532,7 +589,13 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 		final Handler handler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
-				getAllWeFriendbyOpenids();
+				switch (msg.what) {
+				default:
+					List<String> needUpdateOpenids = (List<String>) msg.obj;
+					getAllWeFriendbyOpenids(needUpdateOpenids);
+					break;
+				}
+				
 			}
 		};
 		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
@@ -540,27 +603,31 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 			@Override
 			public void run() {
 				List<String> temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
+				Logger.i("ads");
 				for (String openid : temp) {
 					if (!entity.openids.contains(openid)) {
 						WeFriendManager.getInstance(WeFriendCard.this).deleteWeFriendBy(openid);
 					}
 				}
 				temp = WeFriendManager.getInstance(WeFriendCard.this).getAllOpenidOfWeFriends();
-				needUpdateOpenids.clear();
+				List<String> needUpdateOpenids = new ArrayList<String>();
 				for (String openid : entity.openids) {
 					if (!temp.contains(openid)) {
 						needUpdateOpenids.add(openid);
 					}
 				}
 				if (needUpdateOpenids.size() > 0) {
-					handler.sendEmptyMessage(1);
+					Message msg = new Message();
+					msg.obj = needUpdateOpenids;
+					handler.sendMessage(msg);
 				}
 			}
 		});
 		
 	}
 	
-	private void getAllWeFriendbyOpenids() {
+	private void getAllWeFriendbyOpenids(List<String> needUpdateOpenids) {
+		Logger.i(needUpdateOpenids.size()+"");
 		Gson gson = new Gson();
 		AppClient.getAllWeFriendByOpenid(this, appContext, gson.toJson(needUpdateOpenids), new ClientCallback() {
 			
@@ -594,20 +661,10 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 	}
 	
 	
-	private Handler touchhandler;
-	private OverlayThread overlayThread;
 	private TextView overlay;
-	private String[] sections;
+//	private String[] sections;
 	MyLetterListView letterListView = null;
 	private HashMap<String, Integer> alphaIndexer;
-	
-	private class OverlayThread implements Runnable {
-
-		@Override
-		public void run() {
-			overlay.setVisibility(View.GONE);
-		}
-	}
 	
 	private class LetterListViewListener implements OnTouchingLetterChangedListener {
 		@Override
@@ -616,10 +673,8 @@ public class WeFriendCard extends AppActivity implements OnItemClickListener {
 				int position = alphaIndexer.get(s);
 				int xposition = (position + 1);
 				xlistView.setSelection(xposition);
-				overlay.setText(sections[position]);
+				overlay.setText(s);
 				overlay.setVisibility(View.VISIBLE);
-//				touchhandler.removeCallbacks(overlayThread);
-//				touchhandler.postDelayed(overlayThread, 1500);
 			}
 		}
 		@Override

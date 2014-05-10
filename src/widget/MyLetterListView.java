@@ -1,5 +1,6 @@
 package widget;
 
+import tools.Logger;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -43,6 +44,7 @@ public class MyLetterListView extends View
 	protected void onDraw(Canvas canvas)
 	{
 		super.onDraw(canvas);
+		Logger.i("draw");
 		if (showBkg)
 		{
 			canvas.drawColor(Color.parseColor("#40000000"));
@@ -105,8 +107,6 @@ public class MyLetterListView extends View
 			}
 			break;
 		case MotionEvent.ACTION_UP:
-			showBkg = false;
-			choose = -1;
 //			invalidate();
 			listener.onTouchingUp();;
 			break;

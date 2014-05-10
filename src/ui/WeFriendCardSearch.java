@@ -1,6 +1,7 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import bean.CardIntroEntity;
@@ -25,6 +26,7 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
@@ -169,9 +171,19 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		 */
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+//			tempMobiles.clear();
+//			mobiles.clear();
+//			mBilateralAdapter.notifyDataSetChanged();
+			new MobileTask().execute(cursor);
+		}
+	}
+	
+	private class MobileTask extends AsyncTask<Cursor, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Cursor... params) {
+			Cursor cursor = params[0];
 			tempMobiles.clear();
-			mobiles.clear();
-			mBilateralAdapter.notifyDataSetChanged();
 			if (cursor != null && cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				contactids.clear();
@@ -196,10 +208,31 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 					}
 				}
 			}
-			if (tempMobiles.size() > 0) {
+			return null;
+		}
+		@Override
+		protected void onPostExecute(Void result) {
+			mobiles.clear();
+			if (StringUtils.notEmpty(keyword)) {
 				mobiles.addAll(tempMobiles);
-				mBilateralAdapter.notifyDataSetChanged();
 			}
+			mBilateralAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	private class DBQuery extends AsyncTask<String, Void, List<CardIntroEntity>> {
+
+		@Override
+		protected List<CardIntroEntity> doInBackground(String... params) {
+			return WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(params[0]);
+		}
+		@Override
+		protected void onPostExecute(List<CardIntroEntity> result) {
+			bilaterals.clear();
+			if (StringUtils.notEmpty(keyword)) {
+				bilaterals.addAll(result);
+			}
+			mBilateralAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -298,12 +331,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
         				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
         		asyncQuery.startQuery(0, null, uri, projection, sql, null, "sort_key COLLATE LOCALIZED asc");
-        		bilaterals.clear();
-        		mBilateralAdapter.notifyDataSetChanged();
-    			bilaterals.addAll(WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword));
-    			if (bilaterals.size()>0 ) {
-    				mBilateralAdapter.notifyDataSetChanged();
-    			}
+    			new DBQuery().execute(keyword);
     			QYRestClient.getIntance().cancelAllRequests(true);
 //    			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
     			searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);

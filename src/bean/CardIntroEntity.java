@@ -203,7 +203,7 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 				data. twitter= info.getString("twitter");
 				data. isfriend = info.getString("isfriend");
 				data.pinyin = info.getString("pinyin");
-				data.py = StringUtils.getAlpha(data.pinyin);
+				data.py = StringUtils.getAlpha(StringUtils.doEmpty(data.pinyin));
 				data.code = info.getString("code");
 			}
 			else {
@@ -301,7 +301,7 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 			data.cardSectionType = sectionType;
 			data.willRefresh = false;
 			data.pinyin = info.getString("p");
-			data.py = StringUtils.getAlpha(data.pinyin);
+			data.py = StringUtils.getAlpha(StringUtils.doEmpty(data.pinyin));
 			data.isfriend = info.getString("is");
 		} catch (JSONException e) {
 			throw AppException.json(e);

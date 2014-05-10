@@ -87,18 +87,21 @@ public class MyCard extends AppActivity{
 	private void getCardListFromCache() {
 		String key = String.format("%s-%s", CommonValue.CacheKey.CardList, appContext.getLoginUid());
 		CardListEntity entity = (CardListEntity) appContext.readObject(key);
-		if(entity == null){
-			getCardList();
-			return;
+		if(entity != null){
+			cards.clear();
+			if (entity.owned.size()>0) {
+				cards.addAll(entity.owned);
+			}
+			xAdapter.notifyDataSetChanged();
 		}
-		cards.clear();
-		if (entity.owned.size()>0) {
-			cards.addAll(entity.owned);
-		}
-		xAdapter.notifyDataSetChanged();
+		getCardList();
 	}
 	
 	private void getCardList() {
+		if (!appContext.isNetworkConnected() && cards.isEmpty()) {
+    		UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
+    		return;
+    	}
 		AppClient.getCardList(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {

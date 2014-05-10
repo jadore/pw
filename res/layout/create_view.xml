@@ -95,6 +95,7 @@
 	        android:textColor="@color/white"
 	        android:clickable="true"
 	        android:onClick="ButtonClick"
+	        android:text="亲，页面有更新，请点击加载"
 	        />
 		
 	    <Button 

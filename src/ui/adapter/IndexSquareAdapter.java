@@ -76,8 +76,7 @@ public class IndexSquareAdapter extends BaseAdapter {
 		convertView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Logger.i(model.link);
-//				((Index)context).showPhoneViewWeb(model);
+				((Index)context).showSquarePhoneViewWeb(model);
 			}
 		});
 		return convertView;

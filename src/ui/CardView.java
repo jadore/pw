@@ -10,6 +10,7 @@ import sms.MessageBoxList;
 import tools.AppException;
 import tools.AppManager;
 import tools.BaseIntentUtil;
+import tools.CircleTransform;
 import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
@@ -26,6 +27,7 @@ import cn.sharesdk.wechat.moments.WechatMoments;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.squareup.picasso.Picasso;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -49,6 +51,7 @@ import android.content.IntentFilter;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
@@ -168,6 +171,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	
 	private void setData(CardIntroEntity entity) {
 		card = entity;
+		new DBUpdate().execute(entity);
 		if (StringUtils.notEmpty(entity.openid)) {
 			if (entity.openid.equals(appContext.getLoginUid())) {
 				saveMobileButton.setVisibility(View.GONE);
@@ -194,145 +198,16 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 				}
 			}
 		}
-		
-		
-		imageLoader.displayImage(entity.avatar, avatarImageView, CommonValue.DisplayOptions.avatar_options);
+		Picasso.with(context)
+        .load(entity.avatar)
+        .placeholder(R.drawable.avatar_placeholder)
+        .error(R.drawable.avatar_placeholder)
+        .resize(100, 100)
+        .centerCrop()
+        .transform(new CircleTransform())
+        .into(avatarImageView);
 		nameView.setText(entity.realname);
 		titleView.setText(entity.department +" " +entity.position);
-		summarys.clear();
-		if (StringUtils.notEmpty(entity.wechat)) {
-			KeyValue value = new KeyValue();
-			value.key = "微信号";
-			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.wechat : "*******(交换名片可见)";
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.email)) {
-			KeyValue value = new KeyValue();
-			value.key = "邮箱";
-			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.email : "*******(交换名片可见)";
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.phone)) {
-			KeyValue value = new KeyValue();
-			value.key = "手机";
-			value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.phone : "*******(交换名片可见)";
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.birthday)) {
-			KeyValue value = new KeyValue();
-			value.key = "生日";
-			value.value = entity.birthday;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.address)) {
-			KeyValue value = new KeyValue();
-			value.key = "地址";
-			value.value = entity.address;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.intro)) {
-			KeyValue value = new KeyValue();
-			value.key = "个人介绍";
-			value.value = entity.intro;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.supply)) {
-			KeyValue value = new KeyValue();
-			value.key = "供需关系";
-			value.value = entity.supply;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.needs)) {
-			KeyValue value = new KeyValue();
-			value.key = "需求关系";
-			value.value = entity.needs;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.hometown)) {
-			KeyValue value = new KeyValue();
-			value.key = "籍贯";
-			value.value = entity.hometown;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.interest)) {
-			KeyValue value = new KeyValue();
-			value.key = "兴趣";
-			value.value = entity.interest;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.school)) {
-			KeyValue value = new KeyValue();
-			value.key = "学校";
-			value.value = entity.school;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.homepage)) {
-			KeyValue value = new KeyValue();
-			value.key = "个人主页";
-			value.value = entity.homepage;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.company_site)) {
-			KeyValue value = new KeyValue();
-			value.key = "公司网站";
-			value.value = entity.company_site;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.qq)) {
-			KeyValue value = new KeyValue();
-			value.key = "QQ";
-			value.value = entity.qq;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.weibo)) {
-			KeyValue value = new KeyValue();
-			value.key = "新浪微博";
-			value.value = entity.weibo;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.tencent)) {
-			KeyValue value = new KeyValue();
-			value.key = "腾讯微博";
-			value.value = entity.tencent;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.renren)) {
-			KeyValue value = new KeyValue();
-			value.key = "人人";
-			value.value = entity.renren;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.zhihu)) {
-			KeyValue value = new KeyValue();
-			value.key = "知乎";
-			value.value = entity.zhihu;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.qzone)) {
-			KeyValue value = new KeyValue();
-			value.key = "QQ空间";
-			value.value = entity.qzone;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.facebook)) {
-			KeyValue value = new KeyValue();
-			value.key = "FACEBOOK";
-			value.value = entity.facebook;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.twitter)) {
-			KeyValue value = new KeyValue();
-			value.key = "Twitter";
-			value.value = entity.twitter;
-			summarys.add(value);
-		}
-		if (StringUtils.notEmpty(entity.intentionen)) {
-			KeyValue value = new KeyValue();
-			value.key = "希望接受的名片";
-			value.value = entity.intentionen;
-			summarys.add(value);
-		}
-		mCardViewAdapter.notifyDataSetChanged();
 	}
 	
 	public void ButtonClick(View v) {
@@ -368,7 +243,6 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	
 	private void getCard(String code) {
 		if (!appContext.isNetworkConnected()) {
-			UIHelper.ToastMessage(getApplicationContext(), "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT);
 			return;
 		}
 //		loadingPd = UIHelper.showProgress(this, null, null, true);
@@ -383,7 +257,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 				CardIntroEntity entity = (CardIntroEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					WeFriendManager.getInstance(CardView.this).updateWeFriend(entity);
+					new DBUpdate().execute(entity);
 					setData(entity);
 					break;
 				default:
@@ -407,6 +281,154 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 				((AppException)e).makeToast(getApplicationContext());
 			}
 		});
+	}
+	
+	private class DBUpdate extends AsyncTask<CardIntroEntity, Void, Void> {
+
+		@Override
+		protected Void doInBackground(CardIntroEntity... params) {
+			CardIntroEntity entity = params[0];
+			WeFriendManager.getInstance(CardView.this).updateWeFriend(entity);
+			summarys.clear();
+			if (StringUtils.notEmpty(entity.wechat)) {
+				KeyValue value = new KeyValue();
+				value.key = "微信号";
+				value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.wechat : "*******(交换名片可见)";
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.email)) {
+				KeyValue value = new KeyValue();
+				value.key = "邮箱";
+				value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.email : "*******(交换名片可见)";
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.phone)) {
+				KeyValue value = new KeyValue();
+				value.key = "手机";
+				value.value = entity.isfriend.equals(CommonValue.PhonebookLimitRight.Frined_Yes)?entity.phone : "*******(交换名片可见)";
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.birthday)) {
+				KeyValue value = new KeyValue();
+				value.key = "生日";
+				value.value = entity.birthday;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.address)) {
+				KeyValue value = new KeyValue();
+				value.key = "地址";
+				value.value = entity.address;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.intro)) {
+				KeyValue value = new KeyValue();
+				value.key = "个人介绍";
+				value.value = entity.intro;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.supply)) {
+				KeyValue value = new KeyValue();
+				value.key = "供需关系";
+				value.value = entity.supply;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.needs)) {
+				KeyValue value = new KeyValue();
+				value.key = "需求关系";
+				value.value = entity.needs;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.hometown)) {
+				KeyValue value = new KeyValue();
+				value.key = "籍贯";
+				value.value = entity.hometown;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.interest)) {
+				KeyValue value = new KeyValue();
+				value.key = "兴趣";
+				value.value = entity.interest;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.school)) {
+				KeyValue value = new KeyValue();
+				value.key = "学校";
+				value.value = entity.school;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.homepage)) {
+				KeyValue value = new KeyValue();
+				value.key = "个人主页";
+				value.value = entity.homepage;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.company_site)) {
+				KeyValue value = new KeyValue();
+				value.key = "公司网站";
+				value.value = entity.company_site;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.qq)) {
+				KeyValue value = new KeyValue();
+				value.key = "QQ";
+				value.value = entity.qq;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.weibo)) {
+				KeyValue value = new KeyValue();
+				value.key = "新浪微博";
+				value.value = entity.weibo;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.tencent)) {
+				KeyValue value = new KeyValue();
+				value.key = "腾讯微博";
+				value.value = entity.tencent;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.renren)) {
+				KeyValue value = new KeyValue();
+				value.key = "人人";
+				value.value = entity.renren;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.zhihu)) {
+				KeyValue value = new KeyValue();
+				value.key = "知乎";
+				value.value = entity.zhihu;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.qzone)) {
+				KeyValue value = new KeyValue();
+				value.key = "QQ空间";
+				value.value = entity.qzone;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.facebook)) {
+				KeyValue value = new KeyValue();
+				value.key = "FACEBOOK";
+				value.value = entity.facebook;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.twitter)) {
+				KeyValue value = new KeyValue();
+				value.key = "Twitter";
+				value.value = entity.twitter;
+				summarys.add(value);
+			}
+			if (StringUtils.notEmpty(entity.intentionen)) {
+				KeyValue value = new KeyValue();
+				value.key = "希望接受的名片";
+				value.value = entity.intentionen;
+				summarys.add(value);
+			}
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mCardViewAdapter.notifyDataSetChanged();
+		}
 	}
 		
 	private void showShare(boolean silent, String platform) {

@@ -241,6 +241,20 @@ public class Index extends AppActivity implements IXListViewListener{
 	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
 	}
 	
+	public void showSquarePhoneViewWeb(PhoneIntroEntity entity) {
+		EasyTracker easyTracker = EasyTracker.getInstance(this);
+		easyTracker.send(MapBuilder
+	      .createEvent("ui_action",     // Event category (required)
+	                   "button_press",  // Event action (required)
+	                   "查看群友通讯录："+CommonValue.BASE_URL+"/b/"+entity.code,   // Event label
+	                   null)            // Event value
+	      .build()
+		);
+		Intent intent = new Intent(this, QYWebView.class);
+		intent.putExtra(CommonValue.IndexIntentKeyValue.CreateView, CommonValue.BASE_URL+"/b/"+entity.code);
+	    startActivityForResult(intent, CommonValue.PhonebookViewUrlRequest.editPhoneview);
+	}
+	
 	public void showPhoneTimeline(PhoneIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder

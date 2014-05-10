@@ -4,20 +4,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.http.Header;
 import org.json.JSONObject;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
+import android.os.Handler;
+import android.os.Message;
 import baidupush.Utils;
 import bean.ActivityListEntity;
 import bean.ActivityViewEntity;
@@ -65,16 +65,47 @@ public class AppClient {
 		QYRestClient.post("user/send", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					CodeEntity data = CodeEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleCode(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+    public static void handleCode(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((CodeEntity)msg.obj);
+					break;
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					CodeEntity data = CodeEntity.parse(decode);
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.obj = e;
+					msg.what = -1;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -85,16 +116,47 @@ public class AppClient {
 		QYRestClient.post("user/wechatlogin", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleVertifiedCode(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleVertifiedCode(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((UserEntity)msg.obj);
+					break;
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					UserEntity data = UserEntity.parse(decode);
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.obj = e;
+					msg.what = -1;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -106,12 +168,7 @@ public class AppClient {
 		QYRestClient.post("user/login", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				} catch (Exception e) {
-					callback.onError(e);
-				}
+				handleVertifiedCode(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -119,6 +176,7 @@ public class AppClient {
 			}
 		});
 	}
+	
 	
 	public static void autoLogin(final MyApplication appContext, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
@@ -134,12 +192,7 @@ public class AppClient {
 		QYRestClient.post("user/autologin", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					UserEntity data = UserEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				} catch (Exception e) {
-					callback.onError(e);
-				}
+				handleVertifiedCode(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -183,7 +236,6 @@ public class AppClient {
 				if (StringUtils.notEmpty(baiduUserId)) {
 					Utils.setBind(context, true);
 				}
-				Logger.i(DecodeUtil.decode(new String(content)));
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -222,16 +274,48 @@ public class AppClient {
 		QYRestClient.post("user/reg"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try {
-					RegUserEntity entity = RegUserEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(entity);
-				} catch (AppException e) {
-					callback.onError(e);
-				}
+				handleRegUser(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleRegUser(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((RegUserEntity)msg.obj);
+					break;
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+				
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					RegUserEntity data = RegUserEntity.parse(decode);
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.obj = e;
+					msg.what = -1;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -242,17 +326,50 @@ public class AppClient {
 		QYRestClient.post("user/info"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try {
-					ChatterEntity entity = ChatterEntity.parse(DecodeUtil.decode(new String(content)));
-					saveCache(appContext, CommonValue.CacheKey.ChatterInfo+"-"+openId, entity);
-					callback.onSuccess(entity);
-				} catch (AppException e) {
-					callback.onError(e);
-				}
+				handleChater(content, callback, openId, appContext);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleChater(final byte[] content, final ClientCallback callback, final String openId, final MyApplication appContext) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((ChatterEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+				
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					ChatterEntity data = ChatterEntity.parse(decode);
+					saveCache(appContext, CommonValue.CacheKey.ChatterInfo+"-"+openId, data);
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.obj = e;
+					msg.what = -1;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -261,17 +378,50 @@ public class AppClient {
 		QYRestClient.post("phonebook/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					PhoneListEntity data = PhoneListEntity.parse(DecodeUtil.decode(new String(content)));
-					saveCache(appContext, CommonValue.CacheKey.PhoneList, data);
-					callback.onSuccess(data);
-				} catch (Exception e) {
-					callback.onError(e);
-				}
+				handlePhonelist(content, callback, appContext);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handlePhonelist(final byte[] content, final ClientCallback callback, final MyApplication appContext) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((PhoneListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					PhoneListEntity data = PhoneListEntity.parse(decode);
+					saveCache(appContext, CommonValue.CacheKey.PhoneList, data);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -354,19 +504,52 @@ public class AppClient {
 		QYRestClient.post("phonebook/square"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					RecommendListEntity data = RecommendListEntity.parseSquare(DecodeUtil.decode(new String(content)));
-					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
-						saveCache(appContext, CommonValue.CacheKey.SquareList, data);
-					}
-					callback.onSuccess(data);
-				} catch (Exception e) {
-					callback.onError(e);
-				}
+				handleSquarelist(content, callback, appContext, page, keyword);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleSquarelist(final byte[] content, final ClientCallback callback, final MyApplication appContext, final String page, final String keyword) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((RecommendListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+				
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					RecommendListEntity data = RecommendListEntity.parseSquare(decode);
+					if (StringUtils.notEmpty(page) && page.equals("1") && StringUtils.empty(keyword)) {
+						saveCache(appContext, CommonValue.CacheKey.SquareList, data);
+					}
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.obj = e;
+					msg.what = -1;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -375,19 +558,51 @@ public class AppClient {
 		QYRestClient.post("activity/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					ActivityListEntity data = ActivityListEntity.parse(DecodeUtil.decode(new String(content)));
-					saveCache(appContext, CommonValue.CacheKey.ActivityList, data);
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleActivitylist(content, callback, appContext);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				if (appContext.isNetworkConnected()) {
 					callback.onFailure(e.getMessage());
 				}
+			}
+		});
+	}
+	public static void handleActivitylist(final byte[] content, final ClientCallback callback, final MyApplication appContext) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((ActivityListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					ActivityListEntity data = ActivityListEntity.parse(decode);
+					saveCache(appContext, CommonValue.CacheKey.ActivityList, data);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -419,19 +634,51 @@ public class AppClient {
 		QYRestClient.post("card/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					CardListEntity data = CardListEntity.parse(DecodeUtil.decode(new String(content)));
-					saveCache(appContext, CommonValue.CacheKey.CardList, data);
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleCardlist(content, callback, appContext);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				if (appContext.isNetworkConnected()) {
 					callback.onFailure(e.getMessage());
 				}
+			}
+		});
+	}
+	public static void handleCardlist(final byte[] content, final ClientCallback callback, final MyApplication appContext) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((CardListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					CardListEntity data = CardListEntity.parse(decode);
+					saveCache(appContext, CommonValue.CacheKey.CardList, data);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -442,12 +689,7 @@ public class AppClient {
 		QYRestClient.post("card/info", params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					CardIntroEntity data = CardIntroEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleCardInfo(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
@@ -457,7 +699,45 @@ public class AppClient {
 			}
 		});
 	}
+	public static void handleCardInfo(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((CardIntroEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					CardIntroEntity data = CardIntroEntity.parse(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
+			}
+		});
+	}
 	
+	@Deprecated
 	public static void getFriendCard(final MyApplication appContext, final ClientCallback callback) {
 		RequestParams params = new RequestParams();
 		QYRestClient.post("card/friend", params, new AsyncHttpResponseHandler() {
@@ -494,18 +774,51 @@ public class AppClient {
 		QYRestClient.post(context, "card/friendlist"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					Logger.i("get");
-					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				Logger.i("get");
+				handleChatFriendCard(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				Logger.i(statusCode+"");
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleChatFriendCard(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((FriendCardListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					FriendCardListEntity data = FriendCardListEntity.parseF(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -524,16 +837,49 @@ public class AppClient {
 		QYRestClient.post(context, "network/search"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleSearchFriendCard(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleSearchFriendCard(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((FriendCardListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					FriendCardListEntity data = FriendCardListEntity.parseF(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -542,9 +888,62 @@ public class AppClient {
 		QYRestClient.post(context, "card/summary"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+					handleAllOpenidRes(content, callback);
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+		});
+	}
+	public static void handleAllOpenidRes(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((OpenidListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+				
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					OpenidListEntity data = OpenidListEntity.parse(decode);
+					decode = null;
+					msg.obj = data;
+					msg.what = 1;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				}
+				handler.sendMessage(msg);
+			}
+		});
+	}
+	
+	public static void getAllWeFriendByOpenid(Context context, final MyApplication appContext, String json, final ClientCallback callback) {
+		RequestParams params = new RequestParams();
+		params.add("openids", json);
+		QYRestClient.post(context, "card/friendinfo"+"?_sign="+appContext.getLoginSign(), params, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
 				try{
-					OpenidListEntity data = OpenidListEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
+					Logger.i("all1");
+					handleAllWeFriendByOpenid(content, callback);
 				}catch (Exception e) {
 					callback.onError(e);
 				}
@@ -555,24 +954,41 @@ public class AppClient {
 			}
 		});
 	}
-	
-	public static void getAllWeFriendByOpenid(Context context, final MyApplication appContext, String json, final ClientCallback callback) {
-		RequestParams params = new RequestParams();
-		params.add("openids", json);
-		QYRestClient.post(context, "card/friendinfo"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
+	public static void handleAllWeFriendByOpenid(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
 			@Override
-			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					Logger.i("all1");
-					FriendCardListEntity data = FriendCardListEntity.parseF(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
+			public void handleMessage(Message msg) {
+				
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((FriendCardListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
 				}
 			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
 			@Override
-			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				callback.onFailure("网络不给力，请重新尝试");
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					FriendCardListEntity data = FriendCardListEntity.parseF(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				} 
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -653,6 +1069,7 @@ public class AppClient {
 		});
 	}
 	
+	@Deprecated
 	public static void getRecommendList(final MyApplication appContext, final ClientCallback callback) {
 		QYRestClient.post("recommend/lists", null, new AsyncHttpResponseHandler() {
 			@Override
@@ -724,16 +1141,48 @@ public class AppClient {
 		QYRestClient.post("update/check", param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					Update data = Update.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(data);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleUpdate(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("");
+			}
+		});
+	}
+	public static void handleUpdate(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((Update)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					Update data = Update.parse(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				} 
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -748,6 +1197,68 @@ public class AppClient {
 		QYRestClient.getWeb(context, url+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
+//				try{
+//					String data = new String(content);
+//					String md5 = MD5Util.getMD5String(content);
+//					String key = String.format("%s-%s", MD5Util.getMD5String(url), appContext.getLoginUid());
+//					WebContent dc = (WebContent) appContext.readObject(key);
+//					WebContent con = new WebContent();
+//					con.text = data;
+//					con.md5 = md5;
+//					saveCache(appContext, MD5Util.getMD5String(url), con);
+//					if(dc == null){
+//						callback.onSuccess(0, con, MD5Util.getMD5String(url));
+//					}
+//					else {
+//						if (dc.md5.equals(con.md5)) {
+//							callback.onSuccess(2, con, MD5Util.getMD5String(url));
+//						}
+//						else {
+//							callback.onSuccess(1, con, MD5Util.getMD5String(url));
+//						}
+//					}
+//				}catch (Exception e) {
+//					callback.onError(e);
+//				}
+				handleLoadURL(content, callback, appContext, url);
+			}
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
+				callback.onFailure(url);
+			}
+		});
+	}
+	public static void handleLoadURL(final byte[] content, final WebCallback callback, final MyApplication appContext, final String url) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				WebContent con;
+				Exception e;
+				switch (msg.what) {
+				case 0:
+					con = (WebContent) msg.obj;
+					callback.onSuccess(0, con, MD5Util.getMD5String(url));
+					break;
+				case 1:
+					con = (WebContent) msg.obj;
+					callback.onSuccess(1, con, MD5Util.getMD5String(url));
+					break;
+				case 2:
+					con = (WebContent) msg.obj;
+					callback.onSuccess(2, con, MD5Util.getMD5String(url));
+					break;
+				default:
+					e = (Exception) msg.obj;
+					callback.onError(e);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
 				try{
 					String data = new String(content);
 					String md5 = MD5Util.getMD5String(content);
@@ -758,23 +1269,28 @@ public class AppClient {
 					con.md5 = md5;
 					saveCache(appContext, MD5Util.getMD5String(url), con);
 					if(dc == null){
+						msg.what = 0;
+						msg.obj = con;
 						callback.onSuccess(0, con, MD5Util.getMD5String(url));
 					}
 					else {
 						if (dc.md5.equals(con.md5)) {
 							callback.onSuccess(2, con, MD5Util.getMD5String(url));
+							msg.what = 2;
+							msg.obj = con;
 						}
 						else {
+							msg.what = 1;
+							msg.obj = con;
 							callback.onSuccess(1, con, MD5Util.getMD5String(url));
 						}
 					}
+					
 				}catch (Exception e) {
-					callback.onError(e);
+					msg.what = -1;
+					msg.obj = e;
 				}
-			}
-			@Override
-			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
-				callback.onFailure(url);
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -812,6 +1328,68 @@ public class AppClient {
 			
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
+				handleDownloadFile(binaryData, callback, appContext, url, format);
+//				String storageState = Environment.getExternalStorageState();	
+//				String savePath = null;
+//				if(storageState.equals(Environment.MEDIA_MOUNTED)){
+//					savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/qy/";
+//					File dir = new File(savePath);
+//					if(!dir.exists()){
+//						dir.mkdirs();
+//					}
+//				}
+//				String md5FilePath = savePath + MD5Util.getMD5String(url) + format;
+//				File ApkFile = new File(md5FilePath);
+//				if(ApkFile.exists()){
+//					ApkFile.delete();
+//				}
+//				File tmpFile = new File(md5FilePath);
+//				try {
+//					FileOutputStream fos = new FileOutputStream(tmpFile);
+//					fos.write(binaryData);
+//					fos.close();
+//					callback.onSuccess(md5FilePath);
+//				} catch (FileNotFoundException e) {
+//					callback.onError(e);
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					callback.onError(e);
+//					e.printStackTrace();
+//				}
+			}
+			
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] binaryData,
+					Throwable error) {
+				callback.onFailure("网络不给力，请重新尝试");
+			}
+			
+			@Override
+			public void onProgress(int bytesWritten, int totalSize) {
+				Logger.i(String.format("Progress %d from %d (%d%%)", bytesWritten, totalSize, (totalSize > 0) ? (bytesWritten / totalSize) * 100 : -1));
+			}
+		});
+	}
+	public static void handleDownloadFile(final byte[] binaryData, final FileCallback callback, final MyApplication appContext, final String url, final String format) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((String)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
 				String storageState = Environment.getExternalStorageState();	
 				String savePath = null;
 				if(storageState.equals(Environment.MEDIA_MOUNTED)){
@@ -831,29 +1409,19 @@ public class AppClient {
 					FileOutputStream fos = new FileOutputStream(tmpFile);
 					fos.write(binaryData);
 					fos.close();
-					callback.onSuccess(md5FilePath);
-				} catch (FileNotFoundException e) {
-					callback.onError(e);
+					msg.what = 1;
+					msg.obj = md5FilePath;
+				} catch (Exception e) {
 					e.printStackTrace();
-				} catch (IOException e) {
-					callback.onError(e);
-					e.printStackTrace();
-				}
-			}
-			
-			@Override
-			public void onFailure(int statusCode, Header[] headers, byte[] binaryData,
-					Throwable error) {
-				callback.onFailure("网络不给力，请重新尝试");
-			}
-			
-			@Override
-			public void onProgress(int bytesWritten, int totalSize) {
-				Logger.i(String.format("Progress %d from %d (%d%%)", bytesWritten, totalSize, (totalSize > 0) ? (bytesWritten / totalSize) * 100 : -1));
+					msg.what = -1;
+					msg.obj = e;
+				} 
+				handler.sendMessage(msg);
 			}
 		});
 	}
 	
+	@Deprecated
 	public static void getFamilyList(final MyApplication appContext, final ClientCallback callback) {
 		QYRestClient.post("family/lists"+"?_sign="+appContext.getLoginSign(), null, new AsyncHttpResponseHandler() {
 			@Override
@@ -882,16 +1450,48 @@ public class AppClient {
 		QYRestClient.post("chat/load"+"?_sign="+MyApplication.getInstance().getLoginSign(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					ChatHistoryListEntity entity = ChatHistoryListEntity.parse(DecodeUtil.decode(new String(content)));
-					callback.onSuccess(entity);
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handleChatHistory(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("");
+			}
+		});
+	}
+	public static void handleChatHistory(final byte[] content, final ClientCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((ChatHistoryListEntity)msg.obj);
+					break;
+
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					ChatHistoryListEntity data = ChatHistoryListEntity.parse(decode);
+					decode = null;
+					msg.what = 1;
+					msg.obj = data;
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				} 
+				handler.sendMessage(msg);
 			}
 		});
 	}
@@ -905,22 +1505,54 @@ public class AppClient {
 		QYRestClient.post("phonebook/assist"+"?_sign="+MyApplication.getInstance().getLoginSign(), param, new AsyncHttpResponseHandler() {
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, byte[] content) {
-				try{
-					Logger.i(DecodeUtil.decode(new String(content)));
-					JSONObject json = new JSONObject(DecodeUtil.decode(new String(content)));
-					if (json.getInt("status") == 1) {
-						callback.onSuccess(json.getString("url"));
-					}
-					else {
-						callback.onFailure(json.getString("info"));
-					}
-				}catch (Exception e) {
-					callback.onError(e);
-				}
+				handlePhonebookAssist(content, callback);
 			}
 			@Override
 			public void onFailure(int statusCode, Header[] headers, byte[] content, Throwable e) {
 				callback.onFailure("");
+			}
+		});
+	}
+	public static void handlePhonebookAssist(final byte[] content, final FileCallback callback) {
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case 1:
+					callback.onSuccess((String)msg.obj);
+					break;
+				case 2:
+					callback.onFailure((String)msg.obj);
+				default:
+					callback.onError((Exception)msg.obj);
+					break;
+				}
+			}
+		};
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				Message msg = new Message();
+				try {
+					String target = new String(content);
+					String decode = DecodeUtil.decode(target);
+					target = null;
+					JSONObject json = new JSONObject(decode);
+					if (json.getInt("status") == 1) {
+						msg.what = 1;
+						msg.obj = json.getString("url");
+					}
+					else {
+						msg.what = 2;
+						msg.obj = json.getString("info");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					msg.what = -1;
+					msg.obj = e;
+				} 
+				handler.sendMessage(msg);
 			}
 		});
 	}
