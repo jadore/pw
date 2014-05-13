@@ -317,6 +317,18 @@ public class CardIntroEntity extends Entity implements Comparable<CardIntroEntit
 		if (null == another.py) {
 			return 1;
 		}
-		return this.py.compareToIgnoreCase(another.py);
+		int pySort =  this.py.compareToIgnoreCase(another.py);
+		if (pySort == 0) {
+			int cardSectionSort = this.cardSectionType.compareToIgnoreCase(another.cardSectionType);
+			if (cardSectionSort == 0) {
+				return this.department.compareToIgnoreCase(another.department);
+			}
+			else {
+				return cardSectionSort;
+			}
+		}
+		else {
+			return pySort;
+		}
 	}
 }

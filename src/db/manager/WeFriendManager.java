@@ -46,43 +46,48 @@ public class WeFriendManager {
 	/**
 	 * 
 	 * 保存CardIntroEntity.
-	 * 
 	 * @param model
 	 */
-	public long saveWeFriend(CardIntroEntity model) {
+	public void saveWeFriends(List<CardIntroEntity> list) {
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		ContentValues contentValues = new ContentValues();
-		contentValues.put("openid",  model.openid);
-		contentValues.put("assist_openid", "");
-		contentValues.put("avatar", model.avatar);
-		contentValues.put("sex", model.sex);
-		contentValues.put("state", "");
-		contentValues.put("weibo", model.weibo);
-		contentValues.put("realname", model.realname);
-		contentValues.put("font_family", "");
-		contentValues.put("pinyin", model.pinyin);
-		contentValues.put("phone",  model.phone);
-		contentValues.put("email", model.email);
-		contentValues.put("department", model.department);
-		contentValues.put("position", model.position);
-		contentValues.put("birthday", model.birthday);
-		contentValues.put("address", model.address);
-		contentValues.put("hits", model.hits);
-		contentValues.put("certified", model.certified);
-		contentValues.put("privacy", model.privacy);
-		contentValues.put("supply",  model.supply);
-		contentValues.put("needs", model.needs);
-		contentValues.put("intro", model.intro);
-		contentValues.put("wechat", model.wechat);
-		contentValues.put("headimgurl", model.headimgurl);
-		contentValues.put("nickname", model.nickname);
-		contentValues.put("link", model.link);
-		contentValues.put("link2", model.link);
-		contentValues.put("code", model.code);
-		contentValues.put("isfriend", model.isfriend);
-		contentValues.put("phoneDisplay", model.phone_display);
-		contentValues.put("py", model.py);
-		return st.insert("wcb_phonebook", contentValues);
+		for (CardIntroEntity model : list) {
+//			ContentValues contentValues = new ContentValues();
+//			contentValues.put("openid",  model.openid);
+//			contentValues.put("assist_openid", "");
+//			contentValues.put("avatar", StringUtils.doEmpty(model.avatar));
+//			contentValues.put("sex", model.sex);
+//			contentValues.put("state", "");
+//			contentValues.put("weibo", model.weibo);
+//			contentValues.put("realname", model.realname);
+//			contentValues.put("font_family", "");
+//			contentValues.put("pinyin", model.pinyin);
+//			contentValues.put("phone",  model.phone);
+//			contentValues.put("email", model.email);
+//			contentValues.put("department", model.department);
+//			contentValues.put("position", model.position);
+//			contentValues.put("birthday", model.birthday);
+//			contentValues.put("address", model.address);
+//			contentValues.put("hits", model.hits);
+//			contentValues.put("certified", model.certified);
+//			contentValues.put("privacy", model.privacy);
+//			contentValues.put("supply",  model.supply);
+//			contentValues.put("needs", model.needs);
+//			contentValues.put("intro", model.intro);
+//			contentValues.put("wechat", model.wechat);
+//			contentValues.put("headimgurl", model.headimgurl);
+//			contentValues.put("nickname", model.nickname);
+//			contentValues.put("link", model.link);
+//			contentValues.put("link2", model.link);
+//			contentValues.put("code", model.code);
+//			contentValues.put("isfriend", model.isfriend);
+//			contentValues.put("phoneDisplay", model.phone_display);
+//			contentValues.put("py", model.py);
+			String sql = String.format("insert or ignore into wcb_phonebook(code, openid, realname, department, position, avatar, pinyin, py) "
+					+ "values('%s', '%s','%s', '%s', '%s', '%s', '%s', '%s')", 
+					model.code, model.openid, model.realname, model.department, model.position, model.avatar, model.pinyin, model.py);
+//			st.insert("wcb_phonebook", contentValues);
+			st.execSQL(sql);
+		}
 	}
 	
 	public int getWeFriendCount() {
@@ -94,30 +99,54 @@ public class WeFriendManager {
 	 * 获取所有CardIntroEntity
 	 * @return List<CardIntroEntity>
 	 */
-	public List<CardIntroEntity> getWeFriends() {
-		String sql;
-		sql = "select code, openid, realname, department, position, avatar, pinyin, py from wcb_phonebook";
+	public List<CardIntroEntity> getWeFriends(String limit) {
+//		String sql;
+//		sql = "select code, openid, realname, department, position, avatar, pinyin, py from wcb_phonebook";
 		SQLiteTemplate st = SQLiteTemplate.getInstance(manager, false);
-		List<CardIntroEntity> list = st.queryForList(
-				new RowMapper<CardIntroEntity>() {
+		List<CardIntroEntity> list = st.queryForList(new RowMapper<CardIntroEntity>() {
 
-					@Override
-					public CardIntroEntity mapRow(Cursor cursor, int index) {
-						CardIntroEntity data = new CardIntroEntity();
-						data.code = cursor.getString(0);
-						data.openid = cursor.getString(1);
-						data.realname = cursor.getString(2);
-						data.department = cursor.getString(3);
-						data.position = cursor.getString(4);;
-						data.avatar = cursor.getString(5);
-						data.cardSectionType = LianXiRenType.yidu;
-						data.pinyin = cursor.getString(6);
-						data.py = cursor.getString(7);
-						return data;
-					}
-				}, 
-				sql,
-				null);
+				@Override
+				public CardIntroEntity mapRow(Cursor cursor, int index) {
+					CardIntroEntity data = new CardIntroEntity();
+					data.code = cursor.getString(0);
+					data.openid = cursor.getString(1);
+					data.realname = cursor.getString(2);
+					data.department = cursor.getString(3);
+					data.position = cursor.getString(4);;
+					data.avatar = cursor.getString(5);
+					data.cardSectionType = LianXiRenType.yidu;
+					data.pinyin = cursor.getString(6);
+					data.py = cursor.getString(7);
+					return data;
+				}
+			}, "wcb_phonebook", 
+			new String[]{"code", "openid", "realname", "department", "position", "avatar", "pinyin", "py"}, 
+			null, 
+			null, 
+			null, 
+			null, 
+			null,
+			limit);
+//		List<CardIntroEntity> list = st.queryForList(
+//				new RowMapper<CardIntroEntity>() {
+//
+//					@Override
+//					public CardIntroEntity mapRow(Cursor cursor, int index) {
+//						CardIntroEntity data = new CardIntroEntity();
+//						data.code = cursor.getString(0);
+//						data.openid = cursor.getString(1);
+//						data.realname = cursor.getString(2);
+//						data.department = cursor.getString(3);
+//						data.position = cursor.getString(4);;
+//						data.avatar = cursor.getString(5);
+//						data.cardSectionType = LianXiRenType.yidu;
+//						data.pinyin = cursor.getString(6);
+//						data.py = cursor.getString(7);
+//						return data;
+//					}
+//				}, 
+//				sql,
+//				null);
 		return list;
 	}
 	
@@ -172,7 +201,11 @@ public class WeFriendManager {
 		new String[]{openid});
 	}
 	
-	public List<CardIntroEntity> searchWeFriendsByKeyword(String keyword) {
+	public interface DBCallback {
+		public void onQueryComplete(Object object, String key) ;
+	}
+	
+	public void searchWeFriendsByKeyword(String keyword, DBCallback callback) {
 		String sql;
 		String py = keyword;
 		py = py.replace("", "%");
@@ -207,7 +240,7 @@ public class WeFriendManager {
 				}, 
 				sql,
 				null);
-		return list;
+		callback.onQueryComplete(list, keyword);
 	}
 	
 	/**

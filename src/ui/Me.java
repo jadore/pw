@@ -64,6 +64,7 @@ public class Me extends AppActivity{
 	.imageScaleType(ImageScaleType.EXACTLY_STRETCHED) 
 	.displayer(new RoundedBitmapDisplayer(10))
 	.build();
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

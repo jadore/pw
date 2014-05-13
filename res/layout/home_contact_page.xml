@@ -68,10 +68,10 @@
         android:layout_centerInParent="true"
         android:layout_gravity="center_horizontal|top"
         android:layout_margin="34dip"
-        android:background="@drawable/sort_icon_bg_click"
+        android:background="#aa000000"
         android:gravity="center"
         android:padding="2dip"
-        android:textColor="#404040"
+        android:textColor="@color/white"
         android:textSize="48dip"
         android:visibility="invisible" />
     

@@ -56,18 +56,6 @@ public class MobileSelect extends AppActivity {
 	private ProgressDialog loadingPd;
 	private String code;
 	
-	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  
-	}
-
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    EasyTracker.getInstance(this).activityStop(this);  
-	}
-	
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);

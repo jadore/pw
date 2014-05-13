@@ -21,6 +21,7 @@ import config.CommonValue.LianXiRenType;
 import config.QYRestClient;
 import config.AppClient.ClientCallback;
 import db.manager.WeFriendManager;
+import db.manager.WeFriendManager.DBCallback;
 import android.app.ProgressDialog;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -35,6 +36,8 @@ import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -57,8 +60,9 @@ import tools.Logger;
 import tools.StringUtils;
 import tools.UIHelper;
 import ui.adapter.FriendCardSearchAdapter;
+import ui.adapter.MyCardAdapter;
 
-public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener{
+public class WeFriendCardSearch  extends AppActivity implements OnScrollListener, OnEditorActionListener, OnRefreshListener{
 	private int lvDataState;
 	private int currentPage;
 	private ProgressDialog loadingPd;
@@ -80,24 +84,17 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	private Uri uri ;
 	private List<String> contactids = new ArrayList<String>();
 	
-	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
-	}
-
+	private SwipeRefreshLayout swipeLayout;
+	private TextView noResultTV;
+	
 	@Override
 	public void onStop() {
 		setResult(RESULT_OK);
 	    super.onStop();
-	    QYRestClient.getIntance().cancelRequests(this, true);
-	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
-	    
 	}
 	  
 	@Override
 	protected void onDestroy() {
-		QYRestClient.getIntance().cancelRequests(this, true);
 		super.onDestroy();
 	}
 	
@@ -113,11 +110,19 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	}
 	
 	private void initUI() {
+		noResultTV = (TextView) findViewById(R.id.noting_view);
 		editText = (EditText) findViewById(R.id.searchEditView);
 		editText.setHint("搜索"+appContext.getDeg2()+"位二度好友");
 		editText.setOnEditorActionListener(this);
 		editText.addTextChangedListener(TWPN);
 		searchDeleteButton = (Button) findViewById(R.id.searchDeleteButton);
+
+		swipeLayout = (SwipeRefreshLayout) findViewById(R.id.xrefresh);
+		swipeLayout.setOnRefreshListener(this);
+	    swipeLayout.setColorScheme(android.R.color.holo_blue_bright, 
+	            android.R.color.holo_green_light, 
+	            android.R.color.holo_orange_light, 
+	            android.R.color.holo_red_light);
 		
 		xlistView = (ExpandableListView)findViewById(R.id.xlistview);
         xlistView.setDividerHeight(0);
@@ -138,6 +143,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				return true;
 			}
 		});
+		
 	}
 	
 	public void ButtonClick(View v) {
@@ -209,95 +215,100 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				mobiles.addAll(tempMobiles);
 			}
 			mBilateralAdapter.notifyDataSetChanged();
+			resultCheck();
 		}
 	}
 	
-	private class MobileTask extends AsyncTask<Cursor, Void, Void> {
-
-		@Override
-		protected Void doInBackground(Cursor... params) {
-			Cursor cursor = params[0];
-			tempMobiles.clear();
-			if (cursor != null && cursor.getCount() > 0) {
-				cursor.moveToFirst();
-				contactids.clear();
-				for (int i = 0; i < cursor.getCount(); i++) {
-					cursor.moveToPosition(i);
-					String mimetype = cursor.getString(MIMETYPE_INDEX);
-					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
-						CardIntroEntity ce = new CardIntroEntity();
-						ce.realname = cursor.getString(NAME_INDEX);
-						ce.phone = cursor.getString(NUMBER_INDEX);
-						ce.code = ""+cursor.getInt(ID_INDEX);
-						ce.pinyin = cursor.getString(SORT_INDEX);
-						ce.cardSectionType = LianXiRenType.mobile;
-						ce.avatar = cursor.getString(PHOTO_INDEX);
-						ce.department = "来自手机通讯录";
-						ce.position = "";
-						ce.py = StringUtils.getAlpha(ce.pinyin);
-						if (!contactids.contains(ce.code)) {
-							tempMobiles.add(ce);
-							contactids.add(ce.code);
-						}
-					}
-				}
-			}
-			return null;
+	private void resultCheck() {
+		if (mobiles.isEmpty() && bilaterals.isEmpty() && networks.isEmpty()) {
+			noResultTV.setVisibility(View.VISIBLE);
 		}
-		@Override
-		protected void onPostExecute(Void result) {
-			mobiles.clear();
-			if (StringUtils.notEmpty(keyword)) {
-				mobiles.addAll(tempMobiles);
-			}
-			mBilateralAdapter.notifyDataSetChanged();
+		else {
+			noResultTV.setVisibility(View.GONE);
 		}
 	}
 	
-//	private class DBQuery extends AsyncTask<String, Void, List<CardIntroEntity>> {
+//	private class MobileTask extends AsyncTask<Cursor, Void, Void> {
 //
 //		@Override
-//		protected List<CardIntroEntity> doInBackground(String... params) {
-//			return WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(params[0]);
+//		protected Void doInBackground(Cursor... params) {
+//			Cursor cursor = params[0];
+//			tempMobiles.clear();
+//			if (cursor != null && cursor.getCount() > 0) {
+//				cursor.moveToFirst();
+//				contactids.clear();
+//				for (int i = 0; i < cursor.getCount(); i++) {
+//					cursor.moveToPosition(i);
+//					String mimetype = cursor.getString(MIMETYPE_INDEX);
+//					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
+//						CardIntroEntity ce = new CardIntroEntity();
+//						ce.realname = cursor.getString(NAME_INDEX);
+//						ce.phone = cursor.getString(NUMBER_INDEX);
+//						ce.code = ""+cursor.getInt(ID_INDEX);
+//						ce.pinyin = cursor.getString(SORT_INDEX);
+//						ce.cardSectionType = LianXiRenType.mobile;
+//						ce.avatar = cursor.getString(PHOTO_INDEX);
+//						ce.department = "来自手机通讯录";
+//						ce.position = "";
+//						ce.py = StringUtils.getAlpha(ce.pinyin);
+//						if (!contactids.contains(ce.code)) {
+//							tempMobiles.add(ce);
+//							contactids.add(ce.code);
+//						}
+//					}
+//				}
+//			}
+//			return null;
 //		}
 //		@Override
-//		protected void onPostExecute(List<CardIntroEntity> result) {
-//			bilaterals.clear();
+//		protected void onPostExecute(Void result) {
+//			mobiles.clear();
 //			if (StringUtils.notEmpty(keyword)) {
-//				bilaterals.addAll(result);
+//				mobiles.addAll(tempMobiles);
 //			}
 //			mBilateralAdapter.notifyDataSetChanged();
 //		}
 //	}
-	ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+	
 	private void queryWeFriendsFromDB(final String key) {
 		final Handler handler1 = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
-				if (key.equals(keyword)) {
-					bilaterals.clear();
-					if (StringUtils.notEmpty(keyword)) {
-						bilaterals.addAll((List<CardIntroEntity>)msg.obj);
-					}
-					mBilateralAdapter.notifyDataSetChanged();
-				}
+				bilaterals.clear();
+				bilaterals.addAll((List<CardIntroEntity>)msg.obj);
+				mBilateralAdapter.notifyDataSetChanged();
+				swipeLayout.setRefreshing(false);
+				resultCheck();
 			}
 		};
+		swipeLayout.setRefreshing(true);
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 		singleThreadExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				Message msg = new Message();
-				List<CardIntroEntity> res = WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword);
-				msg.obj = res;
-				handler1.sendMessage(msg);
+				WeFriendManager.getInstance(WeFriendCardSearch.this).searchWeFriendsByKeyword(keyword, new DBCallback() {
+					@Override
+					public void onQueryComplete(Object object, String key) {
+						if (key.equals(keyword)) {
+							Logger.i("a");
+							Message msg = new Message();
+							msg.obj = (List<CardIntroEntity>)object;
+							handler1.sendMessage(msg);
+						}
+						else {
+							Logger.i("b");
+						}
+					}
+				});
 			}
 		});
 	}
 	
-	private void searchFriendCard(int page, String kw, String count, final int action) {
+	private void searchFriendCard(int page, final String kw, String count, final int action) {
 		if (!appContext.isNetworkConnected()) {
 			return;
 		}
+		swipeLayout.setRefreshing(true);
 		AppClient.searchFriendCard(this, appContext, page+"", kw, count, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -305,20 +316,24 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 				FriendCardListEntity entity = (FriendCardListEntity)data;
 				switch (entity.getError_code()) {
 				case Result.RESULT_OK:
-					handleSearchFriends(entity, action);
+					if (kw.equals(keyword)) {
+						handleSearchFriends(entity, action);
+					}
 					break;
 				default:
 					break;
 				}
+				swipeLayout.setRefreshing(false);
 			}
 			
 			@Override
 			public void onFailure(String message) {
-				UIHelper.ToastMessage(getApplicationContext(), message, Toast.LENGTH_SHORT);
+				swipeLayout.setRefreshing(false);
 			}
 			
 			@Override
 			public void onError(Exception e) {
+				swipeLayout.setRefreshing(false);
 			}
 		});
 	}
@@ -352,6 +367,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 			lvDataState = UIHelper.LISTVIEW_DATA_EMPTY;
 		}
 		mBilateralAdapter.notifyDataSetChanged();
+		resultCheck();
 	}
 
 	@Override
@@ -383,27 +399,28 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
         public void onTextChanged(CharSequence s, int start, int before,
                 int count) {
         	if (s.length() > 0) {
+        		noResultTV.setVisibility(View.GONE);
         		keyword = s.toString();
             	searchDeleteButton.setVisibility(View.VISIBLE);
             	asyncQuery.cancelOperation(0);
         		String sql = "display_name like "+"'%" + s.toString() + "%' "
         				+ "or " + Phone.NUMBER + " like " +"'%" + s.toString() + "%' "
         				+ "or sort_key like '" + s.toString().replace("", "%") + "'";
+        		mobiles.clear();
+        		bilaterals.clear();
+        		networks.clear();
+        		mBilateralAdapter.notifyDataSetChanged();
         		asyncQuery.startQuery(0, null, uri, projection, sql, null, "sort_key COLLATE LOCALIZED asc");
-//    			new DBQuery().execute(keyword);
         		queryWeFriendsFromDB(keyword);
-    			QYRestClient.getIntance().cancelAllRequests(true);
-//    			QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
     			searchFriendCard(1, keyword, "", UIHelper.LISTVIEW_ACTION_INIT);
         	}
             else {
-            	QYRestClient.getIntance().cancelAllRequests(true);
+//            	QYRestClient.getIntance().cancelAllRequests(true);
             	keyword = "";
             	mobiles.clear();
             	bilaterals.clear();
             	networks.clear();
             	mBilateralAdapter.notifyDataSetChanged();
-//            	QYRestClient.getIntance().cancelRequests(WeFriendCardSearch.this, true);
             	searchDeleteButton.setVisibility(View.INVISIBLE);
 				
             }
@@ -424,7 +441,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		closeInput();
 	}
 
-	private void showCardView(CardIntroEntity entity) {
+	public void showCardView(CardIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
 	      .createEvent("ui_action",     // Event category (required)
@@ -438,7 +455,7 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		startActivityForResult(intent, CommonValue.CardViewUrlRequest.editCard);
 	}
 	
-	private void showMobileView(CardIntroEntity entity) {
+	public void showMobileView(CardIntroEntity entity) {
 		EasyTracker easyTracker = EasyTracker.getInstance(this);
 		easyTracker.send(MapBuilder
 	      .createEvent("ui_action",     // Event category (required)
@@ -453,5 +470,14 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 		intent2.setAction(Intent.ACTION_VIEW);
 		intent2.setData(personUri);
 		context.startActivity(intent2);
+	}
+
+	@Override
+	public void onRefresh() {
+		new Handler().postDelayed(new Runnable() {
+	        @Override public void run() {
+	            swipeLayout.setRefreshing(false);
+	        }
+	    }, 1000);
 	}
 }

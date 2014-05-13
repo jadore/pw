@@ -104,7 +104,7 @@ public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEnt
 			if (!info.isNull("creator")) {
 				JSONObject creatorObj = new JSONObject(info.getString("creator"));
 				if (!info.isNull("nickname")) {
-					data. creator = creatorObj.getString("nickname");
+					data.creator = creatorObj.getString("nickname");
 				}
 			}
 			data.phoneSectionType = sectionType;

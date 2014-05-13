@@ -1,6 +1,9 @@
 package ui;
 
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import baidupush.Utils;
 import bean.Entity;
 import bean.FriendCardListEntity;
@@ -9,6 +12,8 @@ import bean.Result;
 import bean.UserEntity;
 import cn.sharesdk.framework.ShareSDK;
 
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
 import com.google.zxing.client.android.common.executor.HoneycombAsyncTaskExecInterface;
 import com.vikaa.mycontact.R;
 
@@ -20,6 +25,7 @@ import tools.AppContext;
 import tools.AppException;
 import tools.AppManager;
 import tools.UIHelper;
+import tools.UpdateManager;
 import android.app.ProgressDialog;
 import android.app.TabActivity;
 import android.content.Intent;
@@ -43,7 +49,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	private RelativeLayout layout3;
 	private RelativeLayout layout4;
 	
-	private static TextView messagePao;
+//	private static TextView messagePao;
 	//内容Intent
 	private Intent homeIntent;
 	private Intent nearmeIntent;
@@ -67,7 +73,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 //        mainTab.setOnCheckedChangeListener(this);
         prepareIntent();
         setupIntent();
-        messagePao = (TextView) findViewById(R.id.messageView);
+//        messagePao = (TextView) findViewById(R.id.messageView);
         layout1 = (RelativeLayout)findViewById(R.id.radio_button1);
         layout1.setSelected(true);
         layout2 = (RelativeLayout)findViewById(R.id.radio_button2);
@@ -84,6 +90,8 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 //        String key = String.format("%s-%s", CommonValue.CacheKey.MessageUnRead, appContext.getLoginUid());
 //        MessageUnReadEntity entity = (MessageUnReadEntity)appContext.readObject(key);
 //        setMessagePao(entity);
+        checkLogin();
+        UpdateManager.getUpdateManager().checkAppUpdate(this, false);
 	}
 	
 	public static void setMessagePao(MessageUnReadEntity entity) {
@@ -102,9 +110,9 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	}
 	
 	private void prepareIntent() {
-		homeIntent = new Intent(this, WeFriendCard.class);
-		nearmeIntent = new Intent(this, Index.class);
-		meIntent = new Intent(this, Find.class);
+		homeIntent = new Intent(this, Find.class);
+		nearmeIntent = new Intent(this, WeFriendCard.class);
+		meIntent = new Intent(this, Index.class);
 		moreIntent = new Intent(this, Me.class);
 	}
 	
@@ -184,7 +192,7 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 	}
 	
 	private void checkLogin() {
-		loadingPd = UIHelper.showProgress(this, null, null, true);
+		loadingPd = UIHelper.showProgress(this, null, "登录中...");
 		AppClient.autoLogin(appContext, new ClientCallback() {
 			@Override
 			public void onSuccess(Entity data) {
@@ -194,9 +202,9 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 				case Result.RESULT_OK:
 					appContext.saveLoginInfo(user);
 //					getUnReadMessage();
-//					if (!Utils.hasBind(getApplicationContext())) {
-//						blindBaidu();
-//					}
+					if (!Utils.hasBind(getApplicationContext())) {
+						blindBaidu();
+					}
 					break;
 				default:
 					UIHelper.ToastMessage(getApplicationContext(), user.getMessage(), Toast.LENGTH_SHORT);
@@ -215,6 +223,19 @@ public class Tabbar extends TabActivity implements OnCheckedChangeListener{
 				((AppException)e).makeToast(getApplicationContext());
 			}
 		});
+	}
+	
+	private void blindBaidu() {
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		singleThreadExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				PushManager.startWork(getApplicationContext(),
+						PushConstants.LOGIN_TYPE_API_KEY, 
+						Utils.getMetaValue(Tabbar.this, "api_key"));
+			}
+		});
+		
 	}
 	
 	private void showLogin() {

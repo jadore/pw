@@ -30,12 +30,12 @@
         android:id="@+id/des"
         android:layout_below="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="18dp"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="1dp"
-        android:singleLine="true"
         android:textColor="#999999"
-        android:textSize="@dimen/cell_subtitle_size" />
+        android:textSize="@dimen/cell_subtitle_size"
+        android:lineSpacingMultiplier="1.2" />
     
     <TextView
         android:id="@+id/time"
@@ -50,10 +50,11 @@
         android:textSize="@dimen/cell_subtitle_size" />
     
     <View
+        android:layout_below="@+id/des"
         android:id="@+id/view1"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="63dp"
+        android:layout_marginTop="5dp"
         android:background="#e4e4e4" />
 
 </RelativeLayout>

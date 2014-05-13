@@ -66,12 +66,12 @@
 	        android:layout_weight="0.48"
 	        android:layout_height="44dp"
 	        android:background="@drawable/card_view_btn"
-	        android:text="分享到微信"
+	        android:text="分享名片"
 	        android:textSize="@dimen/cell_title_size"
 	        android:textColor="@color/white"
 	        android:onClick="ButtonClick"
         />
-        <View 
+        <!-- <View 
             android:layout_weight="0.04"
 	        android:layout_width="0dp"
 	        android:layout_height="44dp"
@@ -86,7 +86,7 @@
 	        android:textSize="@dimen/cell_title_size"
 	        android:textColor="@color/white"
 	        android:onClick="ButtonClick"
-	        />
+	        /> -->
     </LinearLayout>
     
     <Button 

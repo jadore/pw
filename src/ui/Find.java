@@ -42,19 +42,6 @@ public class Find extends AppActivity {
 	private WebView webView;
 	private Button loadAgainButton;
 	
-	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  
-	    
-	}
-	
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    QYRestClient.getIntance().cancelRequests(this, true);
-	    EasyTracker.getInstance(this).activityStop(this);  
-	}
 	
 	@Override
 	protected void onDestroy() {

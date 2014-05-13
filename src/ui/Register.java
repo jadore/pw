@@ -73,18 +73,6 @@ public class Register extends AppActivity implements OnFocusChangeListener{
 	private boolean isJump;
 	
 	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
-	}
-
-	  @Override
-	public void onStop() {
-	    super.onStop();
-	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
-	}
-	  
-	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.register);

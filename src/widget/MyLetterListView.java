@@ -44,12 +44,11 @@ public class MyLetterListView extends View
 	protected void onDraw(Canvas canvas)
 	{
 		super.onDraw(canvas);
-		Logger.i("draw");
-		if (showBkg)
-		{
-			canvas.drawColor(Color.parseColor("#40000000"));
-		}
-
+//		if (showBkg)
+//		{
+//			canvas.drawColor(Color.parseColor("#40000000"));
+//		}
+//
 		int height = getHeight();
 		int width = getWidth();
 		int singleHeight = height / b.length;
@@ -59,11 +58,11 @@ public class MyLetterListView extends View
 			paint.setTextSize(25);
 			paint.setTypeface(Typeface.DEFAULT_BOLD);
 			paint.setAntiAlias(true);
-			if (i == choose)
-			{
-				paint.setColor(Color.parseColor("#3399ff"));
-				paint.setFakeBoldText(true);
-			}
+//			if (i == choose)
+//			{
+//				paint.setColor(Color.parseColor("#3399ff"));
+//				paint.setFakeBoldText(true);
+//			}
 			float xPos = width / 2 - paint.measureText(b[i]) / 2;
 			float yPos = singleHeight * i + singleHeight;
 			canvas.drawText(b[i], xPos, yPos, paint);
@@ -83,14 +82,11 @@ public class MyLetterListView extends View
 
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
-			showBkg = true;
 			if (oldChoose != c && listener != null)
 			{
 				if (c >= 0 && c < b.length)
 				{
 					listener.onTouchingLetterChanged(b[c]);
-					choose = c;
-//					invalidate();
 				}
 			}
 
@@ -101,13 +97,10 @@ public class MyLetterListView extends View
 				if (c >= 0 && c < b.length)
 				{
 					listener.onTouchingLetterChanged(b[c]);
-					choose = c;
-//					invalidate();
 				}
 			}
 			break;
 		case MotionEvent.ACTION_UP:
-//			invalidate();
 			listener.onTouchingUp();;
 			break;
 		}

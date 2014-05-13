@@ -80,15 +80,10 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 	@Override
 	public void onBind(Context context, int errorCode, String appid, 
 				String userId, String channelId, String requestId) {
-		String responseString = "onBind errorCode=" + errorCode + " appid="
-				+ appid + " userId=" + userId + " channelId=" + channelId
-				+ " requestId=" + requestId;
 		// 绑定成功，设置已绑定flag，可以有效的减少不必要的绑定请求
 		if (errorCode == 0) {
 			AppClient.setUser(context, userId, channelId, MyApplication.getInstance().getMessageInterupt());
 		}
-		// Demo更新界面展示代码，应用请在这里加入自己的处理逻辑
-		updateContent(context, responseString);
 	}
 	
 	/**
@@ -236,23 +231,7 @@ public class MyPushMessageReceiver extends FrontiaPushMessageReceiver {
 	}
 	
 	private void updateContent(Context context, String content) {
-//		Logger.i( "updateContent");
-//		String logText = "" + Utils.logStringCache;
-//		
-//		if (!logText.equals("")) {
-//			logText += "\n";
-//		}
-//		
-//		SimpleDateFormat sDateFormat = new SimpleDateFormat("HH-mm-ss");
-//		logText += sDateFormat.format(new Date()) + ": ";
-//		logText += content;
 		Logger.i(content);
-//		Utils.logStringCache = logText;
-		
-//		Intent intent = new Intent();
-//        intent.setClass(context.getApplicationContext(), Index.class);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        context.getApplicationContext().startActivity(intent);
 	}
 	
 	private void showNotify(String title, String message) {

@@ -18,6 +18,7 @@ import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -93,10 +94,16 @@ public class MyCardAdapter extends BaseAdapter{
 		cell.desView.setText(String.format("%s %s", model.department, model.position));
 		this.imageLoader.displayImage(model.avatar, cell.avatarImageView, this.displayOptions);
 		convertView.setOnClickListener(new OnClickListener() {
-			
 			@Override
 			public void onClick(View arg0) {
 				((MyCard)context).showCardViewWeb(model);
+			}
+		});
+		convertView.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View arg0) {
+				((MyCard)context).cardSharePre(false, null, model);
+				return false;
 			}
 		});
 		return convertView;

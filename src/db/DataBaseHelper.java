@@ -1,5 +1,6 @@
 package db;
 
+import tools.Logger;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
@@ -69,11 +70,20 @@ public class DataBaseHelper extends SDCardSQLiteOpenHelper {
 				+ "[city] varchar(50), "
 				+ "[country] varchar(50) "
 				+ ");");
-//		db.execSQL("create index [wcb_phonebook_index] on [wcb_phonebook] (openid);");
+		db.execSQL("create index [wcb_phonebook_openid_index] on [wcb_phonebook] (openid);");
+		db.execSQL("create index [wcb_phonebook_realname_index] on [wcb_phonebook] (realname);");
+		db.execSQL("create index [wcb_phonebook_pinyin_index] on [wcb_phonebook] (pinyin);");
+		db.execSQL("create index [wcb_phonebook_department_index] on [wcb_phonebook] (department);");
+		db.execSQL("create index [wcb_phonebook_position_index] on [wcb_phonebook] (position);");
+		db.execSQL("create index [wcb_phonebook_supply_index] on [wcb_phonebook] (supply);");
+		db.execSQL("create index [wcb_phonebook_intro_index] on [wcb_phonebook] (intro);");
+		db.execSQL("create index [wcb_phonebook_wechat_index] on [wcb_phonebook] (wechat);");
+		db.execSQL("create index [wcb_phonebook_address_index] on [wcb_phonebook] (address);");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		
 	}
 
 	@Override

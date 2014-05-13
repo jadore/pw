@@ -58,18 +58,6 @@ public class PhonebookSMS extends AppActivity implements OnItemClickListener{
 	private TextView titleBarView;
 	
 	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  // Add this method.
-	}
-
-	  @Override
-	public void onStop() {
-	    super.onStop();
-	    EasyTracker.getInstance(this).activityStop(this);  // Add this method.
-	}
-	  
-	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.phonebook_sms);

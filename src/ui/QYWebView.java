@@ -105,22 +105,7 @@ public class QYWebView extends AppActivity  {
 	private SharedPreferences.Editor editor;
 	
 	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  
-	    
-	}
-	
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    QYRestClient.getIntance().cancelRequests(this, true);
-	    EasyTracker.getInstance(this).activityStop(this);  
-	}
-	
-	@Override
 	protected void onDestroy() {
-		QYRestClient.getIntance().cancelRequests(this, true);
 		webView.destroy();
 		unregisterGetReceiver();
 		super.onDestroy();

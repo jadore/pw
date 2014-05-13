@@ -35,20 +35,12 @@ public class MessageView extends AppActivity {
 	private PinnedHeaderListView mPinedListView0;
 	private MessageCenterAdapter mMessageViewAdapter;
 	private List<List<MessageEntity>> messsages;
-	
-	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this); 
-	    getNewsNumber();
-	}
-
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    EasyTracker.getInstance(this).activityStop(this);  
-	}
 	  
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

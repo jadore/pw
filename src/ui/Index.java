@@ -113,19 +113,8 @@ public class Index extends AppActivity implements IXListViewListener{
 	private boolean isSquare;
 	
 	@Override
-	public void onStart() {
-	    super.onStart();
-	    EasyTracker.getInstance(this).activityStart(this);  
-	}
-
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    EasyTracker.getInstance(this).activityStop(this);  
-	}
-	  
-	@Override
 	protected void onDestroy() {
+		EasyTracker.getInstance(this).activityStop(this);
 		super.onDestroy();
 	}
 	  
@@ -133,10 +122,15 @@ public class Index extends AppActivity implements IXListViewListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.index);
-		ShareSDK.initSDK(this);
+		EasyTracker.getInstance(this).activityStart(this);
 		initUI();
-		getCache();
 		isSquare = false;
+//		Handler jumpHandler = new Handler();
+//        jumpHandler.postDelayed(new Runnable() {
+//			public void run() {
+				getCache();
+//			}
+//		}, 100);
 	}
 	
 	private void initUI() {

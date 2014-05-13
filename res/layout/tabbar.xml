@@ -89,6 +89,36 @@
     	            android:layout_marginTop="2dp"
     	            android:layout_width="31dp"
     	            android:layout_height="31dp"
+    	            android:background="@drawable/tabbar_message"
+    	            android:layout_centerHorizontal="true"
+    	            />
+    	        <TextView 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="18dp"
+    	            android:layout_alignParentBottom="true"
+    	            android:text="发现"
+    	            android:gravity="center_horizontal"
+    	            android:textColor="@color/tabbar_text_color"
+    	            android:layout_marginBottom="2dp"
+    	            />
+    	    </RelativeLayout>
+    	    <RelativeLayout 
+    	        android:onClick="ButtonClick"
+    	        android:id="@+id/radio_button2"
+    	        style="@style/main_tab_bottom"
+    	        >
+    	        <View 
+    	            android:duplicateParentState="true"
+    	            android:layout_width="match_parent"
+    	            android:layout_height="0.5px"
+    	            android:background="#959595"
+    	            />
+    	        <ImageView 
+    	            android:duplicateParentState="true"
+    	            android:layout_marginTop="2dp"
+    	            android:layout_width="31dp"
+    	            android:layout_height="31dp"
     	            android:background="@drawable/tabbar_phone"
     	            android:layout_centerHorizontal="true"
     	            />
@@ -105,7 +135,7 @@
     	    </RelativeLayout>
     	    <RelativeLayout 
     	        android:onClick="ButtonClick"
-    	        android:id="@+id/radio_button2"
+    	        android:id="@+id/radio_button3"
     	        style="@style/main_tab_bottom"
     	        >
     	        <View 
@@ -133,52 +163,7 @@
     	            android:layout_marginBottom="2dp"
     	            />
     	    </RelativeLayout>
-    	    <RelativeLayout 
-    	        android:onClick="ButtonClick"
-    	        android:id="@+id/radio_button3"
-    	        style="@style/main_tab_bottom"
-    	        >
-    	        <View 
-    	            android:duplicateParentState="true"
-    	            android:layout_width="match_parent"
-    	            android:layout_height="0.5px"
-    	            android:background="#959595"
-    	            />
-    	        <ImageView 
-    	            android:duplicateParentState="true"
-    	            android:layout_marginTop="2dp"
-    	            android:layout_width="31dp"
-    	            android:layout_height="31dp"
-    	            android:background="@drawable/tabbar_message"
-    	            android:layout_centerHorizontal="true"
-    	            />
-    	        <TextView 
-    	            android:duplicateParentState="true"
-    	            android:layout_width="match_parent"
-    	            android:layout_height="18dp"
-    	            android:layout_alignParentBottom="true"
-    	            android:text="发现"
-    	            android:gravity="center_horizontal"
-    	            android:textColor="@color/tabbar_text_color"
-    	            android:layout_marginBottom="2dp"
-    	            />
-    	        <TextView
-			        android:id="@+id/messageView"
-			        android:layout_width="wrap_content"
-			        android:layout_height="18dp"
-			        android:textSize="11dp"
-			        android:minWidth="25dp"
-			        android:minHeight="18dp"
-			        android:background="@drawable/message_label"
-			        android:gravity="center"
-			        android:visibility="invisible"
-			        android:layout_alignParentRight="true"
-			        android:layout_alignParentTop="true"
-			        android:layout_marginRight="8dp"
-			        android:layout_marginTop="4dp"
-			        android:textColor="@color/white"
-			        />
-    	    </RelativeLayout>
+    	    
     	    <RelativeLayout 
     	        android:onClick="ButtonClick"
     	        android:id="@+id/radio_button4"
@@ -203,7 +188,7 @@
     	            android:layout_width="match_parent"
     	            android:layout_height="18dp"
     	            android:layout_alignParentBottom="true"
-    	            android:text="更多"
+    	            android:text="名片"
     	            android:gravity="center_horizontal"
     	            android:textColor="@color/tabbar_text_color"
     	            android:layout_marginBottom="2dp"
