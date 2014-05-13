@@ -464,12 +464,9 @@ public class WeFriendCardSearch  extends AppActivity implements OnScrollListener
 	                   null)            // Event value
 	      .build()
 		);
-		Uri uri = ContactsContract.Contacts.CONTENT_URI;
-		Uri personUri = ContentUris.withAppendedId(uri, Integer.valueOf(entity.code));
-		Intent intent2 = new Intent();
-		intent2.setAction(Intent.ACTION_VIEW);
-		intent2.setData(personUri);
-		context.startActivity(intent2);
+		Intent intent = new Intent(context, MobileVIew.class);
+		intent.putExtra(CommonValue.CardViewIntentKeyValue.CardView, entity);
+		startActivity(intent);
 	}
 
 	@Override
