@@ -41,6 +41,14 @@ public class MessageView extends AppActivity {
 		super.onDestroy();
 	}
 	
+	public void ButtonClick(View v) {
+		switch (v.getId()) {
+		case R.id.leftBarButton:
+			AppManager.getAppManager().finishActivity(this);
+			break;
+		}
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

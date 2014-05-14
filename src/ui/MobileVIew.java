@@ -1,7 +1,9 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -11,20 +13,25 @@ import com.squareup.picasso.Picasso;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
+import config.CommonValue.LianXiRenType;
 import contact.DateBean;
 import contact.EmailBean;
 import contact.MobileSynBean;
 import contact.PhoneBean;
+import sms.MessageBoxList;
 import tools.AppManager;
+import tools.BaseIntentUtil;
 import tools.CircleTransform;
 import tools.Logger;
 import tools.StringUtils;
 import ui.adapter.CardViewAdapter;
 import bean.CardIntroEntity;
 import bean.KeyValue;
+import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -42,12 +49,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class MobileVIew extends AppActivity{
+public class MobileVIew extends AppActivity implements OnItemClickListener{
 	private MobileSynBean person;
 	private CardIntroEntity card;
 	private ImageView avatarImageView;
@@ -59,7 +68,7 @@ public class MobileVIew extends AppActivity{
 	
 //	private Button callMobileButton;
 //	private Button saveMobileButton;
-//	private Button editMyMobileButton;
+	private Button shareFriendButton;
 //	private Button exchangeButton;
 //	private TextView exchangeView;
 	
@@ -107,7 +116,8 @@ public class MobileVIew extends AppActivity{
 		View footer = inflater.inflate(R.layout.card_view_footer, null);
 //		callMobileButton = (Button) footer.findViewById(R.id.callContactButton);
 //		saveMobileButton = (Button) footer.findViewById(R.id.saveContactButton);
-//		editMyMobileButton = (Button) footer.findViewById(R.id.editMyMobile);
+		shareFriendButton = (Button) footer.findViewById(R.id.shareFriendButton);
+		shareFriendButton.setVisibility(View.INVISIBLE);
 //		exchangeButton = (Button) footer.findViewById(R.id.exchangeMobile); 
 //		exchangeView = (TextView) footer.findViewById(R.id.exchangeView);
 		mListView = (ListView) findViewById(R.id.listView);
@@ -116,6 +126,7 @@ public class MobileVIew extends AppActivity{
 		mListView.setDividerHeight(0);
 		mCardViewAdapter = new CardViewAdapter(this, summarys);
 		mListView.setAdapter(mCardViewAdapter);
+		mListView.setOnItemClickListener(this);
 	}
 	
 	private void initData() {
@@ -139,10 +150,9 @@ public class MobileVIew extends AppActivity{
 			summarys.add(value);
 		}
 		mCardViewAdapter.notifyDataSetChanged();
-//		MyAsyncQueryHandler asyncQuery = new MyAsyncQueryHandler(getContentResolver());
-//	    Uri	uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-//	    asyncQuery.startQuery(0, null, uri, null, "contact_id=?", new String[]{card.code}, null);
-		handleCursor();
+		MyAsyncQueryHandler asyncQuery = new MyAsyncQueryHandler(getContentResolver());
+	    Uri	uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+	    asyncQuery.startQuery(0, null, uri, null, "contact_id=?", new String[]{card.code}, null);
 	}
 	
 	private class MyAsyncQueryHandler extends AsyncQueryHandler {
@@ -153,11 +163,11 @@ public class MobileVIew extends AppActivity{
 
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-//			handleCursor(cursor);
+			handleCursor(cursor);
 		}
 	}
 	
-	private void handleCursor() {
+	private void handleCursor(final Cursor cursor) {
 		final Handler handler1 = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
@@ -174,56 +184,15 @@ public class MobileVIew extends AppActivity{
 		singleThreadExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				Cursor cursor = getContentResolver().query(Data.CONTENT_URI,null, "contact_id=?", new String[]{card.code}, null);
-				while (cursor.moveToNext()) {
-					String mimetype = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
-					if (Phone.CONTENT_ITEM_TYPE.equals(mimetype)) {
-					    PhoneBean phoneBean = new PhoneBean();
-				     	phoneBean.phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
-				     	phoneBean.label = "手机";
-				     	person.phone.add(phoneBean);
-				   }
-				   if (Email.CONTENT_ITEM_TYPE.equals(mimetype)) {
-					   EmailBean emailBean = new EmailBean();
-					   emailBean.email = cursor.getString(cursor.getColumnIndex(Email.DATA));
-					   emailBean.label = "邮箱";
-					   person.email.add(emailBean);
-				   }
-				   if (Event.CONTENT_ITEM_TYPE.equals(mimetype)) {
-					   int eventType = cursor.getInt(cursor.getColumnIndex(Event.TYPE));
-					   switch (eventType) {
-					   case Event.TYPE_CUSTOM:
-						   DateBean date = new DateBean();
-						   date.date = cursor.getString(cursor.getColumnIndex(Event.START_DATE));
-						   date.label = cursor.getString(cursor.getColumnIndex(Event.LABEL));
-						   person.dates.add(date);
-						   break;
-					   case Event.TYPE_ANNIVERSARY:
-						   DateBean date1 = new DateBean();
-						   date1.date = cursor.getString(cursor.getColumnIndex(Event.START_DATE));
-						   date1.label = cursor.getString(cursor.getColumnIndex(Event.LABEL));
-						   person.dates.add(date1);
-						   break;
-					   case Event.TYPE_OTHER:
-						   DateBean date2 = new DateBean();
-						   date2.date = cursor.getString(cursor.getColumnIndex(Event.START_DATE));
-						   date2.label = "其他";
-						   person.dates.add(date2);
-						   break;
-					   case Event.TYPE_BIRTHDAY:
-						   String birthday = cursor.getString(cursor.getColumnIndex(Event.START_DATE));
-						   person.birthday = birthday==null?"":birthday;
-						   break;
-					   }
-				   }
-				   if (Organization.CONTENT_ITEM_TYPE.equals(mimetype)) {
-					   String organization = cursor.getString(cursor.getColumnIndex(Organization.COMPANY));
-					   String jobtitle = cursor.getString(cursor.getColumnIndex(Organization.TITLE));
-					   String department = cursor.getString(cursor.getColumnIndex(Organization.DEPARTMENT));
-					   person.organization = organization==null?"":organization;
-					   person.jobtitle = jobtitle==null?"":jobtitle;
-					   person.department = department==null?"":department;
-				   }
+				if (cursor != null && cursor.getCount() > 0) {
+					cursor.moveToFirst();
+					for (int i = 0; i < cursor.getCount(); i++) {
+						cursor.moveToPosition(i);
+						PhoneBean phoneBean = new PhoneBean();
+						phoneBean.label = "手机";
+						phoneBean.phone = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
+						person.phone.add(phoneBean);
+					}
 				}
 				handler1.sendEmptyMessage(1);
 			}
@@ -280,4 +249,46 @@ public class MobileVIew extends AppActivity{
 		context.startActivity(intent2);
 	}
 	
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+		position = position - 1;
+		if (position>=0 && position <summarys.size()) {
+			KeyValue model = summarys.get(position);
+			showContactDialog(model);
+		}
+	}
+	
+	private String[] lianxiren1 = new String[] { "拨打电话", "发送短信"};
+	private void showContactDialog(final KeyValue model){
+		if(!model.key.equals("手机")) {
+			return;
+		}
+		new AlertDialog.Builder(this).setTitle("").setItems(lianxiren1,
+				new DialogInterface.OnClickListener(){
+			public void onClick(DialogInterface dialog, int which){
+				switch(which){
+				case 0://打电话
+					callMobile(model.value);
+					break;
+				case 1://发短息
+					sendSMS(model.value);
+					break;
+				}
+			}
+		}).show();
+	}
+	
+
+	private void callMobile(String moblie) {
+		Uri uri = null;
+		uri = Uri.parse("tel:" + moblie);
+		Intent it = new Intent(Intent.ACTION_CALL, uri);
+		startActivity(it);
+	}
+	
+	private void sendSMS(String moblie) {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("phoneNumber", moblie);
+		BaseIntentUtil.intentSysDefault(this, MessageBoxList.class, map);
+	}
 }

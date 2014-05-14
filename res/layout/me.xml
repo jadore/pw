@@ -18,6 +18,18 @@
             android:textColor="@color/white"
             android:textSize="@dimen/navbar_title_size"
             />
+        
+        <ImageButton 
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/rightBarButton"        
+           	android:layout_width="44dp"      
+          	android:layout_height="44dp"
+          	android:onClick="ButtonClick"
+          	android:layout_marginRight="5dp"
+          	android:src="@drawable/more"
+          	android:background="@null"
+            />
     </RelativeLayout>
     
     <ExpandableListView

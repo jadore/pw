@@ -68,6 +68,7 @@ public class TitlePopup extends PopupWindow {
 	}
 		
 	private void initUI(){
+		
 		mListView = (ListView) getContentView().findViewById(R.id.title_list);
 		
 		mListView.setOnItemClickListener(new OnItemClickListener() {
@@ -89,7 +90,15 @@ public class TitlePopup extends PopupWindow {
 		if(mIsDirty){
 			populateActions();
 		}
-		showAtLocation(view, popupGravity, mScreenWidth - LIST_PADDING - (getWidth()/2), 0);
+		showAtLocation(view, popupGravity, mScreenWidth - LIST_PADDING - (getWidth()/2)-20, ImageUtils.dip2px(mContext, 44)+getStatusBarHeight());
+	}
+	public int getStatusBarHeight() {
+		  int result = 0;
+		  int resourceId = mContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
+		  if (resourceId > 0) {
+		      result = mContext.getResources().getDimensionPixelSize(resourceId);
+		  }
+		  return result;
 	}
 	
 	static class CellHolder {
@@ -116,6 +125,7 @@ public class TitlePopup extends PopupWindow {
 				}
 				ActionItem item = mActionItems.get(position);
 				cell.titleView.setText(item.mTitle);
+				cell.titleView.setTextColor(mContext.getResources().getColor(R.color.white));
 				cell.iconView.setImageDrawable(item.mDrawable);
 				convertView.setBackgroundColor(mContext.getResources().getColor(R.color.nav_color));
 				return convertView;

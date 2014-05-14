@@ -12,6 +12,9 @@ import tools.StringUtils;
 import tools.UIHelper;
 import tools.UpdateManager;
 import ui.adapter.MeCardAdapter;
+import widget.ActionItem;
+import widget.TitlePopup;
+import widget.TitlePopup.OnItemOnClickListener;
 import za.co.immedia.pinnedheaderlistview.PinnedHeaderListView;
 import bean.CardIntroEntity;
 import bean.CardListEntity;
@@ -40,6 +43,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ImageView;
@@ -65,6 +69,8 @@ public class Me extends AppActivity{
 	.displayer(new RoundedBitmapDisplayer(10))
 	.build();
 	
+	private TitlePopup titlePopup;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -79,8 +85,7 @@ public class Me extends AppActivity{
 	public void ButtonClick(View v) {
 		switch (v.getId()) {
 		case R.id.rightBarButton:
-			Intent intent = new Intent(Me.this, Setting.class);
-			startActivity(intent);
+			titlePopup.show(v);
 			break;
 		}
 	}
@@ -107,6 +112,27 @@ public class Me extends AppActivity{
 			public boolean onGroupClick(ExpandableListView arg0, View arg1, int position,
 					long arg3) {
 				return true;
+			}
+		});
+		titlePopup = new TitlePopup(this, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		titlePopup.addAction(new ActionItem(this, "设置", R.drawable.icon_set_setting));
+		titlePopup.addAction(new ActionItem(this, "客服反馈", R.drawable.icon_set_feedback));
+		titlePopup.addAction(new ActionItem(this, "版本升级("+getCurrentVersionName()+")", R.drawable.icon_set_update));
+		titlePopup.setItemOnClickListener(new OnItemOnClickListener() {
+			@Override
+			public void onItemClick(ActionItem item, int position) {
+				switch (position) {
+				case 0:
+					showSetting();
+					break;
+
+				case 1:
+					showFeedback();
+					break;
+				case 2:
+					showUpdate();
+					break;
+				}
 			}
 		});
 	}
@@ -158,26 +184,26 @@ public class Me extends AppActivity{
 		ops.add(op1);
 		cards.add(ops);
 		
-		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
-		CardIntroEntity op20 = new CardIntroEntity();
-		op20.realname = "设置";
-		op20.position = "";
-		op20.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		op20.department = R.drawable.icon_set_setting+"";
-		ops2.add(op20);
-		CardIntroEntity op21 = new CardIntroEntity();
-		op21.realname = "客服反馈";
-		op21.position = "";
-		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		op21.department = R.drawable.icon_set_feedback+"";
-		ops2.add(op21);
-		CardIntroEntity op22 = new CardIntroEntity();
-		op22.realname = "版本升级("+getCurrentVersionName()+")";
-		op22.position = "";
-		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
-		op22.department = R.drawable.icon_set_update+"";
-		ops2.add(op22);
-		cards.add(ops2);
+//		List<CardIntroEntity> ops2 = new ArrayList<CardIntroEntity>();
+//		CardIntroEntity op20 = new CardIntroEntity();
+//		op20.realname = "设置";
+//		op20.position = "";
+//		op20.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+//		op20.department = R.drawable.icon_set_setting+"";
+//		ops2.add(op20);
+//		CardIntroEntity op21 = new CardIntroEntity();
+//		op21.realname = "客服反馈";
+//		op21.position = "";
+//		op21.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+//		op21.department = R.drawable.icon_set_feedback+"";
+//		ops2.add(op21);
+//		CardIntroEntity op22 = new CardIntroEntity();
+//		op22.realname = "版本升级("+getCurrentVersionName()+")";
+//		op22.position = "";
+//		op22.cardSectionType = CommonValue.CardSectionType .FeedbackSectionType;
+//		op22.department = R.drawable.icon_set_update+"";
+//		ops2.add(op22);
+//		cards.add(ops2);
 	}
 	
 	/**

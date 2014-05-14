@@ -103,9 +103,12 @@ public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEnt
 			}
 			if (!info.isNull("creator")) {
 				JSONObject creatorObj = new JSONObject(info.getString("creator"));
-				if (!info.isNull("nickname")) {
+				if (!creatorObj.isNull("nickname")) {
 					data.creator = creatorObj.getString("nickname");
 				}
+			}
+			if (!info.isNull("nickname")) {
+				data.creator = info.getString("nickname");
 			}
 			data.phoneSectionType = sectionType;
 			if (!info.isNull("link")) {
@@ -127,6 +130,7 @@ public class PhoneIntroEntity extends Entity implements Comparable<PhoneIntroEnt
 		    data.family_intro = String.format("%s%s%s%s", hallTemp, familyTemp, cityTemp, memberTemp);
 		} catch (JSONException e) {
 			Logger.i(e);
+			Logger.i(info.toString());
 			throw AppException.json(e);
 		}
 		return data;
