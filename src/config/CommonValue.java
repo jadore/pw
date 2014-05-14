@@ -10,7 +10,7 @@ import com.nostra13.universalimageloader.core.assist.LoadedFrom;
 import com.nostra13.universalimageloader.core.display.BitmapDisplayer;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.nostra13.universalimageloader.core.imageaware.ImageAware;
-import com.vikaa.baseapp.R;
+import com.vikaa.mycontact.R;
 
 public class CommonValue {
 	public static final int USER_NOT_IN_ERROR = 1001;
@@ -68,9 +68,9 @@ public class CommonValue {
 		public DisplayImageOptions default_options 
 		= new DisplayImageOptions.Builder()
 				.bitmapConfig(Bitmap.Config.RGB_565)
-				.showImageOnLoading(R.drawable.ic_launcher)
-				.showImageForEmptyUri(R.drawable.ic_launcher)
-				.showImageOnFail(R.drawable.ic_launcher)
+				.showImageOnLoading(R.drawable.content_image_loading)
+				.showImageForEmptyUri(R.drawable.content_image_loading)
+				.showImageOnFail(R.drawable.content_image_loading)
 				.cacheInMemory(true)
 				.cacheOnDisc(true)
 				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
@@ -93,9 +93,9 @@ public class CommonValue {
 		
 		public DisplayImageOptions avatar_options = new DisplayImageOptions.Builder()
 		.bitmapConfig(Bitmap.Config.RGB_565)
-		.showImageOnLoading(R.drawable.ic_launcher)
-		.showImageForEmptyUri(R.drawable.ic_launcher)
-		.showImageOnFail(R.drawable.ic_launcher)
+		.showImageOnLoading(R.drawable.avatar_placeholder)
+		.showImageForEmptyUri(R.drawable.avatar_placeholder)
+		.showImageOnFail(R.drawable.avatar_placeholder)
 		.cacheInMemory(true)
 		.cacheOnDisc(true)
 		.imageScaleType(ImageScaleType.EXACTLY_STRETCHED) 

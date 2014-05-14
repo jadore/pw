@@ -9,11 +9,9 @@ import java.util.concurrent.Executors;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
-import com.squareup.picasso.Picasso;
 import com.vikaa.mycontact.R;
 
 import config.CommonValue;
-import config.CommonValue.LianXiRenType;
 import contact.DateBean;
 import contact.EmailBean;
 import contact.MobileSynBean;
@@ -21,8 +19,6 @@ import contact.PhoneBean;
 import sms.MessageBoxList;
 import tools.AppManager;
 import tools.BaseIntentUtil;
-import tools.CircleTransform;
-import tools.Logger;
 import tools.StringUtils;
 import ui.adapter.CardViewAdapter;
 import bean.CardIntroEntity;
@@ -39,10 +35,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.ContactsContract.CommonDataKinds.Event;
-import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -132,14 +124,7 @@ public class MobileVIew extends AppActivity implements OnItemClickListener{
 	private void initData() {
 		person = new MobileSynBean();
 		card = (CardIntroEntity) getIntent().getSerializableExtra(CommonValue.CardViewIntentKeyValue.CardView);
-		Picasso.with(context)
-        .load(card.avatar)
-        .placeholder(R.drawable.avatar_placeholder)
-        .error(R.drawable.avatar_placeholder)
-        .resize(100, 100)
-        .centerCrop()
-        .transform(new CircleTransform())
-        .into(avatarImageView);
+		imageLoader.displayImage(card.avatar, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 		nameView.setText(card.realname);
 		titleView.setText("");
 		summarys.clear();

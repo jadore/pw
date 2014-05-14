@@ -9,7 +9,6 @@ import pomelo.PomeloClient;
 
 import com.loopj.android.http.PersistentCookieStore;
 import com.nostra13.universalimageloader.utils.L;
-import com.squareup.picasso.Picasso;
 import com.vikaa.mycontact.BuildConfig;
 
 import service.QYEnterService;

@@ -1,11 +1,20 @@
 package ui.adapter;
 
 import java.util.List;
-import com.squareup.picasso.Picasso;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.LoadedFrom;
+import com.nostra13.universalimageloader.core.display.BitmapDisplayer;
+import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.vikaa.mycontact.R;
 
+import config.CommonValue.DisplayOptions;
+import config.CommonValue.LianXiRenType;
 import bean.CardIntroEntity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +27,7 @@ public class FriendCardAdapter extends BaseAdapter {
 	private Context context;
 	private LayoutInflater inflater;
 	private List<CardIntroEntity> cards;
+	private DisplayImageOptions displayOption;
 	
 	static class CellHolder {
 		TextView alpha;
@@ -31,6 +41,22 @@ public class FriendCardAdapter extends BaseAdapter {
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
 		this.cards = cards;
+		this.displayOption = new DisplayImageOptions.Builder()
+		.bitmapConfig(Bitmap.Config.RGB_565)
+		.showImageOnLoading(R.drawable.avatar_placeholder)
+		.showImageForEmptyUri(R.drawable.avatar_placeholder)
+		.showImageOnFail(R.drawable.avatar_placeholder)
+		.cacheInMemory(true)
+		.cacheOnDisc(true)
+		.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
+		.displayer(new BitmapDisplayer() {
+			@Override
+			public void display(Bitmap bitmap, ImageAware imageAware,
+					LoadedFrom loadedFrom) {
+				imageAware.setImageBitmap(bitmap);
+			}
+		})
+		.build();
 	}
 	
 	@Override
@@ -66,13 +92,7 @@ public class FriendCardAdapter extends BaseAdapter {
 		}
 		final CardIntroEntity model = cards.get(groupPosition);
 
-		Picasso.with(context)
-        .load(model.avatar)
-        .placeholder(R.drawable.avatar_placeholder)
-        .error(R.drawable.avatar_placeholder)
-        .resize(50, 50)
-        .centerCrop()
-        .into(cell.avatarImageView);
+		ImageLoader.getInstance().displayImage(model.avatar, cell.avatarImageView, displayOption);
 		
 		cell.titleView.setText(model.realname);
 		cell.desView.setText(String.format("%s %s", model.department, model.position));

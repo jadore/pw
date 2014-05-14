@@ -13,7 +13,6 @@ import sms.MessageBoxList;
 import tools.AppException;
 import tools.AppManager;
 import tools.BaseIntentUtil;
-import tools.CircleTransform;
 import tools.Logger;
 import tools.MD5Util;
 import tools.StringUtils;
@@ -26,7 +25,7 @@ import bean.Result;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 
 import com.crashlytics.android.Crashlytics;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.assist.DiscCacheUtil;
 import com.vikaa.mycontact.R;
 
 import config.AppClient;
@@ -179,14 +178,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 				}
 			}
 		}
-		Picasso.with(context)
-        .load(entity.avatar)
-        .placeholder(R.drawable.avatar_placeholder)
-        .error(R.drawable.avatar_placeholder)
-        .resize(100, 100)
-        .centerCrop()
-        .transform(new CircleTransform())
-        .into(avatarImageView);
+		imageLoader.displayImage(entity.avatar, avatarImageView, CommonValue.DisplayOptions.avatar_options);
 		nameView.setText(entity.realname);
 		titleView.setText(entity.department +" " +entity.position);
 		summarys.clear();
@@ -606,8 +598,14 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 	}
 
 	public void cardSharePre(final boolean silent, final String platform, final CardIntroEntity card) {
-		if (StringUtils.empty(appContext.getLoginInfo().headimgurl)) {
+		
+		if (StringUtils.empty(card.avatar)) {
 			cardShare(silent, platform, card, "");
+			return;
+		}
+		File file1 = DiscCacheUtil.findInCache(card.avatar, imageLoader.getDiscCache());
+		if (file1 != null) {
+			cardShare(silent, platform, card, file1.getAbsolutePath());
 			return;
 		}
 		String storageState = Environment.getExternalStorageState();	
@@ -619,7 +617,7 @@ public class CardView extends AppActivity implements OnItemClickListener  {
 			}
 			else {
 				loadingPd = UIHelper.showProgress(this, null, null, true);
-				AppClient.downFile(this, appContext, appContext.getLoginInfo().headimgurl, ".png", new FileCallback() {
+				AppClient.downFile(this, appContext, card.avatar, ".png", new FileCallback() {
 					@Override
 					public void onSuccess(String filePath) {
 						UIHelper.dismissProgress(loadingPd);

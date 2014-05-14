@@ -44,9 +44,9 @@ public class MyCardAdapter extends BaseAdapter{
 		this.imageLoader = imageLoader;
 		this.displayOptions = new DisplayImageOptions.Builder()
 		.bitmapConfig(Bitmap.Config.RGB_565)
-		.showImageOnLoading(R.drawable.ic_launcher)
-		.showImageForEmptyUri(R.drawable.ic_launcher)
-		.showImageOnFail(R.drawable.ic_launcher)
+		.showImageOnLoading(R.drawable.avatar_placeholder)
+		.showImageForEmptyUri(R.drawable.avatar_placeholder)
+		.showImageOnFail(R.drawable.avatar_placeholder)
 		.cacheInMemory(true)
 		.cacheOnDisc(true)
 		.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) 
